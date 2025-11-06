@@ -14,8 +14,14 @@ function createWindow() {
     }
   });
 
-  // Enable click-through (mouse events pass through the window)
-  win.setIgnoreMouseEvents(true);
+  // Enable click-through based on command line flag
+  const enableClickThrough = process.argv.includes('--click-through');
+  if (enableClickThrough) {
+    win.setIgnoreMouseEvents(true);
+    console.log('Click-through enabled');
+  } else {
+    console.log('Click-through disabled - window is interactive');
+  }
 
   win.loadFile('index.html');
 
