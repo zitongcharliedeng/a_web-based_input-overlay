@@ -34,7 +34,7 @@
 
 body {
 	font: 1em Lucida Console;
-	background-color: transparent;
+	background-color: rgba(0, 100, 0, 0.3); /* Temporary: semi-transparent green so you can see the window */
 	margin: 0px auto;
 	overflow: hidden;
 }

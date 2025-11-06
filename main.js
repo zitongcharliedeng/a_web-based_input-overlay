@@ -14,6 +14,9 @@ function createWindow() {
     }
   });
 
+  // Enable click-through (mouse events pass through the window)
+  win.setIgnoreMouseEvents(true);
+
   win.loadFile('index.html');
 
   // Open DevTools in development
