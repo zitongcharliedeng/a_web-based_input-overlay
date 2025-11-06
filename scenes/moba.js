@@ -37,27 +37,27 @@ function scene_default(canvas, ctx) {
         // ),
         new Key(
             0, 0, 100, 100,
-            { axis: 0, revertedAxis: true, linkedAxis: 1, keyText: "Q", backgroundImage: KeyImage }
+            { keyCode: "KeyQ", keyText: "Q (keyCode only)", backgroundImage: KeyImage }
         ),
         new Key(
             100, 0, 100, 100,
-            { axis: 1, revertedAxis: true, linkedAxis: 0, keyText: "W", backgroundImage: KeyImage }
+            { keyCode: "KeyW", axis: 1, revertedAxis: true, keyText: "W (key+axis)", backgroundImage: KeyImage }
         ),
         new Key(
             200, 0, 100, 100,
-            { axis: 2, revertedAxis: true, linkedAxis: 3, keyText: "E", backgroundImage: KeyImage }
+            { keyCode: "KeyE", linkedAxis: 0, keyText: "E (key+linked)", backgroundImage: KeyImage }
         ),
         new Key(
             300, 0, 100, 100,
-            { axis: 3, revertedAxis: true, linkedAxis: 2, keyText: "R", backgroundImage: KeyImage }
+            { axis: 3, revertedAxis: true, linkedAxis: 2, keyText: "R (axis only)", backgroundImage: KeyImage }
         ),
         new Key(
             230, 100, 100, 100,
-            { button: 6, keyText: "D", backgroundImage: KeyImage }
+            { keyCode: "KeyD", button: 6, keyText: "D (key+button)", backgroundImage: KeyImage }
         ),
         new Key(
             330, 100, 100, 100,
-            { button: 7, keyText: "F", backgroundImage: KeyImage }
+            { keyCode: "KeyF", keyText: "F (keyCode only)", backgroundImage: KeyImage }
         ),
         credit
     ];

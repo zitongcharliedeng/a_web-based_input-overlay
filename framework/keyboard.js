@@ -1,13 +1,8 @@
-var keyboard = {
-    KeyA: false,
-    KeyW: false,
-    KeyS: false,
-    KeyD: false,
-}
+var keyboard = {}
 
 document.addEventListener('keydown', function(e) {
 
-    if (keyboard[ e.code ] === false) {
+    if (keyboard[ e.code ] !== true) {
 
         keyboard[ e.code ] = true;
     }
