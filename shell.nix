@@ -34,10 +34,8 @@ in pkgs.mkShell {
       local count=0
       if [ -d "node_modules" ]; then
         while IFS= read -r -d "" nodefile; do
-          if patchelf \
-            --set-interpreter "$(cat ${pkgs.stdenv.cc}/nix-support/dynamic-linker)" \
-            --set-rpath "${rpath}" \
-            "$nodefile" 2>/dev/null; then
+          # .node files are shared libraries, only need RPATH (not interpreter)
+          if patchelf --set-rpath "${rpath}" "$nodefile" 2>/dev/null; then
             ((count++))
             echo "  ✓ Patched: $nodefile"
           fi
