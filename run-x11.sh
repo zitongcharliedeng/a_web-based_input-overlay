@@ -13,4 +13,5 @@ set -e
 
 # Use shell.nix for proper native module support
 # Force X11/XWayland mode (recommended for uiohook-napi on Wayland)
-nix-shell --run "ELECTRON_OZONE_PLATFORM_HINT=x11 electron . $*"
+# Set DISPLAY to connect to XWayland (usually :0 or :1 on niri)
+nix-shell --run "DISPLAY=:1 ELECTRON_OZONE_PLATFORM_HINT=x11 electron . $*"
