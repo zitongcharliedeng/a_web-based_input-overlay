@@ -80,6 +80,10 @@ const defaultKeyProperties: KeyProperties = {
 
 /**
  * Converts stick configuration to standard gamepad API axis index
+ * Maps: left X=0, left Y=1, right X=2, right Y=3
+ *
+ * TODO: Right stick (type="right") is untested due to lack of hardware.
+ *       Assumes symmetry with left stick. Test when right stick controller available.
  */
 function asConventionalGamepadAxisNumber(stick: GamepadStickInput): number | null {
 	if (stick.type === null || stick.axis === null) return null;
