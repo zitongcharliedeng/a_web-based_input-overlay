@@ -29,7 +29,7 @@ interface InputConfig {
 	};
 }
 
-interface KeyProperties {
+interface LinearInputIndicatorProperties {
 	input: InputConfig;
 	// NOT YET REFACTORED
 	keyText: string;
@@ -38,7 +38,7 @@ interface KeyProperties {
 	size: number;
 	multiplier: number;
 	antiDeadzone: number;
-	backgroundImage: HTMLImageElement;
+	backgroundImage: HTMLImageElement;  // TODO: Make user-customizable instead of hardcoded in scenes
 	fillStyle: string;
 	fillStyleBackground: string;
 	fillSize: number;
@@ -46,7 +46,7 @@ interface KeyProperties {
 }
 
 // Default restorepoint properties
-const defaultKeyProperties: KeyProperties = {
+const defaultLinearInputIndicatorProperties: LinearInputIndicatorProperties = {
 	// === INPUT DETECTION (refactored) ===
 	input: {
 		keyboard: {
@@ -90,17 +90,17 @@ function asConventionalGamepadAxisNumber(stick: GamepadStickInput): number | nul
 	return (stick.type === "left" ? 0 : 2) + (stick.axis === "X" ? 0 : 1);
 }
 
-// Thumbstick object
-function Key(x: number, y: number, width: number, height: number, properties?: Partial<KeyProperties>) {
+// LinearInputIndicator - Visual representation of linear (0-1.0) input value
+function LinearInputIndicator(x: number, y: number, width: number, height: number, properties?: Partial<LinearInputIndicatorProperties>) {
 
 	// Framework properties
 	this.x = x; this.y = y;
 	this.width = width; this.height = height;
-    this.defaultProperties = defaultKeyProperties;
-    this.className = "Key";
+    this.defaultProperties = defaultLinearInputIndicatorProperties;
+    this.className = "LinearInputIndicator";
 
 	// Object properties
-	applyProperties(this, defaultKeyProperties);
+	applyProperties(this, defaultLinearInputIndicatorProperties);
 	// Custom object properties
 	applyProperties(this, properties);
 
@@ -125,7 +125,7 @@ function Key(x: number, y: number, width: number, height: number, properties?: P
 
 
 // Update loop
-Key.prototype.update = function (delta) {
+LinearInputIndicator.prototype.update = function (delta) {
 
 	var value = 0;
 	var linkedValue = 0;
@@ -180,7 +180,7 @@ Key.prototype.update = function (delta) {
 
 
 // Draw function
-Key.prototype.draw = function (canvas, ctx) {
+LinearInputIndicator.prototype.draw = function (canvas, ctx) {
 
 	var fillOffset = -(this.fillSize-this.size)*.5
 

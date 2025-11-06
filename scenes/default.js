@@ -5,13 +5,6 @@ function scene_default(canvas, ctx) {
     var KeyImage = new Image();
     KeyImage.src = "./images/KeyDefault.png";
 
-    // The shameless credits that fade away after launch
-    var credit = new Text(
-        canvas.width*.5, canvas.height-25, 300, 50,
-        {text:"Created by DarrenVs",textAlign:"center",fillStyle:"rgba(108, 108, 108)",font:"26px Lucida Console"}
-    );
-    var creditsAlpha = 1;
-    var fadeTime = 7;
 
     // Object dragging info
     var clickedObject = null;
@@ -36,7 +29,7 @@ function scene_default(canvas, ctx) {
             }
         ),
         // WASD - Left stick analog (NEW API)
-        new Key(
+        new LinearInputIndicator(
             canvas.width-300+85, 50+0, 100, 100,
             {
                 input: {
@@ -49,7 +42,7 @@ function scene_default(canvas, ctx) {
                 linkedAxis: 0, keyText:"W", backgroundImage:KeyImage
             }
         ),
-        new Key(
+        new LinearInputIndicator(
             canvas.width-300+0, 50+100, 100, 100,
             {
                 input: {
@@ -62,7 +55,7 @@ function scene_default(canvas, ctx) {
                 linkedAxis: 1, keyText:"A", backgroundImage:KeyImage
             }
         ),
-        new Key(
+        new LinearInputIndicator(
             canvas.width-300+100, 50+100, 100, 100,
             {
                 input: {
@@ -75,7 +68,7 @@ function scene_default(canvas, ctx) {
                 linkedAxis: 0, keyText:"S", backgroundImage:KeyImage
             }
         ),
-        new Key(
+        new LinearInputIndicator(
             canvas.width-300+200, 50+100, 100, 100,
             {
                 input: {
@@ -89,7 +82,7 @@ function scene_default(canvas, ctx) {
             }
         ),
         // Row 1: Digital keyboard only
-        new Key(
+        new LinearInputIndicator(
             canvas.width-300+0, 50+210, 100, 100,
             {
                 input: {
@@ -102,7 +95,7 @@ function scene_default(canvas, ctx) {
                 keyText:"Z\ndigital", backgroundImage:KeyImage
             }
         ),
-        new Key(
+        new LinearInputIndicator(
             canvas.width-300+100, 50+210, 100, 100,
             {
                 input: {
@@ -115,7 +108,7 @@ function scene_default(canvas, ctx) {
                 keyText:"X\ndigital", backgroundImage:KeyImage
             }
         ),
-        new Key(
+        new LinearInputIndicator(
             canvas.width-300+200, 50+210, 100, 100,
             {
                 input: {
@@ -129,7 +122,7 @@ function scene_default(canvas, ctx) {
             }
         ),
         // Row 2: Right stick analog
-        new Key(
+        new LinearInputIndicator(
             canvas.width-300+0, 50+320, 100, 100,
             {
                 input: {
@@ -142,7 +135,7 @@ function scene_default(canvas, ctx) {
                 linkedAxis: 2, keyText:"I\nRstick↑", backgroundImage:KeyImage
             }
         ),
-        new Key(
+        new LinearInputIndicator(
             canvas.width-300+100, 50+320, 100, 100,
             {
                 input: {
@@ -155,7 +148,7 @@ function scene_default(canvas, ctx) {
                 linkedAxis: 2, keyText:"K\nRstick↓", backgroundImage:KeyImage
             }
         ),
-        new Key(
+        new LinearInputIndicator(
             canvas.width-300+200, 50+320, 100, 100,
             {
                 input: {
@@ -167,8 +160,7 @@ function scene_default(canvas, ctx) {
                 },
                 linkedAxis: 3, keyText:"L\nRstick→", backgroundImage:KeyImage
             }
-        ),
-        credit
+        )
     ];
 
 
@@ -249,12 +241,5 @@ function scene_default(canvas, ctx) {
         }
 
 
-        // Fade credits away
-        if (creditsAlpha > 0) {
-            credit.textStyle.fillStyle = "rgba(108, 108, 108, "+ creditsAlpha +")";
-            creditsAlpha -= (1/fadeTime) * delta;
-
-            return true;
-        }
     }
 }
