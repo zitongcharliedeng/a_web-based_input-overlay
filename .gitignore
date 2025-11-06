@@ -4,7 +4,3 @@
 # Node modules
 node_modules/
 package-lock.json
-
-# TypeScript compiled output
-compiled/
-browserInputOverlayView/_compiled/
