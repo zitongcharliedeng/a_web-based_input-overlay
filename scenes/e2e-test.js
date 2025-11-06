@@ -93,7 +93,7 @@ function scene_default(canvas, ctx) {
 
         // WASD - WITHOUT radial compensation (linkedAxis: -1)
         new LinearInputIndicator(
-            490, yOffset + 60, 100, 100,
+            740, yOffset + 60, 100, 100,
             {
                 input: {
                     keyboard: { keyCode: null },
@@ -106,7 +106,7 @@ function scene_default(canvas, ctx) {
             }
         ),
         new LinearInputIndicator(
-            400, yOffset + 160, 100, 100,
+            650, yOffset + 160, 100, 100,
             {
                 input: {
                     keyboard: { keyCode: null },
@@ -119,7 +119,7 @@ function scene_default(canvas, ctx) {
             }
         ),
         new LinearInputIndicator(
-            500, yOffset + 160, 100, 100,
+            750, yOffset + 160, 100, 100,
             {
                 input: {
                     keyboard: { keyCode: null },
@@ -132,7 +132,7 @@ function scene_default(canvas, ctx) {
             }
         ),
         new LinearInputIndicator(
-            600, yOffset + 160, 100, 100,
+            850, yOffset + 160, 100, 100,
             {
                 input: {
                     keyboard: { keyCode: null },
@@ -146,11 +146,11 @@ function scene_default(canvas, ctx) {
         ),
 
         // ===== TEST CASE 1B: Right Gamepad Stick =====
-        (function() { yOffset += sectionSpacing; return createLabel(20, yOffset, "TEST 1B: Right Gamepad Stick (IJKL)"); })(),
-        createLabel(20, yOffset + 25, "Same as Test 1, but using right stick instead of left"),
+        createLabel(1050, yOffset, "TEST 1B: Right Gamepad Stick (IJKL)"),
+        createLabel(1050, yOffset + 25, "Same as Test 1, but using right stick"),
 
         new LinearInputIndicator(
-            150, yOffset + 60, 100, 100,
+            1050, yOffset + 60, 100, 100,
             {
                 input: {
                     keyboard: { keyCode: null },
@@ -163,7 +163,7 @@ function scene_default(canvas, ctx) {
             }
         ),
         new LinearInputIndicator(
-            250, yOffset + 160, 100, 100,
+            1050, yOffset + 160, 100, 100,
             {
                 input: {
                     keyboard: { keyCode: null },
@@ -176,7 +176,7 @@ function scene_default(canvas, ctx) {
             }
         ),
         new LinearInputIndicator(
-            350, yOffset + 160, 100, 100,
+            1150, yOffset + 160, 100, 100,
             {
                 input: {
                     keyboard: { keyCode: null },
