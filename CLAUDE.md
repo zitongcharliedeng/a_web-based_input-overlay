@@ -993,6 +993,13 @@ Extend to VR gaming:
   - Used `_` prefix for system/helper folders
   - Merged game loop + scenes into single default.js
   - Fixed TEST 1B to include all 4 directions (added missing J key)
+- ✅ **Electron Migration:**
+  - Converted from web-based to Electron overlay app
+  - Implemented BaseWindow + WebContentsView API (newer Electron API)
+  - Added GTK-3 flag for Linux compatibility
+  - Enhanced always-on-top with screen-saver level
+  - Fixed transparency (both window and view backgrounds)
+  - Created run scripts for NixOS (interactive + click-through modes)
 
 ### Current State
 - **Repository**: `https://github.com/zitongcharliedeng/a_web-based_input-overlay.git`
@@ -1067,6 +1074,15 @@ Extend to VR gaming:
 - [ ] Convert Thumbstick.js to TypeScript (apply nested config pattern)
 - [ ] Rename `linkedAxis` to better mathematical term (radialCompensationAxis or perpendicularAxis)
 - [ ] Make KeyImage user-customizable property (currently hardcoded in default.js scene)
+
+**Click-Through Investigation (COSMIC Limitation):**
+- ⚠️ `setIgnoreMouseEvents(true)` does NOT work on COSMIC compositor (both Wayland and X11/XWayland modes)
+- ✅ Researched stream-overlay implementation (uses same API - BaseWindow + setIgnoreMouseEvents)
+- ✅ Implemented BaseWindow + WebContentsView (matches stream-overlay exactly)
+- ✅ Added GTK-3 flag for Linux compatibility
+- ✅ Tested in X11 mode with transparent background (background works, click-through doesn't)
+- **Conclusion**: COSMIC compositor doesn't support click-through windows yet (very new DE)
+- **Workaround**: Use interactive mode for editing, overlay mode for display (user must avoid clicking on it)
 
 **Architectural Notes:**
 - Using nested config structure: `{ input: {...}, processing: {...}, display: {...} }`
