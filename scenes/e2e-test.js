@@ -48,7 +48,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: 0 }, keyText:"W\nWith\nCompensation", backgroundImage:KeyImage
+                processing: { linkedAxis: 0 }, display: { text: "W\nWith\nCompensation", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -61,7 +61,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: 1 }, keyText:"A\nWith\nCompensation", backgroundImage:KeyImage
+                processing: { linkedAxis: 1 }, display: { text: "A\nWith\nCompensation", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -74,7 +74,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: 0 }, keyText:"S\nWith\nCompensation", backgroundImage:KeyImage
+                processing: { linkedAxis: 0 }, display: { text: "S\nWith\nCompensation", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -87,7 +87,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: 1 }, keyText:"D\nWith\nCompensation", backgroundImage:KeyImage
+                processing: { linkedAxis: 1 }, display: { text: "D\nWith\nCompensation", backgroundImage: KeyImage }
             }
         ),
 
@@ -102,7 +102,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: -1 }, keyText:"W\nWithout\nCompensation", backgroundImage:KeyImage
+                processing: { linkedAxis: -1 }, display: { text: "W\nWithout\nCompensation", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -115,7 +115,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: -1 }, keyText:"A\nWithout\nCompensation", backgroundImage:KeyImage
+                processing: { linkedAxis: -1 }, display: { text: "A\nWithout\nCompensation", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -128,7 +128,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: -1 }, keyText:"S\nWithout\nCompensation", backgroundImage:KeyImage
+                processing: { linkedAxis: -1 }, display: { text: "S\nWithout\nCompensation", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -141,7 +141,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: -1 }, keyText:"D\nWithout\nCompensation", backgroundImage:KeyImage
+                processing: { linkedAxis: -1 }, display: { text: "D\nWithout\nCompensation", backgroundImage: KeyImage }
             }
         ),
 
@@ -159,7 +159,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: 2 }, keyText:"I\nUp", backgroundImage:KeyImage
+                processing: { linkedAxis: 2 }, display: { text: "I\nUp", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -172,7 +172,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: 2 }, keyText:"K\nDown", backgroundImage:KeyImage
+                processing: { linkedAxis: 2 }, display: { text: "K\nDown", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -185,7 +185,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: 3 }, keyText:"L\nRight", backgroundImage:KeyImage
+                processing: { linkedAxis: 3 }, display: { text: "L\nRight", backgroundImage: KeyImage }
             }
         ),
 
@@ -203,7 +203,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                keyText:"Z\nDigital", backgroundImage:KeyImage
+                display: { text: "Z\nDigital", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -216,7 +216,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                keyText:"X\nDigital", backgroundImage:KeyImage
+                display: { text: "X\nDigital", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -229,7 +229,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                keyText:"C\nDigital", backgroundImage:KeyImage
+                display: { text: "C\nDigital", backgroundImage: KeyImage }
             }
         ),
 
@@ -247,7 +247,7 @@ function scene_default(canvas, ctx) {
                         button: { index: 0 }  // A button
                     }
                 },
-                keyText:"A\nBtn 0", backgroundImage:KeyImage
+                display: { text: "A\nBtn 0", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -260,7 +260,7 @@ function scene_default(canvas, ctx) {
                         button: { index: 1 }  // B button
                     }
                 },
-                keyText:"B\nBtn 1", backgroundImage:KeyImage
+                display: { text: "B\nBtn 1", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -273,7 +273,7 @@ function scene_default(canvas, ctx) {
                         button: { index: 2 }  // X button
                     }
                 },
-                keyText:"X\nBtn 2", backgroundImage:KeyImage
+                display: { text: "X\nBtn 2", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -286,7 +286,7 @@ function scene_default(canvas, ctx) {
                         button: { index: 3 }  // Y button
                     }
                 },
-                keyText:"Y\nBtn 3", backgroundImage:KeyImage
+                display: { text: "Y\nBtn 3", backgroundImage: KeyImage }
             }
         ),
 
@@ -304,7 +304,7 @@ function scene_default(canvas, ctx) {
                         button: { index: 6 }  // LT (Left Trigger)
                     }
                 },
-                keyText:"LT\nAnalog", backgroundImage:KeyImage
+                display: { text: "LT\nAnalog", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -317,7 +317,7 @@ function scene_default(canvas, ctx) {
                         button: { index: 7 }  // RT (Right Trigger)
                     }
                 },
-                keyText:"RT\nAnalog", backgroundImage:KeyImage
+                display: { text: "RT\nAnalog", backgroundImage: KeyImage }
             }
         ),
 
@@ -335,7 +335,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                keyText:"SPACE", backgroundImage:KeyImage
+                display: { text: "SPACE", backgroundImage: KeyImage }
             }
         ),
 
@@ -353,7 +353,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: 0 }, keyText:"W\nForward\nGamepad Up", backgroundImage:KeyImage
+                processing: { linkedAxis: 0 }, display: { text: "W\nForward\nGamepad Up", backgroundImage: KeyImage }
             }
         ),
         new LinearInputIndicator(
@@ -366,7 +366,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                processing: { linkedAxis: 0 }, keyText:"S\nBackward\nGamepad Down", backgroundImage:KeyImage
+                processing: { linkedAxis: 0 }, display: { text: "S\nBackward\nGamepad Down", backgroundImage: KeyImage }
             }
         ),
     ];

@@ -46,16 +46,19 @@ interface ProcessingConfig {
 	antiDeadzone: number;
 }
 
-interface LinearInputIndicatorProperties {
-	input: InputConfig;
-	processing: ProcessingConfig;
-	// NOT YET REFACTORED
-	keyText: string;
+interface DisplayConfig {
+	text: string;
 	reverseFillDirection: boolean;
 	backgroundImage: HTMLImageElement;  // TODO: Make user-customizable instead of hardcoded in scenes
 	fillStyle: string;
 	fillStyleBackground: string;
 	fontStyle: any;
+}
+
+interface LinearInputIndicatorProperties {
+	input: InputConfig;
+	processing: ProcessingConfig;
+	display: DisplayConfig;
 }
 
 // Default restorepoint properties
@@ -82,13 +85,14 @@ const defaultLinearInputIndicatorProperties: LinearInputIndicatorProperties = {
 		antiDeadzone: 0.0,
 	},
 
-	// === NOT YET REFACTORED - keeping old structure ===
-    keyText: "SampleText",
-	reverseFillDirection: false,
-	backgroundImage: new Image(),
-	fillStyle: "rgba(255, 255, 255, 0.5)",
-	fillStyleBackground: "rgba(37, 37, 37, 0.43)",
-	fontStyle: { textAlign: "center", fillStyle: "white", font: "30px Lucida Console" },
+	display: {
+		text: "SampleText",
+		reverseFillDirection: false,
+		backgroundImage: new Image(),
+		fillStyle: "rgba(255, 255, 255, 0.5)",
+		fillStyleBackground: "rgba(37, 37, 37, 0.43)",
+		fontStyle: { textAlign: "center", fillStyle: "white", font: "30px Lucida Console" },
+	}
 }
 
 /**
@@ -140,6 +144,16 @@ function LinearInputIndicator(x: number, y: number, width: number, height: numbe
 		this.linkedAxis = this.processing.linkedAxis;
 		this.multiplier = this.processing.multiplier;
 		this.antiDeadzone = this.processing.antiDeadzone;
+	}
+
+	if (this.display) {
+		// Display properties (flatten for internal use)
+		this.keyText = this.display.text;
+		this.reverseFillDirection = this.display.reverseFillDirection;
+		this.backgroundImage = this.display.backgroundImage;
+		this.fillStyle = this.display.fillStyle;
+		this.fillStyleBackground = this.display.fillStyleBackground;
+		this.fontStyle = this.display.fontStyle;
 	}
 
 	// Object values
