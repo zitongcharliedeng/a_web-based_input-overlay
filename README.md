@@ -22,7 +22,7 @@ See [CLAUDE.md](CLAUDE.md) for full technical details, architecture, and roadmap
 
 ---
 
-Forked from [DarrenVs/analog_keyboard_overlay](https://github.com/DarrenVs/analog_keyboard_overlay) as a baseline for building my own transparent input overlay platform with Electron and multimedia streaming features.
+Originally forked from [DarrenVs/analog_keyboard_overlay](https://github.com/DarrenVs/analog_keyboard_overlay) as a baseline for building my own transparent input overlay platform with Electron and multimedia streaming features.
 
 ## License
 

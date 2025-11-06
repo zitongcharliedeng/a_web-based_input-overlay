@@ -6,3 +6,4 @@ node_modules/
 
 # TypeScript compiled output
 compiled/
+browserInputOverlayView/_compiled/
