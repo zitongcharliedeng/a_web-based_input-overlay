@@ -1004,9 +1004,10 @@ Extend to VR gaming:
 ### Current State
 - **Repository**: `https://github.com/zitongcharliedeng/a_web-based_input-overlay.git`
 - **Branch**: `master`
-- **Latest Commit**: `ac22fb1` - refactor: reorganize into browserInputOverlayView and browserInputListeners
+- **Latest Commit**: `b7b64a4` - refactor: migrate to BaseWindow API with improved transparency
+- **Runtime**: Electron app using `nix-shell -p nodejs electron --run "electron ."`
 - **Compilation**: Using `nix-shell -p nodejs --run "npx tsc"` (no global npm/node)
-- **Status**: All tests passing, ready for TypeScript migration
+- **Status**: Electron overlay working, transparency confirmed, click-through limited by COSMIC
 
 ### Directory Structure (Current - REFACTORED)
 ```
@@ -1098,12 +1099,38 @@ Extend to VR gaming:
 - Conventional commits with breaking change markers
 - No "Co-Authored-By: Claude" in commits (user preference)
 
+### Electron Implementation Details
+
+**Run Scripts Created:**
+- `run-nix.sh` - Interactive mode (Wayland, can edit/drag objects)
+- `run-nix-clickthrough.sh` - Overlay mode (attempts click-through, doesn't work on COSMIC)
+- `run-nix-dev.sh` - Development mode with DevTools
+- `run-nix-frame.sh` - Debug mode with window frame
+- `run-nix-x11.sh` - Force X11/XWayland mode
+
+**Key Improvements from stream-overlay:**
+- BaseWindow instead of BrowserWindow (newer API)
+- WebContentsView for content management
+- GTK-3 flag: `app.commandLine.appendSwitch('gtk-version', '3')`
+- Enhanced always-on-top: `win.setAlwaysOnTop(true, 'screen-saver', 1)`
+- Periodic moveTop() every 1 second
+- Transparent backgrounds on both window and view
+
+**COSMIC Compositor Issues:**
+- Click-through (`setIgnoreMouseEvents(true)`) does not work
+- Tested in both Wayland and X11 modes
+- Transparency works perfectly
+- Always-on-top works perfectly
+- Conclusion: COSMIC doesn't support click-through yet (very new DE)
+
 ### Next Steps (When Resuming)
-1. Convert Text.js to TypeScript (simplest object)
-2. Convert Thumbstick.js to TypeScript (apply nested config pattern)
-3. Convert PropertyEdit.js to TypeScript
-4. Consider renaming `linkedAxis` to `radialCompensationAxis` or `perpendicularAxis`
-5. Make KeyImage user-customizable instead of hardcoded in scene
+1. Test on other Linux compositors (Hyprland, GNOME, KDE) to verify click-through works elsewhere
+2. Convert Text.js to TypeScript (simplest object)
+3. Convert Thumbstick.js to TypeScript (apply nested config pattern)
+4. Convert PropertyEdit.js to TypeScript
+5. Consider renaming `linkedAxis` to `radialCompensationAxis` or `perpendicularAxis`
+6. Make KeyImage user-customizable instead of hardcoded in scene
+7. Fix GitHub Pages 404 errors (path issues with ES6 modules)
 
 ---
 
