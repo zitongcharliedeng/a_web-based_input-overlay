@@ -10,7 +10,6 @@
 
 set -e
 
-# uiohook-napi requires X11 libraries
-# libX11 (core X11), libXtst (XTest), libXrandr (RandR), libXt (Xt toolkit)
-# Pass all arguments to electron
-nix-shell -p nodejs electron xorg.libX11 xorg.libXtst xorg.libXrandr xorg.libXt --run "electron . $*"
+# Use shell.nix for proper native module support
+# This automatically patches uiohook-napi with correct library paths
+nix-shell --run "electron . $*"
