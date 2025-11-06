@@ -1,10 +1,27 @@
-const { app, BaseWindow, WebContentsView } = require('electron');
+const { app, BaseWindow, WebContentsView, ipcMain } = require('electron');
 const path = require('path');
 
 // Linux GTK compatibility (from stream-overlay)
 if (process.platform === 'linux') {
   app.commandLine.appendSwitch('gtk-version', '3');
 }
+
+// Parse command line flags
+const isReadonly = process.argv.includes('--readonly');
+let globalInputAvailable = false;
+
+// IPC handlers for renderer queries
+ipcMain.on('get-readonly-state', (event) => {
+  event.returnValue = isReadonly;
+});
+
+ipcMain.on('has-global-input', (event) => {
+  event.returnValue = globalInputAvailable;
+});
+
+console.log('[Main] Starting overlay...');
+console.log('[Main] Readonly mode:', isReadonly);
+console.log('[Main] Preload script path:', path.join(__dirname, 'preload.js'));
 
 function createWindow() {
   const width = 1600;
@@ -30,7 +47,8 @@ function createWindow() {
   const view = new WebContentsView({
     webPreferences: {
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
     }
   });
 

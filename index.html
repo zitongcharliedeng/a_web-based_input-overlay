@@ -22,6 +22,18 @@
 			</tr>
 		</table>
 	</div>
+
+	<!-- Test script to verify preload worked -->
+	<script>
+		// This runs in renderer process after preload
+		if (window.electronAPI) {
+			console.log('[Renderer] ✓ electronAPI is available!');
+			console.log('[Renderer] Has global input:', window.electronAPI.hasGlobalInput());
+			console.log('[Renderer] Is readonly:', window.electronAPI.isReadonly());
+		} else {
+			console.log('[Renderer] ✗ electronAPI not found (running as web version)');
+		}
+	</script>
 </body>
 
 </html>
