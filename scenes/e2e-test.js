@@ -22,8 +22,8 @@ function scene_default(canvas, ctx) {
     this.objects = [
 
         // ===== TEST CASE 1: Left Gamepad Stick =====
-        createLabel(20, yOffset, "TEST 1: Left Gamepad Stick"),
-        createLabel(20, yOffset + 25, "PlanarInputIndicator (Thumbstick) + 4 LinearInputIndicators (WASD)"),
+        createLabel(20, yOffset, "TEST 1: Left Gamepad Stick - WITH radial compensation vs WITHOUT"),
+        createLabel(20, yOffset + 25, "Move diagonally: LEFT shows ~100% (compensated), RIGHT shows ~70% (raw circular)"),
 
         new Thumbstick(
             20, yOffset + 60, 200, 200,
@@ -37,7 +37,7 @@ function scene_default(canvas, ctx) {
             }
         ),
 
-        // WASD - Left stick
+        // WASD - WITH radial compensation (linkedAxis)
         new LinearInputIndicator(
             240, yOffset + 60, 100, 100,
             {
@@ -48,7 +48,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                linkedAxis: 0, keyText:"W\nUp", backgroundImage:KeyImage
+                processing: { linkedAxis: 0 }, keyText:"W\nWith\nCompensation", backgroundImage:KeyImage
             }
         ),
         new LinearInputIndicator(
@@ -61,7 +61,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                linkedAxis: 1, keyText:"A\nLeft", backgroundImage:KeyImage
+                processing: { linkedAxis: 1 }, keyText:"A\nWith\nCompensation", backgroundImage:KeyImage
             }
         ),
         new LinearInputIndicator(
@@ -74,7 +74,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                linkedAxis: 0, keyText:"S\nDown", backgroundImage:KeyImage
+                processing: { linkedAxis: 0 }, keyText:"S\nWith\nCompensation", backgroundImage:KeyImage
             }
         ),
         new LinearInputIndicator(
@@ -87,7 +87,61 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                linkedAxis: 1, keyText:"D\nRight", backgroundImage:KeyImage
+                processing: { linkedAxis: 1 }, keyText:"D\nWith\nCompensation", backgroundImage:KeyImage
+            }
+        ),
+
+        // WASD - WITHOUT radial compensation (linkedAxis: -1)
+        new LinearInputIndicator(
+            490, yOffset + 60, 100, 100,
+            {
+                input: {
+                    keyboard: { keyCode: null },
+                    gamepad: {
+                        stick: { type: "left", axis: "Y", direction: "negative" },
+                        button: { index: null }
+                    }
+                },
+                processing: { linkedAxis: -1 }, keyText:"W\nWithout\nCompensation", backgroundImage:KeyImage
+            }
+        ),
+        new LinearInputIndicator(
+            400, yOffset + 160, 100, 100,
+            {
+                input: {
+                    keyboard: { keyCode: null },
+                    gamepad: {
+                        stick: { type: "left", axis: "X", direction: "negative" },
+                        button: { index: null }
+                    }
+                },
+                processing: { linkedAxis: -1 }, keyText:"A\nWithout\nCompensation", backgroundImage:KeyImage
+            }
+        ),
+        new LinearInputIndicator(
+            500, yOffset + 160, 100, 100,
+            {
+                input: {
+                    keyboard: { keyCode: null },
+                    gamepad: {
+                        stick: { type: "left", axis: "Y", direction: "positive" },
+                        button: { index: null }
+                    }
+                },
+                processing: { linkedAxis: -1 }, keyText:"S\nWithout\nCompensation", backgroundImage:KeyImage
+            }
+        ),
+        new LinearInputIndicator(
+            600, yOffset + 160, 100, 100,
+            {
+                input: {
+                    keyboard: { keyCode: null },
+                    gamepad: {
+                        stick: { type: "left", axis: "X", direction: "positive" },
+                        button: { index: null }
+                    }
+                },
+                processing: { linkedAxis: -1 }, keyText:"D\nWithout\nCompensation", backgroundImage:KeyImage
             }
         ),
 
@@ -105,7 +159,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                linkedAxis: 2, keyText:"I\nUp", backgroundImage:KeyImage
+                processing: { linkedAxis: 2 }, keyText:"I\nUp", backgroundImage:KeyImage
             }
         ),
         new LinearInputIndicator(
@@ -118,7 +172,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                linkedAxis: 2, keyText:"K\nDown", backgroundImage:KeyImage
+                processing: { linkedAxis: 2 }, keyText:"K\nDown", backgroundImage:KeyImage
             }
         ),
         new LinearInputIndicator(
@@ -131,7 +185,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                linkedAxis: 3, keyText:"L\nRight", backgroundImage:KeyImage
+                processing: { linkedAxis: 3 }, keyText:"L\nRight", backgroundImage:KeyImage
             }
         ),
 
@@ -299,7 +353,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                linkedAxis: 0, keyText:"W\nForward\nGamepad Up", backgroundImage:KeyImage
+                processing: { linkedAxis: 0 }, keyText:"W\nForward\nGamepad Up", backgroundImage:KeyImage
             }
         ),
         new LinearInputIndicator(
@@ -312,7 +366,7 @@ function scene_default(canvas, ctx) {
                         button: { index: null }
                     }
                 },
-                linkedAxis: 0, keyText:"S\nBackward\nGamepad Down", backgroundImage:KeyImage
+                processing: { linkedAxis: 0 }, keyText:"S\nBackward\nGamepad Down", backgroundImage:KeyImage
             }
         ),
     ];

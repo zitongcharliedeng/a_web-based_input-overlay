@@ -3,6 +3,7 @@
 declare var keyboard: any;
 declare var gamepads: any;
 declare function applyProperties(target: any, source: any): void;
+declare function deepMerge<T>(defaults: T, overrides: Partial<T>): T;
 declare function canvas_fill_rec(ctx: any, x: number, y: number, width: number, height: number, style: any): void;
 declare function canvas_text(ctx: any, x: number, y: number, text: string, style: any): void;
 
@@ -39,14 +40,18 @@ interface InputConfig {
 	};
 }
 
-interface LinearInputIndicatorProperties {
-	input: InputConfig;
-	// NOT YET REFACTORED
-	keyText: string;
+interface ProcessingConfig {
 	linkedAxis: number;
-	reverseFillDirection: boolean;
 	multiplier: number;
 	antiDeadzone: number;
+}
+
+interface LinearInputIndicatorProperties {
+	input: InputConfig;
+	processing: ProcessingConfig;
+	// NOT YET REFACTORED
+	keyText: string;
+	reverseFillDirection: boolean;
 	backgroundImage: HTMLImageElement;  // TODO: Make user-customizable instead of hardcoded in scenes
 	fillStyle: string;
 	fillStyleBackground: string;
@@ -55,7 +60,6 @@ interface LinearInputIndicatorProperties {
 
 // Default restorepoint properties
 const defaultLinearInputIndicatorProperties: LinearInputIndicatorProperties = {
-	// === INPUT DETECTION (refactored) ===
 	input: {
 		keyboard: {
 			keyCode: null
@@ -72,12 +76,15 @@ const defaultLinearInputIndicatorProperties: LinearInputIndicatorProperties = {
 		}
 	},
 
+	processing: {
+		linkedAxis: -1,
+		multiplier: 1,
+		antiDeadzone: 0.0,
+	},
+
 	// === NOT YET REFACTORED - keeping old structure ===
     keyText: "SampleText",
-	linkedAxis: -1,
 	reverseFillDirection: false,
-    multiplier: 1,
-    antiDeadzone: 0.0,
 	backgroundImage: new Image(),
 	fillStyle: "rgba(255, 255, 255, 0.5)",
 	fillStyleBackground: "rgba(37, 37, 37, 0.43)",
@@ -105,12 +112,11 @@ function LinearInputIndicator(x: number, y: number, width: number, height: numbe
     this.defaultProperties = defaultLinearInputIndicatorProperties;
     this.className = "LinearInputIndicator";
 
-	// Object properties
-	applyProperties(this, defaultLinearInputIndicatorProperties);
-	// Custom object properties
-	applyProperties(this, properties);
+	// Merge properties using deep merge for nested objects
+	const mergedProperties = deepMerge(defaultLinearInputIndicatorProperties, properties || {});
+	applyProperties(this, mergedProperties);
 
-	// Convert new input structure to internal properties for update() to use
+	// Convert new API structures to internal properties for update() to use
 	if (this.input) {
 		// Keyboard
 		this.keyCode = this.input.keyboard.keyCode;
@@ -127,6 +133,13 @@ function LinearInputIndicator(x: number, y: number, width: number, height: numbe
 		if (this.hasButtonInput) {
 			this.button = this.input.gamepad.button.index;
 		}
+	}
+
+	if (this.processing) {
+		// Processing properties (already flat, just assign)
+		this.linkedAxis = this.processing.linkedAxis;
+		this.multiplier = this.processing.multiplier;
+		this.antiDeadzone = this.processing.antiDeadzone;
 	}
 
 	// Object values
