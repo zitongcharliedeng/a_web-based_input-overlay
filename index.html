@@ -30,6 +30,17 @@
 			console.log('[Renderer] ✓ electronAPI is available!');
 			console.log('[Renderer] Has global input:', window.electronAPI.hasGlobalInput());
 			console.log('[Renderer] Is readonly:', window.electronAPI.isReadonly());
+
+			// Set up global keyboard listeners to test IPC
+			window.electronAPI.onGlobalKeyDown((data) => {
+				console.log('[Renderer] Received global keydown:', data.keycode, 'at', data.timestamp);
+			});
+
+			window.electronAPI.onGlobalKeyUp((data) => {
+				console.log('[Renderer] Received global keyup:', data.keycode, 'at', data.timestamp);
+			});
+
+			console.log('[Renderer] Global keyboard listeners attached');
 		} else {
 			console.log('[Renderer] ✗ electronAPI not found (running as web version)');
 		}

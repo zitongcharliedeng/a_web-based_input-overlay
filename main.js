@@ -12,6 +12,20 @@ const enableFrame = process.argv.includes('--with-window-frame');
 const enableDevTools = process.argv.includes('--with-dev-console');
 let globalInputAvailable = false;
 
+// Try to initialize uiohook for global input capture
+let uIOhook = null;
+let activeView = null; // Store reference to send events
+
+try {
+  const uiohook = require('uiohook-napi');
+  uIOhook = uiohook.uIOhook;
+  globalInputAvailable = true;
+  console.log('[Main] ✓ uiohook-napi loaded successfully');
+} catch (error) {
+  console.log('[Main] ✗ uiohook-napi not available:', error.message);
+  console.log('[Main] Global input hooks disabled (will use DOM events only)');
+}
+
 // IPC handlers for renderer queries
 ipcMain.on('get-readonly-state', (event) => {
   event.returnValue = isReadonly;
@@ -94,7 +108,38 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  createWindow();
+  const { win, view } = createWindow();
+  activeView = view; // Store reference for IPC
+
+  // Start global input hooks if available
+  if (uIOhook) {
+    console.log('[Main] Starting global input hooks...');
+
+    // Keyboard events
+    uIOhook.on('keydown', (event) => {
+      const data = {
+        keycode: event.keycode,
+        rawcode: event.rawcode,
+        timestamp: Date.now()
+      };
+      console.log('[Main] Global keydown:', data.keycode);
+      activeView.webContents.send('global-keydown', data);
+    });
+
+    uIOhook.on('keyup', (event) => {
+      const data = {
+        keycode: event.keycode,
+        rawcode: event.rawcode,
+        timestamp: Date.now()
+      };
+      console.log('[Main] Global keyup:', data.keycode);
+      activeView.webContents.send('global-keyup', data);
+    });
+
+    // Start the hook
+    uIOhook.start();
+    console.log('[Main] ✓ Global input hooks started');
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -104,6 +149,12 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  // Stop global input hooks
+  if (uIOhook) {
+    console.log('[Main] Stopping global input hooks...');
+    uIOhook.stop();
+  }
+
   if (process.platform !== 'darwin') {
     app.quit();
   }
