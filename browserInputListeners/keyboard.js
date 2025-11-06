@@ -15,3 +15,5 @@ document.addEventListener('keyup', function(e) {
         keyboard[ e.code ] = false;
     }
 })
+
+export { keyboard };

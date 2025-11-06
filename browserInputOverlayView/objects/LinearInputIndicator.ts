@@ -1,11 +1,6 @@
 
-// Global declarations (defined in other JS files)
-declare var keyboard: any;
-declare var gamepads: any;
-declare function applyProperties(target: any, source: any): void;
-declare function deepMerge<T>(defaults: T, overrides: Partial<T>): T;
-declare function canvas_fill_rec(ctx: any, x: number, y: number, width: number, height: number, style: any): void;
-declare function canvas_text(ctx: any, x: number, y: number, text: string, style: any): void;
+import { applyProperties, deepMerge } from '../_helpers/applyProperties.js';
+import { canvas_fill_rec, canvas_text } from '../_helpers/draw.js';
 
 // Type definitions
 interface Position {
@@ -169,6 +164,7 @@ LinearInputIndicator.prototype.update = function (delta) {
 	var linkedValue = 0;
 
 	// Get keyboard input
+	const keyboard = (window as any).keyboard;
 	value += keyboard[this.keyCode] ? 1 : 0;
 
 	// Key antiDeadzone has to be lowered when a linked axis surpasses the antiDeadzone for better directional indications
@@ -176,6 +172,7 @@ LinearInputIndicator.prototype.update = function (delta) {
 	var newAntiDeadzone = Math.max(0, this.antiDeadzone - linkedValue * 0.5)
 
 	// Get gamepad input
+	const gamepads = (window as any).gamepads;
 	for (var id in gamepads) {
 		var gamepad = gamepads[id];
 		if (gamepad !== null && gamepad.axes && this.hasStickInput) {
@@ -243,3 +240,5 @@ LinearInputIndicator.prototype.draw = function (canvas, ctx) {
     // Print key text centered
     canvas_text(ctx, this.width * 0.5, this.height * 0.5, this.keyText, this.fontStyle);
 }
+
+export { LinearInputIndicator };

@@ -35,3 +35,5 @@ function applyProperties(object: any, properties: any): void {
         }
     }
 }
+
+export { applyProperties, deepMerge };

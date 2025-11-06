@@ -1,6 +1,18 @@
+import { Mouse } from '../browserInputListeners/mouse.js';
+import { keyboard } from '../browserInputListeners/keyboard.js';
+import { PlanarInputIndicator_Radial } from './_compiled/objects/PlanarInputIndicator_Radial.js';
+import { LinearInputIndicator } from './_compiled/objects/LinearInputIndicator.js';
+import { Text } from './objects/Text.js';
+import { PropertyEdit } from './actions/PropertyEdit.js';
+import { Vector } from './_compiled/_helpers/Vector.js';
+
 // Global variables
 var canvas;
-var mouse, keyboard, gamepads;
+var mouse;
+
+// Make input systems globally accessible for input indicators
+window.gamepads = null;
+window.keyboard = keyboard;
 
 // Main framework - game loop and scene initialization
 window.addEventListener("load", function () {
@@ -47,7 +59,7 @@ window.addEventListener("load", function () {
 		var updateScreen = false;
 
 		// Update gamepad state
-		gamepads = navigator.getGamepads();
+		window.gamepads = navigator.getGamepads();
 
 		// Update scene logic
 		if (activeScene.update.call(activeScene, delta) === true) {

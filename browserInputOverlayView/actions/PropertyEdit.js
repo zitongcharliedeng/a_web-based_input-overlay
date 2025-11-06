@@ -1,11 +1,8 @@
-
-
-
+import { applyProperties } from '../_compiled/_helpers/applyProperties.js';
 
 // Default restorepoint properties
-defaultPropertyEditProperties = {
+const defaultPropertyEditProperties = {
 }
-
 
 // PropertyEdit object
 function PropertyEdit(x, y, width, height, properties) {
@@ -128,3 +125,5 @@ PropertyEdit.prototype.update = function (delta) {
 PropertyEdit.prototype.draw = function (canvas, ctx) {
 
 }
+
+export { PropertyEdit };

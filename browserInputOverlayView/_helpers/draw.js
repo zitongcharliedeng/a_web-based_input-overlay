@@ -66,3 +66,5 @@ function canvas_fill_rec(context, x, y, sizex, sizey, properties) {
     if (properties !== undefined) canvas_properties(context, properties);
     context.fillRect(x, y, sizex, sizey);
 }
+
+export { canvas_properties, canvas_arrow, canvas_line, canvas_arc, canvas_text, canvas_fill_rec };

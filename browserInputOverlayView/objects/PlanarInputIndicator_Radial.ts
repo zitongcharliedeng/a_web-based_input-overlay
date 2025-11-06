@@ -1,12 +1,6 @@
-// Global declarations (defined in other JS files)
-declare var gamepads: any;
-declare function applyProperties(target: any, source: any): void;
-declare function deepMerge<T>(defaults: T, overrides: Partial<T>): T;
-declare function canvas_properties(ctx: any, properties: any): void;
-declare function canvas_arc(ctx: any, x: number, y: number, radius: number, start: number, end: number, properties: any): void;
-declare function canvas_line(ctx: any, x1: number, y1: number, x2: number, y2: number, properties: any): void;
-declare function canvas_arrow(ctx: any, x1: number, y1: number, x2: number, y2: number, properties: any): void;
-// Vector class is imported from _helpers/Vector.ts
+import { Vector } from '../_helpers/Vector.js';
+import { applyProperties, deepMerge } from '../_helpers/applyProperties.js';
+import { canvas_properties, canvas_arc, canvas_line, canvas_arrow } from '../_helpers/draw.js';
 
 // Type definitions
 interface AxisMapping {
@@ -120,6 +114,7 @@ PlanarInputIndicator_Radial.prototype.update = function (delta: number): boolean
 	let yAxis = 0;
 
 	// Accumulate input from all mapped gamepad axes
+	const gamepads = (window as any).gamepads;
 	for (const id in gamepads) {
 		const gamepad = gamepads[id];
 		if (gamepad !== null && gamepad.axes) {
@@ -198,3 +193,5 @@ PlanarInputIndicator_Radial.prototype.draw = function (canvas: any, ctx: any): v
 
 	ctx.closePath();
 }
+
+export { PlanarInputIndicator_Radial };

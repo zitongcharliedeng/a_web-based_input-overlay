@@ -1,15 +1,13 @@
 
-
-
+import { applyProperties } from '../_compiled/_helpers/applyProperties.js';
+import { canvas_text } from '../_helpers/draw.js';
 
 // Default restorepoint properties
-defaultTextProperties = {
+const defaultTextProperties = {
 	text: "Sample text",
 	textStyle: {textAlign:"center",fillStyle:"black",font:"30px Lucida Console"},
 	shouldStroke: false,
 }
-
-
 
 // Text object
 function Text(x, y, width, height, properties) {
@@ -44,3 +42,5 @@ Text.prototype.draw = function (canvas, ctx) {
     ctx.beginPath();
     canvas_text(ctx, 0, 0, this.text, this.textStyle);
 }
+
+export { Text };

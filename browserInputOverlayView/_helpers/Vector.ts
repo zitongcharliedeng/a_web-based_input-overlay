@@ -166,3 +166,5 @@ class Vector {
 		return a.angleTo(b);
 	}
 }
+
+export { Vector };
