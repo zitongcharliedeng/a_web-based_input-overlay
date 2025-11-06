@@ -1,2 +1,8 @@
 # Claude AI assistant directory (local config only)
 .claude/
+
+# Node modules (if npm is used)
+node_modules/
+
+# TypeScript compiled output
+compiled/

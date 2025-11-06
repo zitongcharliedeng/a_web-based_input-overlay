@@ -1,0 +1,11 @@
+{
+  "name": "analog-keyboard-overlay",
+  "version": "1.0.0",
+  "description": "Web-based analog keyboard and gamepad overlay for streamers",
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

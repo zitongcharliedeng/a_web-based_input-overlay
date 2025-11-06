@@ -35,21 +35,138 @@ function scene_default(canvas, ctx) {
                 unitVectorProperties: {strokeStyle:"#524d4d", lineWidth:4},
             }
         ),
+        // WASD - Left stick analog (NEW API)
         new Key(
             canvas.width-300+85, 50+0, 100, 100,
-            { axis: 1, revertedAxis: true, linkedAxis: 0, keyText:"W",backgroundImage:KeyImage}
+            {
+                input: {
+                    keyboard: { keyCode: null },
+                    gamepad: {
+                        stick: { type: "left", axis: "Y", direction: "negative" },
+                        button: { index: null }
+                    }
+                },
+                linkedAxis: 0, keyText:"W", backgroundImage:KeyImage
+            }
         ),
         new Key(
             canvas.width-300+0, 50+100, 100, 100,
-            { axis: 0, revertedAxis: true, linkedAxis: 1, keyText:"A",backgroundImage:KeyImage}
+            {
+                input: {
+                    keyboard: { keyCode: null },
+                    gamepad: {
+                        stick: { type: "left", axis: "X", direction: "negative" },
+                        button: { index: null }
+                    }
+                },
+                linkedAxis: 1, keyText:"A", backgroundImage:KeyImage
+            }
         ),
         new Key(
             canvas.width-300+100, 50+100, 100, 100,
-            { axis: 1, revertedAxis: false, linkedAxis: 0, keyText:"S",backgroundImage:KeyImage}
+            {
+                input: {
+                    keyboard: { keyCode: null },
+                    gamepad: {
+                        stick: { type: "left", axis: "Y", direction: "positive" },
+                        button: { index: null }
+                    }
+                },
+                linkedAxis: 0, keyText:"S", backgroundImage:KeyImage
+            }
         ),
         new Key(
             canvas.width-300+200, 50+100, 100, 100,
-            { axis: 0, revertedAxis: false, linkedAxis: 1, keyText:"D",backgroundImage:KeyImage}
+            {
+                input: {
+                    keyboard: { keyCode: null },
+                    gamepad: {
+                        stick: { type: "left", axis: "X", direction: "positive" },
+                        button: { index: null }
+                    }
+                },
+                linkedAxis: 1, keyText:"D", backgroundImage:KeyImage
+            }
+        ),
+        // Row 1: Digital keyboard only
+        new Key(
+            canvas.width-300+0, 50+210, 100, 100,
+            {
+                input: {
+                    keyboard: { keyCode: "KeyZ" },
+                    gamepad: {
+                        stick: { type: null, axis: null, direction: null },
+                        button: { index: null }
+                    }
+                },
+                keyText:"Z\ndigital", backgroundImage:KeyImage
+            }
+        ),
+        new Key(
+            canvas.width-300+100, 50+210, 100, 100,
+            {
+                input: {
+                    keyboard: { keyCode: "KeyX" },
+                    gamepad: {
+                        stick: { type: null, axis: null, direction: null },
+                        button: { index: null }
+                    }
+                },
+                keyText:"X\ndigital", backgroundImage:KeyImage
+            }
+        ),
+        new Key(
+            canvas.width-300+200, 50+210, 100, 100,
+            {
+                input: {
+                    keyboard: { keyCode: "KeyC" },
+                    gamepad: {
+                        stick: { type: null, axis: null, direction: null },
+                        button: { index: null }
+                    }
+                },
+                keyText:"C\ndigital", backgroundImage:KeyImage
+            }
+        ),
+        // Row 2: Right stick analog
+        new Key(
+            canvas.width-300+0, 50+320, 100, 100,
+            {
+                input: {
+                    keyboard: { keyCode: null },
+                    gamepad: {
+                        stick: { type: "right", axis: "Y", direction: "negative" },
+                        button: { index: null }
+                    }
+                },
+                linkedAxis: 2, keyText:"I\nRstick↑", backgroundImage:KeyImage
+            }
+        ),
+        new Key(
+            canvas.width-300+100, 50+320, 100, 100,
+            {
+                input: {
+                    keyboard: { keyCode: null },
+                    gamepad: {
+                        stick: { type: "right", axis: "Y", direction: "positive" },
+                        button: { index: null }
+                    }
+                },
+                linkedAxis: 2, keyText:"K\nRstick↓", backgroundImage:KeyImage
+            }
+        ),
+        new Key(
+            canvas.width-300+200, 50+320, 100, 100,
+            {
+                input: {
+                    keyboard: { keyCode: null },
+                    gamepad: {
+                        stick: { type: "right", axis: "X", direction: "positive" },
+                        button: { index: null }
+                    }
+                },
+                linkedAxis: 3, keyText:"L\nRstick→", backgroundImage:KeyImage
+            }
         ),
         credit
     ];

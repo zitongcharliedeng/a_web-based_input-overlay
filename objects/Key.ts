@@ -1,15 +1,72 @@
 
+// Global declarations (defined in other JS files)
+declare var keyboard: any;
+declare var gamepads: any;
+declare function applyProperties(target: any, source: any): void;
+declare function canvas_fill_rec(ctx: any, x: number, y: number, width: number, height: number, style: any): void;
+declare function canvas_text(ctx: any, x: number, y: number, text: string, style: any): void;
 
+// Type definitions
+interface GamepadStickInput {
+	type: "left" | "right" | null;
+	axis: "X" | "Y" | null;
+	direction: "positive" | "negative" | null;
+}
 
+interface KeyboardInput {
+	keyCode: string | null;
+}
+
+interface GamepadButtonInput {
+	index: number | null;
+}
+
+interface InputConfig {
+	keyboard: KeyboardInput;
+	gamepad: {
+		stick: GamepadStickInput;
+		button: GamepadButtonInput;
+	};
+}
+
+interface KeyProperties {
+	input: InputConfig;
+	// NOT YET REFACTORED
+	keyText: string;
+	linkedAxis: number;
+	reverseFillDirection: boolean;
+	size: number;
+	multiplier: number;
+	antiDeadzone: number;
+	backgroundImage: HTMLImageElement;
+	fillStyle: string;
+	fillStyleBackground: string;
+	fillSize: number;
+	fontStyle: any;
+}
 
 // Default restorepoint properties
-defaultKeyProperties = {
-    keyCode: "KeyH",
+const defaultKeyProperties: KeyProperties = {
+	// === INPUT DETECTION (refactored) ===
+	input: {
+		keyboard: {
+			keyCode: null
+		},
+		gamepad: {
+			stick: {
+				type: null,
+				axis: null,
+				direction: null
+			},
+			button: {
+				index: null
+			}
+		}
+	},
+
+	// === NOT YET REFACTORED - keeping old structure ===
     keyText: "SampleText",
-	button: -1,
-    axis: 0,
 	linkedAxis: -1,
-    revertedAxis: false,
 	reverseFillDirection: false,
     size: 100,
     multiplier: 1,
@@ -21,11 +78,16 @@ defaultKeyProperties = {
 	fontStyle: { textAlign: "center", fillStyle: "white", font: "30px Lucida Console" },
 }
 
-
+/**
+ * Converts stick configuration to standard gamepad API axis index
+ */
+function asConventionalGamepadAxisNumber(stick: GamepadStickInput): number | null {
+	if (stick.type === null || stick.axis === null) return null;
+	return (stick.type === "left" ? 0 : 2) + (stick.axis === "X" ? 0 : 1);
+}
 
 // Thumbstick object
-function Key(x, y, width, height, properties) {
-
+function Key(x: number, y: number, width: number, height: number, properties?: Partial<KeyProperties>) {
 
 	// Framework properties
 	this.x = x; this.y = y;
@@ -37,6 +99,20 @@ function Key(x, y, width, height, properties) {
 	applyProperties(this, defaultKeyProperties);
 	// Custom object properties
 	applyProperties(this, properties);
+
+	// Convert new input structure to internal properties for update() to use
+	if (this.input) {
+		// Keyboard
+		this.keyCode = this.input.keyboard.keyCode;
+
+		// Gamepad stick
+		const axisIndex = asConventionalGamepadAxisNumber(this.input.gamepad.stick);
+		this.axis = (axisIndex !== null) ? axisIndex : 0;
+		this.revertedAxis = (this.input.gamepad.stick.direction === "negative");
+
+		// Gamepad button
+		this.button = (this.input.gamepad.button.index !== null) ? this.input.gamepad.button.index : -1;
+	}
 
 	// Object values
     this.value = 0;
