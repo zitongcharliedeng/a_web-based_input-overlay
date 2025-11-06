@@ -1,8 +1,9 @@
 # Claude AI assistant directory (local config only)
 .claude/
 
-# Node modules (if npm is used)
+# Node modules
 node_modules/
+package-lock.json
 
 # TypeScript compiled output
 compiled/
