@@ -110,12 +110,17 @@ function LinearInputIndicator(x: number, y: number, width: number, height: numbe
 		this.keyCode = this.input.keyboard.keyCode;
 
 		// Gamepad stick
-		const axisIndex = asConventionalGamepadAxisNumber(this.input.gamepad.stick);
-		this.axis = (axisIndex !== null) ? axisIndex : 0;
-		this.revertedAxis = (this.input.gamepad.stick.direction === "negative");
+		this.hasStickInput = (asConventionalGamepadAxisNumber(this.input.gamepad.stick) !== null);
+		if (this.hasStickInput) {
+			this.axis = asConventionalGamepadAxisNumber(this.input.gamepad.stick);
+			this.revertedAxis = (this.input.gamepad.stick.direction === "negative");
+		}
 
 		// Gamepad button
-		this.button = (this.input.gamepad.button.index !== null) ? this.input.gamepad.button.index : -1;
+		this.hasButtonInput = (this.input.gamepad.button.index !== null);
+		if (this.hasButtonInput) {
+			this.button = this.input.gamepad.button.index;
+		}
 	}
 
 	// Object values
@@ -140,8 +145,8 @@ LinearInputIndicator.prototype.update = function (delta) {
 	// Get gamepad input
 	for (var id in gamepads) {
 		var gamepad = gamepads[id];
-		if (gamepad !== null && gamepad.axes ) {
-			
+		if (gamepad !== null && gamepad.axes && this.hasStickInput) {
+
 			if (gamepad.axes[this.axis]
 			&& (this.revertedAxis === true && gamepad.axes[this.axis] < 0)
 			|| (this.revertedAxis === false && gamepad.axes[this.axis] > 0)) {
@@ -162,10 +167,10 @@ LinearInputIndicator.prototype.update = function (delta) {
 				linkedValue += Math.abs(gamepad.axes[this.linkedAxis])
 			}
 		}
-		if (gamepad !== null && gamepad.buttons) {
+		if (gamepad !== null && gamepad.buttons && this.hasButtonInput) {
 
 			if (gamepad.buttons[this.button]) {
-				
+
 				value += gamepad.buttons[this.button].value
 			}
 		}
