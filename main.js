@@ -7,9 +7,9 @@ if (process.platform === 'linux') {
 }
 
 // Parse command line flags
-const isReadonly = process.argv.includes('--readonly');
-const enableFrame = process.argv.includes('--frame');
-const enableDevTools = process.argv.includes('--dev');
+const isReadonly = process.argv.includes('--in-clickthrough-readonly-mode');
+const enableFrame = process.argv.includes('--with-window-frame');
+const enableDevTools = process.argv.includes('--with-dev-console');
 let globalInputAvailable = false;
 
 // IPC handlers for renderer queries

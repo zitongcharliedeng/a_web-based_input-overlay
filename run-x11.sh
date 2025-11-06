@@ -2,12 +2,12 @@
 # X11/XWayland mode run script
 # Use this if Wayland causes issues (e.g., global input hooks don't work)
 # Usage:
-#   ./run-x11.sh               - Interactive mode via X11/XWayland
-#   ./run-x11.sh --readonly    - Readonly overlay mode via X11/XWayland
-#   ./run-x11.sh --dev         - Enable DevTools (breaks transparency)
-#   ./run-x11.sh --frame       - Show window frame (for debugging)
+#   ./run-x11.sh                                  - Interactive mode via X11/XWayland
+#   ./run-x11.sh --in-clickthrough-readonly-mode  - Readonly overlay mode via X11/XWayland
+#   ./run-x11.sh --with-dev-console               - Enable DevTools (breaks transparency)
+#   ./run-x11.sh --with-window-frame              - Show window frame (for debugging)
 #
-# Flags can be combined: ./run-x11.sh --readonly --frame
+# Flags can be combined: ./run-x11.sh --in-clickthrough-readonly-mode --with-window-frame
 
 set -e
 
