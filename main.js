@@ -12,18 +12,34 @@ const enableFrame = process.argv.includes('--with-window-frame');
 const enableDevTools = process.argv.includes('--with-dev-console');
 let globalInputAvailable = false;
 
-// Try to initialize uiohook for global input capture
+// Try to initialize global input capture
+// Priority: evdev (Wayland/Linux) > uiohook-napi (X11/Windows/macOS)
 let uIOhook = null;
+let evdevCapture = null;
 let activeView = null; // Store reference to send events
 
-try {
-  const uiohook = require('uiohook-napi');
-  uIOhook = uiohook.uIOhook;
-  globalInputAvailable = true;
-  console.log('[Main] ✓ uiohook-napi loaded successfully');
-} catch (error) {
-  console.log('[Main] ✗ uiohook-napi not available:', error.message);
-  console.log('[Main] Global input hooks disabled (will use DOM events only)');
+// Try evdev first (best for Wayland)
+if (process.platform === 'linux') {
+  try {
+    const EvdevInputCapture = require('./browserInputListeners/evdevInput');
+    evdevCapture = new EvdevInputCapture();
+    console.log('[Main] evdev input capture available');
+  } catch (error) {
+    console.log('[Main] ✗ evdev not available:', error.message);
+  }
+}
+
+// Try uiohook-napi as fallback (works on X11, Windows, macOS)
+if (!evdevCapture) {
+  try {
+    const uiohook = require('uiohook-napi');
+    uIOhook = uiohook.uIOhook;
+    globalInputAvailable = true;
+    console.log('[Main] ✓ uiohook-napi loaded successfully');
+  } catch (error) {
+    console.log('[Main] ✗ uiohook-napi not available:', error.message);
+    console.log('[Main] Global input hooks disabled (will use DOM events only)');
+  }
 }
 
 // IPC handlers for renderer queries
@@ -107,13 +123,58 @@ function createWindow() {
   return { win, view };
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   const { win, view } = createWindow();
   activeView = view; // Store reference for IPC
 
-  // Start global input hooks if available
-  if (uIOhook) {
-    console.log('[Main] Starting global input hooks...');
+  // Start evdev capture if available (Wayland/Linux)
+  if (evdevCapture) {
+    console.log('[Main] Starting evdev input capture...');
+
+    try {
+      await evdevCapture.start();
+      globalInputAvailable = true;
+      console.log('[Main] ✓ evdev capture started');
+
+      // Mouse events
+      evdevCapture.on('mousemove', (data) => {
+        activeView.webContents.send('global-mousemove', data);
+      });
+
+      evdevCapture.on('mousewheel', (data) => {
+        console.log('[Main] Mouse wheel:', data.delta);
+        activeView.webContents.send('global-mousewheel', data);
+      });
+
+      evdevCapture.on('mousebutton', (data) => {
+        console.log('[Main] Mouse button:', data.buttonName, data.pressed ? 'pressed' : 'released');
+        activeView.webContents.send('global-mousebutton', data);
+      });
+
+      // Gamepad events
+      evdevCapture.on('gamepadaxis', (data) => {
+        activeView.webContents.send('global-gamepadaxis', data);
+      });
+
+      evdevCapture.on('gamepadbutton', (data) => {
+        console.log('[Main] Gamepad button:', data.buttonName, data.pressed ? 'pressed' : 'released');
+        activeView.webContents.send('global-gamepadbutton', data);
+      });
+
+    } catch (error) {
+      console.error('[Main] ✗ Failed to start evdev:', error.message);
+      if (error.message.includes('Permission denied') || error.message.includes('input group')) {
+        console.log('[Main] To enable global input capture:');
+        console.log('[Main]   sudo usermod -aG input $USER');
+        console.log('[Main]   Then log out and back in');
+      }
+      evdevCapture = null; // Clear on failure
+    }
+  }
+
+  // Start uiohook if evdev not available (X11/Windows/macOS)
+  if (!evdevCapture && uIOhook) {
+    console.log('[Main] Starting uiohook input hooks...');
 
     // Keyboard events
     uIOhook.on('keydown', (event) => {
@@ -138,7 +199,14 @@ app.whenReady().then(() => {
 
     // Start the hook
     uIOhook.start();
-    console.log('[Main] ✓ Global input hooks started');
+    console.log('[Main] ✓ uiohook started');
+  }
+
+  // Log final status
+  if (globalInputAvailable) {
+    console.log('[Main] ✅ Global input capture enabled');
+  } else {
+    console.log('[Main] ⚠️  Global input capture unavailable - using DOM events (focus required)');
   }
 
   app.on('activate', () => {
@@ -149,9 +217,14 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  // Stop global input hooks
+  // Stop global input capture
+  if (evdevCapture) {
+    console.log('[Main] Stopping evdev capture...');
+    evdevCapture.stop();
+  }
+
   if (uIOhook) {
-    console.log('[Main] Stopping global input hooks...');
+    console.log('[Main] Stopping uiohook...');
     uIOhook.stop();
   }
 
