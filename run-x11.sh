@@ -11,5 +11,6 @@
 
 set -e
 
+# uiohook-napi requires X11 libraries: libXtst (XTest extension)
 # Force X11 mode and pass all arguments to electron
-nix-shell -p nodejs electron --run "ELECTRON_OZONE_PLATFORM_HINT=x11 electron . $*"
+nix-shell -p nodejs electron xorg.libXtst --run "ELECTRON_OZONE_PLATFORM_HINT=x11 electron . $*"
