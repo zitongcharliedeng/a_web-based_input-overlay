@@ -116,15 +116,17 @@ function scene_default(canvas, ctx) {
 		createLabel(20, yOffset, "TEST 1: Left Gamepad Stick - WITH radial compensation vs WITHOUT"),
 		createLabel(20, yOffset + 25, "Move diagonally: LEFT shows ~100% (compensated), RIGHT shows ~70% (raw circular)"),
 
-		new Thumbstick(
+		new PlanarInputIndicator_Radial(
 			20, yOffset + 60, 200, 200,
 			{
-				backgroundProperties: {lineWidth:4, strokeStyle:"#B4B4B4", fillStyle:"rgba(37, 37, 37, 0.43)"},
-				xLineProperties: {strokeStyle:"#B4B4B4", lineWidth:4},
-				yLineProperties: {strokeStyle:"#B4B4B4", lineWidth:4},
-				deadzoneProperties: {fillStyle:"#524d4d"},
-				inputVectorProperties: {strokeStyle:"#B4B4B4", lineWidth:4},
-				unitVectorProperties: {strokeStyle:"#524d4d", lineWidth:4},
+				display: {
+					backgroundStyle: {lineWidth:4, strokeStyle:"#B4B4B4", fillStyle:"rgba(37, 37, 37, 0.43)"},
+					xLineStyle: {strokeStyle:"#B4B4B4", lineWidth:4},
+					yLineStyle: {strokeStyle:"#B4B4B4", lineWidth:4},
+					deadzoneStyle: {fillStyle:"#524d4d"},
+					inputVectorStyle: {strokeStyle:"#B4B4B4", lineWidth:4},
+					unitVectorStyle: {strokeStyle:"#524d4d", lineWidth:4}
+				}
 			}
 		),
 
