@@ -980,4 +980,106 @@ Extend to VR gaming:
 
 ---
 
+## 📝 Current Session Notes (2025-11-06)
+
+### Completed Work
+- ✅ Migrated `framework/vector.js` to `framework/Vector.ts` with full type annotations
+- ✅ Converted ES5 prototype syntax to ES2020 class syntax
+- ✅ Updated `index.html` to load compiled Vector.js
+- ✅ Updated README.md with concise goal-focused description
+- ✅ Renamed `claude.md` to `CLAUDE.md` for better visibility
+- ✅ Committed and pushed all changes to GitHub
+
+### Current State
+- **Repository**: `https://github.com/zitongcharliedeng/a_web-based_input-overlay.git`
+- **Branch**: `master`
+- **Latest Commit**: `10361b0` - docs: update README and rename claude.md to CLAUDE.md
+- **Compilation**: Using `nix-shell -p nodejs --run "npx tsc"` (no global npm/node)
+
+### Directory Structure (Current)
+```
+.
+├── CLAUDE.md              # This file - full technical roadmap
+├── README.md              # Public-facing readme (concise)
+├── index.html             # Entry point
+├── style.css              # Global styles
+├── tsconfig.json          # TypeScript config
+├── package.json           # npm dependencies
+├── .gitignore             # Ignores: compiled/, node_modules/, .claude/
+│
+├── framework/             # Core utilities
+│   ├── Vector.ts          # ✅ Migrated to TypeScript
+│   ├── vector.js          # ⚠️ Old file (still present)
+│   ├── applyProperties.ts # ✅ TypeScript (deepMerge, isPlainObject)
+│   ├── canvasFramework.js # ⏳ Needs migration
+│   ├── draw.js            # ⏳ Needs migration
+│   ├── gamepad.js         # ⏳ Needs migration
+│   ├── keyboard.js        # ⏳ Needs migration
+│   └── mouse.js           # ⏳ Needs migration
+│
+├── objects/               # UI components
+│   ├── LinearInputIndicator.ts  # ✅ TypeScript (nested config)
+│   ├── Text.js            # ⏳ Next target for migration
+│   ├── Thumbstick.js      # ⏳ Needs nested config pattern
+│   └── PropertyEdit.js    # ⏳ Needs migration
+│
+├── scenes/                # Scene configurations
+│   ├── default.js         # Default WASD layout
+│   └── e2e-test.js        # Full test scene
+│
+├── images/                # Assets
+│   └── KeyDefault.png     # Only image (others deleted)
+│
+└── compiled/              # TypeScript output (gitignored)
+    ├── framework/
+    │   ├── Vector.js
+    │   └── applyProperties.js
+    └── objects/
+        └── LinearInputIndicator.js
+```
+
+### TypeScript Migration Status
+
+**Completed:**
+1. ✅ `framework/Vector.ts` - Foundation for all math operations
+2. ✅ `framework/applyProperties.ts` - Property merging with deepMerge
+3. ✅ `objects/LinearInputIndicator.ts` - Nested config structure (input, processing, display)
+
+**Next in Queue (Ranked by ROI):**
+1. 🔄 **Directory Refactoring** - User wants to reorganize structure before continuing TS migration
+2. ⏳ `objects/Text.ts` - Simplest object, fix applyProperties order bug
+3. ⏳ `objects/Thumbstick.ts` - Apply LinearInputIndicator pattern
+4. ⏳ Framework files (gamepad, keyboard, mouse, draw, canvasFramework)
+
+### Known Issues & TODOs
+
+**Active TODOs:**
+- [ ] **Directory refactoring** - User wants to reorganize before more TS conversion
+- [ ] Rename `linkedAxis` to better mathematical term (radialCompensationAxis or perpendicularAxis)
+- [ ] Make KeyImage user-customizable property (currently hardcoded in scenes)
+- [ ] Delete old `framework/vector.js` after confirming compiled version works
+
+**Architectural Notes:**
+- Using nested config structure: `{ input: {...}, processing: {...}, display: {...} }`
+- `deepMerge()` properly handles special objects (Image, Date, etc.) via `isPlainObject()` check
+- Compiled output is gitignored (developers must compile locally)
+- No npm/npx in PATH - must use `nix-shell -p nodejs --run "npx tsc"`
+
+### User Preferences (Code Style)
+- No emojis in code or commit messages (removed from README)
+- Concise documentation (no bullet point spam)
+- Semantic clarity over brevity
+- Clean-room refactoring approach (making code unrecognizable from original)
+- Conventional commits with breaking change markers
+- No "Co-Authored-By: Claude" in commits (user preference)
+
+### Next Steps (When Resuming)
+1. **Discuss directory reorganization** - User paused to plan structure
+2. Decide on structure pattern (src/, feature-based, etc.)
+3. Execute refactoring (git mv commands)
+4. Update index.html with new paths
+5. Continue TypeScript migration (Text.js → Text.ts next)
+
+---
+
 *This document is a living roadmap. As the project evolves, sections will be updated to reflect current state, lessons learned, and community feedback.*
