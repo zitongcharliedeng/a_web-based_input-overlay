@@ -10,14 +10,15 @@
 - **Gamepad API**: Works unfocused (as expected, browser native)
 
 ### Known Limitations ❌
-- **Global keyboard hooks don't work on COSMIC compositor** (Wayland)
+- **Global keyboard hooks don't work on niri compositor** (Wayland)
   - Error: `XkbGetKeyboard failed to locate a valid keyboard!`
   - Reason: Wayland security model prevents non-privileged apps from accessing keyboard info
-  - Affects both native Wayland and XWayland modes
-  - This is a COSMIC/Wayland architectural limitation, not a bug
+  - Affects both native Wayland and XWayland modes (tested with DISPLAY=:1)
+  - This is a niri/Wayland architectural limitation, not a bug
+  - **Likely affects other Wayland compositors** (GNOME, KDE, Hyprland) - needs testing
 
 ### Test Environment
-- **OS**: NixOS with COSMIC compositor (Wayland-based)
+- **OS**: NixOS with niri compositor (Wayland-based, scrollable tiling WM)
 - **Electron**: 28.0.0
 - **Node**: Via nix-shell
 - **uiohook-napi**: 1.5.1 (patched via shell.nix)
@@ -39,11 +40,12 @@
   - `ldd` shows all X11 libraries found in `/nix/store/`
 
 #### Test 3: Global Keyboard Events
-- **Status**: ❌ FAIL on COSMIC
+- **Status**: ❌ FAIL on niri (Wayland)
 - **Evidence**:
   - No `[Main] Global keydown` logs when pressing keys
   - `load_input_helper [1827]: XkbGetKeyboard failed to locate a valid keyboard!`
-  - Works with DOM events when focused
+  - Tested with both native Wayland mode and XWayland (DISPLAY=:1)
+  - Works with DOM events when focused (fallback operational)
 
 #### Test 4: DOM Event Fallback
 - **Status**: ✅ PASS
@@ -53,8 +55,8 @@
 
 ### Immediate (Graceful Degradation)
 - [ ] Add detection when global hooks fail to initialize
-- [ ] Show helpful warning about Wayland/COSMIC limitations
-- [ ] Document which compositors are supported
+- [ ] Show helpful warning about Wayland/niri limitations
+- [ ] Document which compositors are supported (X11, Windows, macOS confirmed working)
 
 ### Alternative Approaches to Research
 1. **Direct evdev access** (`/dev/input/eventX`)
