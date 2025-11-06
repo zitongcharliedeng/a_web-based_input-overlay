@@ -985,79 +985,88 @@ Extend to VR gaming:
 ### Completed Work
 - ✅ Migrated `framework/vector.js` to `framework/Vector.ts` with full type annotations
 - ✅ Converted ES5 prototype syntax to ES2020 class syntax
-- ✅ Updated `index.html` to load compiled Vector.js
 - ✅ Updated README.md with concise goal-focused description
 - ✅ Renamed `claude.md` to `CLAUDE.md` for better visibility
-- ✅ Committed and pushed all changes to GitHub
+- ✅ **Major Directory Refactoring:**
+  - Reorganized entire codebase into semantic structure
+  - Separated input listeners from overlay view
+  - Used `_` prefix for system/helper folders
+  - Merged game loop + scenes into single default.js
+  - Fixed TEST 1B to include all 4 directions (added missing J key)
 
 ### Current State
 - **Repository**: `https://github.com/zitongcharliedeng/a_web-based_input-overlay.git`
 - **Branch**: `master`
-- **Latest Commit**: `10361b0` - docs: update README and rename claude.md to CLAUDE.md
+- **Latest Commit**: `ac22fb1` - refactor: reorganize into browserInputOverlayView and browserInputListeners
 - **Compilation**: Using `nix-shell -p nodejs --run "npx tsc"` (no global npm/node)
+- **Status**: All tests passing, ready for TypeScript migration
 
-### Directory Structure (Current)
+### Directory Structure (Current - REFACTORED)
 ```
 .
-├── CLAUDE.md              # This file - full technical roadmap
-├── README.md              # Public-facing readme (concise)
-├── index.html             # Entry point
-├── style.css              # Global styles
-├── tsconfig.json          # TypeScript config
-├── package.json           # npm dependencies
-├── .gitignore             # Ignores: compiled/, node_modules/, .claude/
+├── index.html                          # Entry point
+├── CLAUDE.md                           # This file - full technical roadmap
+├── README.md                           # Public-facing readme (concise)
+├── tsconfig.json                       # TypeScript config
+├── package.json                        # npm dependencies
+├── .gitignore                          # Ignores: _compiled/, node_modules/, .claude/
 │
-├── framework/             # Core utilities
-│   ├── Vector.ts          # ✅ Migrated to TypeScript
-│   ├── vector.js          # ⚠️ Old file (still present)
-│   ├── applyProperties.ts # ✅ TypeScript (deepMerge, isPlainObject)
-│   ├── canvasFramework.js # ⏳ Needs migration
-│   ├── draw.js            # ⏳ Needs migration
-│   ├── gamepad.js         # ⏳ Needs migration
-│   ├── keyboard.js        # ⏳ Needs migration
-│   └── mouse.js           # ⏳ Needs migration
+├── browserInputListeners/              # Pure input system (no dependencies)
+│   ├── keyboard.js                     # Keyboard state tracker
+│   ├── mouse.js                        # Mouse position/clicks tracker
+│   └── gamepad.js                      # Gamepad API wrapper
 │
-├── objects/               # UI components
-│   ├── LinearInputIndicator.ts  # ✅ TypeScript (nested config)
-│   ├── Text.js            # ⏳ Next target for migration
-│   ├── Thumbstick.js      # ⏳ Needs nested config pattern
-│   └── PropertyEdit.js    # ⏳ Needs migration
-│
-├── scenes/                # Scene configurations
-│   ├── default.js         # Default WASD layout
-│   └── e2e-test.js        # Full test scene
-│
-├── images/                # Assets
-│   └── KeyDefault.png     # Only image (others deleted)
-│
-└── compiled/              # TypeScript output (gitignored)
-    ├── framework/
-    │   ├── Vector.js
-    │   └── applyProperties.js
-    └── objects/
-        └── LinearInputIndicator.js
+└── browserInputOverlayView/            # Main overlay application
+    ├── default.js                      # ✅ Game loop + scene (merged from canvasFramework + scenes)
+    │
+    ├── objects/                        # Visual components
+    │   ├── LinearInputIndicator.ts     # ✅ TypeScript (nested config: input, processing, display)
+    │   ├── Thumbstick.js               # ⏳ Needs TypeScript migration
+    │   └── Text.js                     # ⏳ Needs TypeScript migration
+    │
+    ├── actions/                        # Scene modifiers
+    │   └── PropertyEdit.js             # ⏳ Right-click edit menu (needs TS migration)
+    │
+    ├── _helpers/                       # Utilities (used only by overlay view)
+    │   ├── Vector.ts                   # ✅ TypeScript - 3D vector math
+    │   ├── applyProperties.ts          # ✅ TypeScript - deepMerge, isPlainObject
+    │   └── draw.js                     # ⏳ Canvas drawing helpers (needs TS migration)
+    │
+    ├── _assets/                        # Static resources
+    │   ├── style.css                   # Global styles
+    │   └── images/
+    │       └── KeyDefault.png          # Key background image
+    │
+    └── _compiled/                      # TypeScript output (gitignored)
+        ├── _helpers/
+        │   ├── Vector.js
+        │   └── applyProperties.js
+        └── objects/
+            └── LinearInputIndicator.js
 ```
 
 ### TypeScript Migration Status
 
 **Completed:**
-1. ✅ `framework/Vector.ts` - Foundation for all math operations
-2. ✅ `framework/applyProperties.ts` - Property merging with deepMerge
-3. ✅ `objects/LinearInputIndicator.ts` - Nested config structure (input, processing, display)
+1. ✅ `browserInputOverlayView/_helpers/Vector.ts` - 3D vector math utility
+2. ✅ `browserInputOverlayView/_helpers/applyProperties.ts` - Property merging with deepMerge
+3. ✅ `browserInputOverlayView/objects/LinearInputIndicator.ts` - Nested config (input, processing, display)
+4. ✅ **Directory Refactoring Complete** - Semantic structure with browserInputListeners and browserInputOverlayView
 
-**Next in Queue (Ranked by ROI):**
-1. 🔄 **Directory Refactoring** - User wants to reorganize structure before continuing TS migration
-2. ⏳ `objects/Text.ts` - Simplest object, fix applyProperties order bug
-3. ⏳ `objects/Thumbstick.ts` - Apply LinearInputIndicator pattern
-4. ⏳ Framework files (gamepad, keyboard, mouse, draw, canvasFramework)
+**Next in Queue:**
+1. ⏳ `browserInputOverlayView/objects/Text.ts` - Simplest object (pure text rendering)
+2. ⏳ `browserInputOverlayView/objects/Thumbstick.ts` - Apply nested config pattern like LinearInputIndicator
+3. ⏳ `browserInputOverlayView/actions/PropertyEdit.ts` - Right-click edit menu
+4. ⏳ `browserInputOverlayView/_helpers/draw.ts` - Canvas drawing helpers
+5. ⏳ `browserInputListeners/*.ts` - Input system (keyboard, mouse, gamepad)
 
 ### Known Issues & TODOs
 
 **Active TODOs:**
-- [ ] **Directory refactoring** - User wants to reorganize before more TS conversion
+- [ ] Convert Text.js to TypeScript
+- [ ] Convert Thumbstick.js to TypeScript (apply nested config pattern)
 - [ ] Rename `linkedAxis` to better mathematical term (radialCompensationAxis or perpendicularAxis)
-- [ ] Make KeyImage user-customizable property (currently hardcoded in scenes)
-- [ ] Delete old `framework/vector.js` after confirming compiled version works
+- [ ] Make KeyImage user-customizable property (currently hardcoded in default.js scene)
 
 **Architectural Notes:**
 - Using nested config structure: `{ input: {...}, processing: {...}, display: {...} }`
@@ -1074,11 +1083,11 @@ Extend to VR gaming:
 - No "Co-Authored-By: Claude" in commits (user preference)
 
 ### Next Steps (When Resuming)
-1. **Discuss directory reorganization** - User paused to plan structure
-2. Decide on structure pattern (src/, feature-based, etc.)
-3. Execute refactoring (git mv commands)
-4. Update index.html with new paths
-5. Continue TypeScript migration (Text.js → Text.ts next)
+1. Convert Text.js to TypeScript (simplest object)
+2. Convert Thumbstick.js to TypeScript (apply nested config pattern)
+3. Convert PropertyEdit.js to TypeScript
+4. Consider renaming `linkedAxis` to `radialCompensationAxis` or `perpendicularAxis`
+5. Make KeyImage user-customizable instead of hardcoded in scene
 
 ---
 
