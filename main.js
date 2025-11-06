@@ -8,6 +8,8 @@ if (process.platform === 'linux') {
 
 // Parse command line flags
 const isReadonly = process.argv.includes('--readonly');
+const enableFrame = process.argv.includes('--frame');
+const enableDevTools = process.argv.includes('--dev');
 let globalInputAvailable = false;
 
 // IPC handlers for renderer queries
@@ -32,7 +34,7 @@ function createWindow() {
     width: width,
     height: height,
     transparent: true,
-    frame: false,
+    frame: enableFrame,  // Show frame for debugging
     alwaysOnTop: true,
     skipTaskbar: false,
   });
@@ -62,13 +64,11 @@ function createWindow() {
   // Load the HTML file
   view.webContents.loadFile('index.html');
 
-  // Enable click-through based on command line flag
-  const enableClickThrough = process.argv.includes('--click-through');
-
-  if (enableClickThrough) {
-    // Overlay mode: always click-through (for gaming)
+  // Readonly mode: click-through for overlay use (can't edit config)
+  // Interactive mode: can drag and edit objects
+  if (isReadonly) {
     win.setIgnoreMouseEvents(true);
-    console.log('Overlay mode - click-through enabled (always)');
+    console.log('[Main] Readonly mode - click-through enabled, UI editing disabled');
 
     // Keep window on top (from stream-overlay)
     const keepOnTop = setInterval(() => {
@@ -81,12 +81,12 @@ function createWindow() {
       clearInterval(keepOnTop);
     });
   } else {
-    // Interactive mode: can drag and edit objects
-    console.log('Interactive mode - can drag/edit objects');
+    console.log('[Main] Interactive mode - can drag and edit objects');
   }
 
-  // Open DevTools in development
-  if (process.argv.includes('--enable-logging')) {
+  // Open DevTools (warning: breaks transparency)
+  if (enableDevTools) {
+    console.log('[Main] DevTools enabled (transparency will break)');
     view.webContents.openDevTools();
   }
 
