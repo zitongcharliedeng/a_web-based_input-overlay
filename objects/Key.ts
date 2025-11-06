@@ -7,6 +7,16 @@ declare function canvas_fill_rec(ctx: any, x: number, y: number, width: number, 
 declare function canvas_text(ctx: any, x: number, y: number, text: string, style: any): void;
 
 // Type definitions
+interface Position {
+	x: number;
+	y: number;
+}
+
+interface Dimensions {
+	width: number;
+	height: number;
+}
+
 interface GamepadStickInput {
 	type: "left" | "right" | null;
 	axis: "X" | "Y" | null;
@@ -35,13 +45,11 @@ interface LinearInputIndicatorProperties {
 	keyText: string;
 	linkedAxis: number;
 	reverseFillDirection: boolean;
-	size: number;
 	multiplier: number;
 	antiDeadzone: number;
 	backgroundImage: HTMLImageElement;  // TODO: Make user-customizable instead of hardcoded in scenes
 	fillStyle: string;
 	fillStyleBackground: string;
-	fillSize: number;
 	fontStyle: any;
 }
 
@@ -68,13 +76,11 @@ const defaultLinearInputIndicatorProperties: LinearInputIndicatorProperties = {
     keyText: "SampleText",
 	linkedAxis: -1,
 	reverseFillDirection: false,
-    size: 100,
     multiplier: 1,
     antiDeadzone: 0.0,
 	backgroundImage: new Image(),
 	fillStyle: "rgba(255, 255, 255, 0.5)",
 	fillStyleBackground: "rgba(37, 37, 37, 0.43)",
-	fillSize: 85,
 	fontStyle: { textAlign: "center", fillStyle: "white", font: "30px Lucida Console" },
 }
 
@@ -187,28 +193,26 @@ LinearInputIndicator.prototype.update = function (delta) {
 // Draw function
 LinearInputIndicator.prototype.draw = function (canvas, ctx) {
 
-	var fillOffset = -(this.fillSize-this.size)*.5
-
 	// Fill background
     ctx.beginPath();
-    canvas_fill_rec(ctx, fillOffset, fillOffset, this.fillSize, this.fillSize, {fillStyle:this.fillStyleBackground});
+    canvas_fill_rec(ctx, 0, 0, this.width, this.height, {fillStyle:this.fillStyleBackground});
 
-	// Fill value
+	// Fill value (vertical fill from bottom or top)
     ctx.beginPath();
 	if (this.reverseFillDirection == true)
-		canvas_fill_rec(ctx, fillOffset, fillOffset + this.fillSize, this.fillSize, -this.fillSize * this.value, { fillStyle: this.fillStyle });
+		canvas_fill_rec(ctx, 0, this.height, this.width, -this.height * this.value, { fillStyle: this.fillStyle });
 	else
-		canvas_fill_rec(ctx, fillOffset, fillOffset, this.fillSize, this.fillSize * this.value, { fillStyle: this.fillStyle });
+		canvas_fill_rec(ctx, 0, 0, this.width, this.height * this.value, { fillStyle: this.fillStyle });
 
-
+	// Draw background image scaled to dimensions
 	ctx.drawImage(
 		this.backgroundImage,
 		0, 0,
 		this.backgroundImage.width, this.backgroundImage.height,
 		0, 0,
-		this.size, this.size
+		this.width, this.height
 	)
 
-    // Print key text
-    canvas_text(ctx, this.size*.5, this.size*.5, this.keyText, this.fontStyle);
+    // Print key text centered
+    canvas_text(ctx, this.width * 0.5, this.height * 0.5, this.keyText, this.fontStyle);
 }

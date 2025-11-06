@@ -266,6 +266,55 @@ function scene_default(canvas, ctx) {
                 keyText:"RT\nAnalog", backgroundImage:KeyImage
             }
         ),
+
+        // ===== TEST CASE 4: Rectangular Dimensions =====
+        (function() { yOffset += sectionSpacing; return createLabel(20, yOffset, "TEST 4: Rectangular Dimensions"); })(),
+        createLabel(20, yOffset + 25, "Spacebar key - 4x width, slightly taller height (400x120)"),
+
+        new LinearInputIndicator(
+            150, yOffset + 60, 400, 120,
+            {
+                input: {
+                    keyboard: { keyCode: "Space" },
+                    gamepad: {
+                        stick: { type: null, axis: null, direction: null },
+                        button: { index: null }
+                    }
+                },
+                keyText:"SPACE", backgroundImage:KeyImage
+            }
+        ),
+
+        // ===== TEST CASE 4B: Super Long Thin Bar =====
+        (function() { yOffset += sectionSpacing; return createLabel(20, yOffset, "TEST 4B: Super Long Thin Vertical Bars"); })(),
+        createLabel(20, yOffset + 25, "W key + gamepad forward (Y negative) vs S key + gamepad backward (Y positive) - 40x600 dimensions"),
+
+        new LinearInputIndicator(
+            150, yOffset + 60, 40, 600,
+            {
+                input: {
+                    keyboard: { keyCode: "KeyW" },
+                    gamepad: {
+                        stick: { type: "left", axis: "Y", direction: "negative" },
+                        button: { index: null }
+                    }
+                },
+                linkedAxis: 0, keyText:"W\nForward\nGamepad Up", backgroundImage:KeyImage
+            }
+        ),
+        new LinearInputIndicator(
+            250, yOffset + 60, 40, 600,
+            {
+                input: {
+                    keyboard: { keyCode: "KeyS" },
+                    gamepad: {
+                        stick: { type: "left", axis: "Y", direction: "positive" },
+                        button: { index: null }
+                    }
+                },
+                linkedAxis: 0, keyText:"S\nBackward\nGamepad Down", backgroundImage:KeyImage
+            }
+        ),
     ];
 
     // Object dragging and property editing
