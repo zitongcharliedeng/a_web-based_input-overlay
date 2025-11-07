@@ -1,4 +1,5 @@
 const fs = require('fs');
+const fsPromises = require('fs').promises;
 const { EventEmitter } = require('events');
 
 /**
@@ -160,7 +161,7 @@ class EvdevInputCapture extends EventEmitter {
     // Find all input devices
     try {
       const inputDir = '/dev/input';
-      const files = fs.readdirSync(inputDir);
+      const files = await fsPromises.readdir(inputDir);
 
       // Filter for event devices (event0, event1, etc.)
       const eventDevices = files.filter(f => f.startsWith('event')).sort();
