@@ -4,3 +4,14 @@
 # Node modules
 node_modules/
 package-lock.json
+
+# Rust build artifacts (Raylib branch)
+target/
+Cargo.lock
+
+# Tauri build artifacts
+src-tauri/target/
+src-tauri/Cargo.lock
+
+# TypeScript compiled output
+_compiled/
