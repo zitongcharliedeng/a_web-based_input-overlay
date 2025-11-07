@@ -33,6 +33,11 @@
           autoconf
           automake
           libtool
+          pango
+          pango.dev
+          webkitgtk_4_1
+          gtk3.dev
+          gdk-pixbuf.dev
         ] ++ (with pkgs.xorg; [
           libX11
           libXtst
@@ -44,18 +49,18 @@
         ]);
 
         libraries = with pkgs; [
-          at-spi2-atk
-          atkmm
-          cairo
-          gdk-pixbuf
-          glib
-          gtk3
-          harfbuzz
-          librsvg
-          libsoup_3
-          pango
-          webkitgtk_4_1
-          openssl
+          at-spi2-atk      # Accessibility support (Tauri v2)
+          atkmm            # ATK C++ bindings
+          cairo            # 2D graphics
+          gdk-pixbuf       # Image loading
+          glib             # Core utilities
+          gtk3             # GUI toolkit
+          harfbuzz         # Text shaping
+          librsvg          # SVG rendering
+          libsoup_3        # HTTP client (required for Tauri v2)
+          pango            # Text layout
+          webkitgtk_4_1    # Web rendering engine
+          openssl          # Cryptography
         ];
 
         rdevLibs = with pkgs.xorg; [

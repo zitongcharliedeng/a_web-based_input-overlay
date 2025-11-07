@@ -9,7 +9,7 @@
 </head>
 
 <body>
-	<canvas id="canvas" width="1600" height="600" oncontextmenu="return false">
+	<canvas id="canvas" width="1920" height="1080" oncontextmenu="return false">
 		Your browser does not support the HTML5 canvas tag.
 	</canvas>
 
@@ -25,6 +25,19 @@
 
 	<!-- Tauri API will be injected here (available in Tauri app only) -->
 	<script src="/__tauri__/api.js"></script>
+
+	<!-- Web Locks API keep-alive (prevents background throttling on Tauri/WebKitGTK) -->
+	<!-- This holds a shared lock to keep the page "active" even when window loses focus -->
+	<script>
+		if (navigator?.locks?.request) {
+			navigator.locks.request('tauri-keep-alive', { mode: 'shared' }, () => {
+				return new Promise(() => {
+					// Never resolves - keeps the lock held indefinitely
+					console.log('Web Locks keep-alive: preventing background suspension');
+				});
+			});
+		}
+	</script>
 
 	<!-- Tauri input adapter (silently bridges rdev to browser input objects) -->
 	<script type="module" src="browserInputListeners/_tauriAdapter.js"></script>

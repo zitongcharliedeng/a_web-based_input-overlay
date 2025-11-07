@@ -12,7 +12,7 @@ async function initTauriAdapter() {
     try {
         // Only attempt to load Tauri API if available
         const { listen } = await import('@tauri-apps/api/event');
-        const { invoke } = await import('@tauri-apps/api/tauri');
+        const { invoke } = await import('@tauri-apps/api/core');
 
         // Import the input objects we'll update
         const { keyboard } = await import('./keyboard.js');
