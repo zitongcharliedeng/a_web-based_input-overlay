@@ -1,15 +1,10 @@
 {
-  "$schema": "https://schema.tauri.app/config/2",
-  "productName": "analog-keyboard-overlay",
-  "version": "0.1.0",
-  "identifier": "com.tauri.dev",
   "build": {
-    "frontendDist": "../dist",
-    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "",
     "beforeDevCommand": "",
-    "beforeBuildCommand": "npm run build:vite"
+    "devPath": "http://localhost:5173"
   },
-  "app": {
+  "tauri": {
     "windows": [
       {
         "title": "Analog Keyboard Overlay",
@@ -28,25 +23,23 @@
         "maximizable": false,
         "minimizable": true,
         "closable": true,
-        "visible": true,
-        "webviewConfig": {
-          "backgroundThrottling": false
-        }
+        "visible": true
       }
     ],
     "security": {
       "csp": null
+    },
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "com.github.zitongcharliedeng.analog-keyboard-overlay",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ]
     }
-  },
-  "bundle": {
-    "active": true,
-    "targets": "all",
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ]
   }
 }
