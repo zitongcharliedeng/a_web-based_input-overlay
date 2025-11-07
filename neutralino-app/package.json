@@ -1,0 +1,31 @@
+{
+  "name": "analog-keyboard-overlay-neutralino",
+  "version": "1.0.0",
+  "description": "Lightweight analog keyboard overlay for Wayland using Neutralino.js + evdev",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "start:dev": "node server.js --dev",
+    "start:port": "node server.js --port 9000",
+    "test": "node test-server.js"
+  },
+  "keywords": [
+    "overlay",
+    "analog-keyboard",
+    "gamepad",
+    "wayland",
+    "evdev",
+    "neutralino"
+  ],
+  "author": "zitongcharliedeng",
+  "license": "MIT",
+  "dependencies": {
+    "evdev": "^0.3.0",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

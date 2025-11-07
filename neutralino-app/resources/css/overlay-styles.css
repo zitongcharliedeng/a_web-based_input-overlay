@@ -1,0 +1,73 @@
+/* Overlay Styles for Neutralino */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  background: transparent;
+}
+
+/* Status display styling */
+#status {
+  font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;
+}
+
+#info {
+  font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;
+  pointer-events: none;
+}
+
+/* Input visualization classes */
+.key {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pressed {
+  animation: pulse 0.1s ease-out;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7);
+  }
+  100% {
+    box-shadow: 0 0 20px 5px rgba(0, 255, 0, 0);
+  }
+}
+
+/* Prevent text selection on overlay */
+body, canvas, #status, #info {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-app-region: no-drag;
+}
+
+/* Scrollbar styling (shouldn't appear) */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Hide by default, show only when needed */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}

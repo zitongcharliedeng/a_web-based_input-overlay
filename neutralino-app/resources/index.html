@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analog Keyboard Overlay - Neutralino</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+    }
+
+    #status {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #0f0;
+      padding: 10px 15px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+      z-index: 1000;
+      max-width: 300px;
+    }
+
+    #status.error {
+      background: rgba(128, 0, 0, 0.7);
+      color: #f00;
+    }
+
+    #status.ready {
+      background: rgba(0, 100, 0, 0.7);
+      color: #0f0;
+    }
+
+    #info {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #0f0;
+      padding: 10px 15px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: monospace;
+      z-index: 1000;
+    }
+
+    .key {
+      display: inline-block;
+      background: rgba(100, 100, 100, 0.7);
+      border: 1px solid rgba(200, 200, 200, 0.3);
+      padding: 4px 8px;
+      margin: 2px;
+      border-radius: 3px;
+      font-weight: bold;
+    }
+
+    .key.pressed {
+      background: rgba(0, 200, 0, 0.8);
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    }
+  </style>
+
+  <script type="module" src="js/main.js"></script>
+  <link rel="stylesheet" href="css/overlay-styles.css">
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+
+  <div id="status">
+    <div id="statusText">Initializing...</div>
+  </div>
+
+  <div id="info">
+    <div>Neutralino + evdev</div>
+    <div id="inputInfo">Waiting for input...</div>
+    <div id="wsStatus">WebSocket: disconnected</div>
+  </div>
+
+  <script>
+    // Simple status display
+    window.setStatus = function(text, isError = false) {
+      const status = document.getElementById('statusText');
+      status.textContent = text;
+      const container = document.getElementById('status');
+      if (isError) {
+        container.className = 'error';
+      } else {
+        container.className = 'ready';
+      }
+    };
+
+    window.updateInputInfo = function(info) {
+      document.getElementById('inputInfo').textContent = info;
+    };
+
+    window.updateWSStatus = function(connected) {
+      const status = document.getElementById('wsStatus');
+      status.textContent = 'WebSocket: ' + (connected ? 'connected' : 'disconnected');
+      status.style.color = connected ? '#0f0' : '#f00';
+    };
+  </script>
+</body>
+
+</html>

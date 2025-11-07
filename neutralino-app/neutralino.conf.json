@@ -1,0 +1,55 @@
+{
+  "documentRoot": "/resources/",
+  "defaultPort": 6000,
+  "defaultSSL": false,
+  "logging": {
+    "enabled": true,
+    "writeToConsole": true,
+    "level": "DEBUG"
+  },
+  "nativeAPI": {
+    "enabled": true,
+    "documentAccessExtension": true
+  },
+  "documentAssetsExtension": [
+    "js",
+    "css",
+    "html",
+    "json",
+    "png",
+    "jpg",
+    "jpeg",
+    "gif",
+    "svg",
+    "ttf",
+    "woff",
+    "woff2"
+  ],
+  "errorLogger": {
+    "enabled": true,
+    "filename": "error_log.txt"
+  },
+  "security": {
+    "blockDoubleUnzip": true,
+    "enableXSSProtection": true,
+    "blockRemoteContent": true
+  },
+  "modes": {
+    "window": {
+      "documentRoot": "/resources/",
+      "enableServer": true,
+      "enableNativeAPI": true,
+      "allowDisplayServerAccess": true,
+      "nativeBlockedMethods": [],
+      "nativeAllowedMethods": []
+    }
+  },
+  "cli": {
+    "resourcesPath": "/resources/",
+    "extensionsPath": "/extensions/",
+    "clientVersion": "1.0.0",
+    "binaryName": "analog-keyboard-overlay",
+    "applicationId": "com.overlay.analog",
+    "defaultMode": "window"
+  }
+}
