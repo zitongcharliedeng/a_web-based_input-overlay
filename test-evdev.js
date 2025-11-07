@@ -31,6 +31,10 @@ capture.on('gamepadbutton', (data) => {
   console.log('Gamepad button:', `${data.buttonName} ${data.pressed ? 'PRESSED' : 'released'}`);
 });
 
+capture.on('keypress', (data) => {
+  console.log('Keyboard key:', `${data.key} ${data.pressed ? 'PRESSED' : 'released'}`);
+});
+
 // Start capture
 console.log('Starting evdev capture...\n');
 capture.start().then(() => {

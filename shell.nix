@@ -20,6 +20,7 @@ in pkgs.mkShell {
     electron
     patchelf
     typescript
+    python3  # Required for node-gyp (native modules like evdev)
   ] ++ runtimeLibs;
 
   # For nix-ld compatibility (if user has it enabled)

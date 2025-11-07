@@ -161,6 +161,12 @@ app.whenReady().then(async () => {
         activeView.webContents.send('global-gamepadbutton', data);
       });
 
+      // Keyboard events
+      evdevCapture.on('keypress', (data) => {
+        console.log('[Main] Keyboard:', data.key, data.pressed ? 'pressed' : 'released');
+        activeView.webContents.send('global-keypress', data);
+      });
+
     } catch (error) {
       console.error('[Main] ✗ Failed to start evdev:', error.message);
       if (error.message.includes('Permission denied') || error.message.includes('input group')) {

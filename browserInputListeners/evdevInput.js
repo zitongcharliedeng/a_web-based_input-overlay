@@ -215,6 +215,23 @@ class EvdevInputCapture extends EventEmitter {
     // Skip sync events
     if (type === EV_SYN) return;
 
+    // Keyboard keys
+    if (type === EV_KEY && code >= 1 && code <= 248) {
+      const pressed = value === 1;
+      const released = value === 0;
+      const keyName = this.getKeyName(code);
+
+      if (pressed || released) {
+        this.emit('keypress', {
+          key: keyName,
+          code: code,
+          pressed,
+          released
+        });
+      }
+      return; // Don't process as mouse/gamepad button
+    }
+
     // Mouse relative movement
     if (type === EV_REL) {
       if (code === REL_X) {
@@ -327,6 +344,53 @@ class EvdevInputCapture extends EventEmitter {
       [ABS_HAT0Y]: 'dpadY'
     };
     return names[code] || `axis${code}`;
+  }
+
+  getKeyName(code) {
+    // Complete keyboard mapping
+    const keys = {
+      // Function keys
+      1: 'ESC', 59: 'F1', 60: 'F2', 61: 'F3', 62: 'F4', 63: 'F5', 64: 'F6',
+      65: 'F7', 66: 'F8', 67: 'F9', 68: 'F10', 87: 'F11', 88: 'F12',
+
+      // Number row
+      2: '1', 3: '2', 4: '3', 5: '4', 6: '5', 7: '6', 8: '7', 9: '8', 10: '9', 11: '0',
+      12: 'MINUS', 13: 'EQUAL', 14: 'BACKSPACE',
+
+      // QWERTY row
+      15: 'TAB', 16: 'Q', 17: 'W', 18: 'E', 19: 'R', 20: 'T', 21: 'Y', 22: 'U', 23: 'I',
+      24: 'O', 25: 'P', 26: 'LEFTBRACE', 27: 'RIGHTBRACE', 28: 'ENTER',
+
+      // ASDF row
+      30: 'A', 31: 'S', 32: 'D', 33: 'F', 34: 'G', 35: 'H', 36: 'J', 37: 'K', 38: 'L',
+      39: 'SEMICOLON', 40: 'APOSTROPHE', 41: 'GRAVE', 43: 'BACKSLASH',
+
+      // ZXCV row
+      44: 'Z', 45: 'X', 46: 'C', 47: 'V', 48: 'B', 49: 'N', 50: 'M',
+      51: 'COMMA', 52: 'DOT', 53: 'SLASH',
+
+      // Modifiers
+      29: 'LCTRL', 42: 'LSHIFT', 54: 'RSHIFT', 56: 'LALT', 97: 'RCTRL', 100: 'RALT',
+      125: 'LMETA', 126: 'RMETA',
+
+      // Special keys
+      57: 'SPACE', 58: 'CAPSLOCK', 69: 'NUMLOCK', 70: 'SCROLLLOCK',
+
+      // Arrow keys
+      103: 'UP', 105: 'LEFT', 106: 'RIGHT', 108: 'DOWN',
+
+      // Navigation
+      102: 'HOME', 107: 'END', 104: 'PAGEUP', 109: 'PAGEDOWN',
+      110: 'INSERT', 111: 'DELETE',
+
+      // Numpad
+      71: 'KP7', 72: 'KP8', 73: 'KP9', 74: 'KPMINUS',
+      75: 'KP4', 76: 'KP5', 77: 'KP6', 78: 'KPPLUS',
+      79: 'KP1', 80: 'KP2', 81: 'KP3',
+      82: 'KP0', 83: 'KPDOT', 96: 'KPENTER',
+      98: 'KPSLASH', 55: 'KPASTERISK'
+    };
+    return keys[code] || `KEY_${code}`;
   }
 
   normalizeAxis(value, code) {
