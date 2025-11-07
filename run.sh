@@ -1,15 +1,41 @@
 #!/usr/bin/env bash
-# Main run script for analog keyboard overlay
-# Usage:
-#   ./run.sh                                  - Interactive mode (can edit/drag objects)
-#   ./run.sh --in-clickthrough-readonly-mode  - Readonly overlay mode (click-through, no UI editing)
-#   ./run.sh --with-dev-console               - Enable DevTools (breaks transparency)
-#   ./run.sh --with-window-frame              - Show window frame (for debugging)
-#
-# Flags can be combined: ./run.sh --in-clickthrough-readonly-mode --with-window-frame
+# Launch wgpu input overlay with proper environment setup
 
 set -e
 
-# Use shell.nix for proper native module support
-# This automatically patches uiohook-napi with correct library paths
-nix-shell --run "electron . $*"
+echo "=== wgpu Input Overlay Launcher ==="
+echo ""
+
+# Check if user is in input group
+if ! groups | grep -q input; then
+    echo "WARNING: User is not in 'input' group"
+    echo "evdev will not have permission to read input devices"
+    echo ""
+    echo "To fix, run:"
+    echo "  sudo usermod -aG input $USER"
+    echo "Then log out and back in"
+    echo ""
+fi
+
+# Detect if running in NixOS
+if [ -f /etc/os-release ]; then
+    if grep -q "nixos" /etc/os-release; then
+        echo "NixOS detected - using nix-shell"
+        exec nix-shell --pure --run "RUST_LOG=info cargo run --release"
+    fi
+fi
+
+# Standard build and run
+echo "Building release binary..."
+RUST_LOG=info cargo build --release
+
+echo ""
+echo "Launching wgpu input overlay..."
+echo "Display: auto-detect (Wayland/X11)"
+echo "Transparency: enabled"
+echo "Input capture: evdev (guaranteed Wayland support)"
+echo ""
+echo "Press Ctrl+C to exit"
+echo ""
+
+RUST_LOG=info ./target/release/wgpu-overlay
