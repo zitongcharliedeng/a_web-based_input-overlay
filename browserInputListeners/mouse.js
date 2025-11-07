@@ -1,6 +1,5 @@
 
 
-
 function Mouse() {
 
     // Properties

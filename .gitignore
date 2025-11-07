@@ -4,3 +4,16 @@
 # Node modules
 node_modules/
 package-lock.json
+
+# Build outputs
+dist/
+_compiled/
+
+# Tauri / Rust build
+src-tauri/target/
+*.pdb
+
+# OS files
+.DS_Store
+.vscode/
+.idea/

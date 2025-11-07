@@ -3,16 +3,16 @@
 
 <head>
 	<meta charset="UTF-8">
-	<title>analog keyboard overlay</title>
-	<script type="module" src="browserInputOverlayView/default.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Analog Keyboard Overlay</title>
 	<link rel="stylesheet" href="browserInputOverlayView/_assets/style.css">
 </head>
 
 <body>
-
 	<canvas id="canvas" width="1600" height="600" oncontextmenu="return false">
 		Your browser does not support the HTML5 canvas tag.
 	</canvas>
+
 	<div id="propertyEditor" hidden oncontextmenu="return false">
 		<p id="propertyEditorTitle">Window title text</p>
 		<table id="propertyTable">
@@ -23,28 +23,14 @@
 		</table>
 	</div>
 
-	<!-- Test script to verify preload worked -->
-	<script>
-		// This runs in renderer process after preload
-		if (window.electronAPI) {
-			console.log('[Renderer] ✓ electronAPI is available!');
-			console.log('[Renderer] Has global input:', window.electronAPI.hasGlobalInput());
-			console.log('[Renderer] Is readonly:', window.electronAPI.isReadonly());
+	<!-- Tauri API will be injected here (available in Tauri app only) -->
+	<script src="/__tauri__/api.js"></script>
 
-			// Set up global keyboard listeners to test IPC
-			window.electronAPI.onGlobalKeyDown((data) => {
-				console.log('[Renderer] Received global keydown:', data.keycode, 'at', data.timestamp);
-			});
+	<!-- Tauri input adapter (silently bridges rdev to browser input objects) -->
+	<script type="module" src="browserInputListeners/_tauriAdapter.js"></script>
 
-			window.electronAPI.onGlobalKeyUp((data) => {
-				console.log('[Renderer] Received global keyup:', data.keycode, 'at', data.timestamp);
-			});
-
-			console.log('[Renderer] Global keyboard listeners attached');
-		} else {
-			console.log('[Renderer] ✗ electronAPI not found (running as web version)');
-		}
-	</script>
+	<!-- Load the main overlay application -->
+	<script type="module" src="browserInputOverlayView/default.js"></script>
 </body>
 
 </html>

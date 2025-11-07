@@ -2,22 +2,19 @@
   "name": "analog-keyboard-overlay",
   "version": "1.0.0",
   "description": "Web-based analog keyboard and gamepad overlay for streamers",
-  "main": "main.js",
+  "type": "module",
   "scripts": {
-    "start": "electron .",
-    "start:nix": "nix-shell -p nodejs electron --run 'electron .'",
-    "start:nix-x11": "nix-shell -p nodejs electron --run 'ELECTRON_OZONE_PLATFORM_HINT=x11 electron .'",
-    "dev": "electron . --enable-logging",
-    "dev:nix": "nix-shell -p nodejs electron --run 'electron . --enable-logging'",
-    "dev:nix-x11": "nix-shell -p nodejs electron --run 'ELECTRON_OZONE_PLATFORM_HINT=x11 electron . --enable-logging'",
-    "check": "tsc --noEmit"
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write src/ browserInputListeners/ browserInputOverlayView/"
   },
   "devDependencies": {
-    "electron": "^28.0.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "@tauri-apps/cli": "^1.5.0",
+    "@tauri-apps/api": "^1.5.0",
+    "vite": "^5.0.0",
+    "prettier": "^3.1.0"
   },
-  "dependencies": {
-    "evdev": "^0.3.0",
-    "uiohook-napi": "^1.5.4"
-  }
+  "dependencies": {}
 }

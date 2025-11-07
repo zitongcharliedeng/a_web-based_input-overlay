@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> {} }:
 
 let
-  # All X11 libraries needed by uiohook-napi
+  # Required libraries for global input listening (rdev)
   x11Libs = with pkgs.xorg; [
     libX11
     libXtst
@@ -16,11 +16,19 @@ let
 
 in pkgs.mkShell {
   buildInputs = with pkgs; [
+    # Frontend
     nodejs
-    electron
-    patchelf
     typescript
-    python3  # Required for node-gyp (native modules like evdev)
+
+    # Tauri backend (Rust)
+    cargo
+    rustc
+    rust-analyzer
+
+    # Build tools
+    patchelf
+    python3
+    pkg-config
   ] ++ runtimeLibs;
 
   # For nix-ld compatibility (if user has it enabled)
@@ -28,54 +36,17 @@ in pkgs.mkShell {
   NIX_LD = pkgs.lib.fileContents "${pkgs.stdenv.cc}/nix-support/dynamic-linker";
 
   shellHook = ''
-    echo "=== Analog Keyboard Overlay Dev Environment ==="
-
-    # Patch existing .node binaries
-    patch_node_binaries() {
-      local count=0
-      if [ -d "node_modules" ]; then
-        while IFS= read -r -d "" nodefile; do
-          # .node files are shared libraries, only need RPATH (not interpreter)
-          if patchelf --set-rpath "${rpath}" "$nodefile" 2>/dev/null; then
-            ((count++))
-            echo "  ✓ Patched: $nodefile"
-          fi
-        done < <(find node_modules -name "*.node" -type f -print0 2>/dev/null)
-        echo "Patched $count .node binaries"
-      else
-        echo "No node_modules found (run npm install first)"
-      fi
-    }
-
-    # Wrapper for npm that auto-patches after install
-    npm() {
-      command npm "$@"
-      local exit_code=$?
-      if [[ "$1" == "install" || "$1" == "i" || "$1" == "rebuild" ]] && [ $exit_code -eq 0 ]; then
-        echo ""
-        echo "Auto-patching native modules..."
-        patch_node_binaries
-      fi
-      return $exit_code
-    }
-
-    export -f patch_node_binaries
-
-    # Patch existing modules if present
-    if [ -d "node_modules" ]; then
-      echo "Checking for native modules to patch..."
-      patch_node_binaries
-      echo ""
-    fi
-
-    echo "Commands:"
-    echo "  npm install          - Install and auto-patch dependencies"
-    echo "  npm rebuild          - Rebuild and auto-patch native modules"
-    echo "  npx tsc              - Compile TypeScript"
-    echo "  electron .           - Run the overlay"
-    echo "  ./run.sh             - Run with default flags"
-    echo "  ./run-x11.sh         - Run in X11 mode (recommended for uiohook)"
-    echo "  patch_node_binaries  - Manually re-patch .node files"
+    echo "=== Analog Keyboard Overlay (Tauri + rdev) Dev Environment ==="
+    echo ""
+    echo "Frontend Commands:"
+    echo "  npm install          - Install web dependencies"
+    echo "  npm run tauri dev    - Run Tauri dev server with hot reload"
+    echo "  npm run tauri build  - Build Tauri app for distribution"
+    echo ""
+    echo "Rust/Cargo Commands:"
+    echo "  cargo build          - Build Rust backend"
+    echo "  cargo check          - Type-check Rust code"
+    echo "  cargo fmt            - Format Rust code"
     echo ""
   '';
 }
