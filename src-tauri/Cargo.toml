@@ -1,0 +1,36 @@
+[package]
+name = "input-overlay"
+version = "1.0.0"
+description = "Cross-platform input overlay with transparent window"
+authors = ["you"]
+license = ""
+repository = ""
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+tauri = { version = "1.5", features = ["shell-open"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.35", features = ["sync", "rt-multi-thread", "macros"] }
+gilrs = "0.10"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+evdev = { version = "0.12", features = ["tokio"] }
+xkbcommon = { version = "0.7", features = ["wayland"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.52", features = [
+    "Win32_UI_Input",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_Foundation"
+] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-foundation = "0.9"
+core-graphics = "0.23"
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
