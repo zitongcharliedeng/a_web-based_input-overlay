@@ -1,71 +1,43 @@
-# Web-Based Input Overlay
+# ⌨  Input Overlay Wayland 
 
-A transparent overlay platform for streamers built with TypeScript and web technologies, wrapping in Electron for native transparency.
+Basically this is a fork of OSKD an on-screen keyboard display that can be used during streams. It provides an intuitive and easy-to-use interface that can help viewers keep track of the keyboard inputs used during the stream.
 
-## Goal
+I'm using it as alternative to [Input Overlay](https://github.com/univrsal/input-overlay) that doesn't work on Wayland.
 
-Make streaming overlays that streamers can actually see while they stream, not just viewer-only graphics. A customizable HUD showing input visualization, camera feeds, audio levels, chat, and more in a transparent always-on-top window.
+![Preview](./assets/images/preview.png)
 
-## Development
+Many thanks [Sammwy](https://github.com/sammwyy) for this project!
 
-### Compile TypeScript
-```bash
-nix-shell -p nodejs --run "npx tsc"
-```
+## 🌱 Get started
+- Download oskd-windows-x64.exe file from the latest release on [Releases page](https://github.com/sammwyy/OSKD/releases)
+- Once downloaded, go ahead and run the .exe file.
+- Open OBS and add a new "Browser" source.
+- In the "URL" field, type in "http://127.0.0.1:41770". If you don't see the "URL" field, uncheck the "Local file" checkbox.
+- Save the source, adjust its position to your preference.
 
-### Running (Electron)
-```bash
-./run-nix.sh                      # Interactive mode (Wayland native)
-./run-nix-clickthrough.sh         # Overlay mode with click-through attempt (Wayland)
-./run-nix-xwayland.sh             # Interactive mode (XWayland)
-./run-nix-xwayland-clickthrough.sh # Overlay mode with click-through attempt (XWayland)
-./run-nix-dev.sh                  # Development mode with DevTools
-./run-nix-frame.sh                # Debug mode with window frame
-```
+## 📃 ToDo
 
-### Platform Compatibility
+- [X] Create a prototype of the application.
+- [X] Make it compatible with multiple platforms.
+- [X] Implement a Shift/CTRL mapper to support key combinations.
+- [X] Make it configurable and customizable.
+- [X] Allow customization of key icons.
+- [ ] Implement Keystrokes mode to display all keystrokes on the screen.
+- [ ] Improve security features to ensure privacy and safety.
+- [ ] Explore Joypad compatibility for gamers.
 
-**Electron APIs used:** Standard cross-platform `BaseWindow`, `transparent: true`, `setAlwaysOnTop()`, and `setIgnoreMouseEvents()`. These APIs are OS-agnostic and widely supported.
+## 🤝 Contributing
 
-#### Linux Compositors (NixOS - Tested)
+Feel free to contribute to the project by providing feedback or creating pull requests.
 
-| Feature | COSMIC Wayland | COSMIC XWayland | niri Wayland | niri XWayland |
-|---------|----------------|-----------------|--------------|---------------|
-| **Transparency** | ✅ Works | ✅ Works | ✅ Works | ✅ Works |
-| **Always-on-top** | ❌ Broken | ❌ Broken | ⚠️ Manual | ❌ Broken |
-| **Click-through** | ❌ Broken | ❌ Broken | ❌ Broken | ❌ Broken |
-| **Interaction** | ✅ Works | ✅ Works | ✅ Works | ✅ Works |
-| **Animations** | ✅ 60fps | ✅ 60fps | ✅ 60fps | ✅ 60fps |
+## ❤️ Show your support
 
-**COSMIC notes:**
-- Always-on-top and click-through don't work (very new desktop environment)
-- Both Wayland and XWayland modes have same limitations
+Give a ⭐️ if this project helped you!
 
-**niri notes:**
-- Always-on-top requires manual `niri msg action set-floating` (Wayland only)
-- Click-through doesn't work in either mode
-- XWayland mode: niri's floating command doesn't work
+Or buy me a coffeelatte 🙌
 
-#### Other Platforms (Expected to Work - Untested)
+[Ko-fi](https://ko-fi.com/sammwy) | [Patreon](https://patreon.com/sammwy)
 
-| Platform | Transparency | Always-on-top | Click-through | Notes |
-|----------|--------------|---------------|---------------|-------|
-| **Windows 10/11** | ✅ Expected | ✅ Expected | ✅ Expected | DWM has mature layered window support |
-| **macOS 11+** | ✅ Expected | ✅ Expected | ✅ Expected | NSWindow transparency well-supported |
-| **Linux (GNOME)** | ✅ Expected | ✅ Expected | ⚠️ May vary | Compositor-dependent |
-| **Linux (KDE Plasma)** | ✅ Expected | ✅ Expected | ⚠️ May vary | Compositor-dependent |
-| **Linux (Hyprland)** | ✅ Expected | ✅ Expected | ⚠️ May vary | Compositor-dependent |
+## 📝 License
 
-**Why we expect these to work:** Using standard Electron APIs that are widely used in production apps (Discord overlays, OBS Browser Source, etc.). Issues found on COSMIC/niri are due to these being very new/niche compositors still implementing window management features.
-
-**Testing contributions welcome!** If you test on other platforms, please report results via GitHub Issues.
-
-See [CLAUDE.md](CLAUDE.md) for full technical details, architecture, and roadmap.
-
----
-
-Originally forked from [DarrenVs/analog_keyboard_overlay](https://github.com/DarrenVs/analog_keyboard_overlay) as a baseline for building my own transparent input overlay platform with Electron and multimedia streaming features.
-
-## License
-
-MIT
+Copyright © 2023 [Sammwy](https://github.com/sammwyy)

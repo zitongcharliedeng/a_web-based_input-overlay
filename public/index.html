@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html>
+<!-- A usable HTML template for input-history overlay using Browser Source and Websocket -->
+
+<!-- By: https://github.com/christiankyle-ching/ -->
+
+<head>
+  <meta charset="utf-8" />
+  <title>input-history Windows</title>
+  <script src="/socket-io.js"></script>
+
+  <style>
+    /* Zero out default values */
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      height: 100%;
+      position: relative;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 48px;
+      color: white;
+
+      overflow: hidden;
+    }
+
+    body.bottom-align {
+      position: absolute;
+      bottom: 0;
+    }
+
+    /* #region History List */
+
+    div#history {
+      list-style-type: none;
+    }
+
+    /* Animation for hide timeout */
+    p.key-combination.hidden {
+      opacity: 0;
+
+      transition-property: opacity;
+      transition-timing-function: ease-out;
+      transition-duration: 1s;
+    }
+
+    *+p.key-combination {
+      /* Vertical distance between combinations */
+      margin-top: 0.5em;
+    }
+
+    p.key-combination>* {
+      /* Centralize keys and elements in them */
+      vertical-align: middle;
+    }
+
+    p.key-combination>.separator {
+      display: inline-block;
+
+      /* Spacing on sides of separator */
+      margin-left: 0.25em;
+      margin-right: 0.25em;
+    }
+
+    span.key,
+    span.repeat {
+      background-color: rgba(0, 0, 0, 0.75);
+    }
+
+    span.key {
+      display: inline-flex;
+      border-radius: 0.25em;
+      /* Override text height, otherwise it uses more vertical space and
+           keys with text in them are higher than ones with just icons. */
+      line-height: 1em;
+
+      padding: 0.25em;
+      white-space: nowrap;
+    }
+
+    span.repeat {
+      display: inline-flex;
+      margin-left: 0.1em;
+      border-radius: 1em;
+      padding: 0.3em 0.6em;
+
+      font-size: 0.7em;
+    }
+
+    /* #endregion */
+
+    /* #region Icons */
+
+    #icons-container {
+      display: none;
+    }
+
+    .icon-sm {
+      width: 1em;
+      height: 1em;
+
+      display: block;
+      margin: auto;
+    }
+
+    span.key div {
+      display: inline-flex;
+      white-space: nowrap;
+    }
+
+    *+.icon-sm,
+    .icon-sm+* {
+      /* Space before icons or elements following icons */
+      margin-left: 0.3em;
+    }
+
+    /* #endregion */
+  </style>
+</head>
+
+<body>
+  <!-- #region Icons -->
+  <div id="icons-container">
+    <!-- Get Icons from FontAwesome -->
+    <!-- Copy SVG Code -->
+
+    <!-- #region Svg sources used multiple times. Automatically hidden -->
+    <!-- Arrow Left -->
+    <svg xmlns="http://www.w3.org/2000/svg">
+      <symbol id="icon-arrow" viewBox="0 0 512 512">
+        <!--! Font Awesome Pro 6.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+        <path
+          d="M512 256C512 273.7 497.7 288 480 288H160.1l0 72c0 9.547-5.66 18.19-14.42 22c-8.754 3.812-18.95 2.077-25.94-4.407l-112.1-104c-10.24-9.5-10.24-25.69 0-35.19l112.1-104c6.992-6.484 17.18-8.218 25.94-4.406C154.4 133.8 160.1 142.5 160.1 151.1L160.1 224H480C497.7 224 512 238.3 512 256z" />
+      </symbol>
+    </svg>
+
+    <!-- Right-down turn arrow -->
+    <svg xmlns="http://www.w3.org/2000/svg">
+      <symbol id="icon-right-down-turn" viewBox="0 0 320 512">
+        <!-- Font Awesome Pro 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) -->
+        <path
+          d="M313.553 392.331L209.587 504.334c-9.485 10.214-25.676 10.229-35.174 0L70.438 392.331C56.232 377.031 67.062 352 88.025 352H152V80H68.024a11.996 11.996 0 0 1-8.485-3.515l-56-56C-4.021 12.926 1.333 0 12.024 0H208c13.255 0 24 10.745 24 24v328h63.966c20.878 0 31.851 24.969 17.587 40.331z" />
+      </symbol>
+    </svg>
+
+    <!-- Mouse left button, mirrored and used as right button as well -->
+    <svg xmlns="http://www.w3.org/2000/svg">
+      <symbol id="icon-mouse-button-left" viewBox="0 0 384 512">
+        <path
+          d="M327.8 56.2C297.5 25.9 257 5.7 212 1V121c-6.3-1.9-13-3-20-3s-13.7 1-20 3V1C75.4 11 0 92.7 0 192v128 c0 106 86 192 192 192s192-86 192-192V192C384 139 362.5 91 327.8 56.2z M20 192c0-21.4 4-42.4 11.5-61.9s18.7-37.8 33.1-53.6 c23.5-25.9 54-43.8 87.4-51.8v106.1c-17.6 12.5-29.1 33.1-29.1 56.3V236H64C39.7 236 20 216.3 20 192z" />
+      </symbol>
+    </svg>
+
+    <!-- Mouse wheel left, mirrored and used as wheel right as well -->
+    <svg xmlns="http://www.w3.org/2000/svg">
+      <symbol id="icon-mouse-wheel-left" viewBox="0 0 384 512">
+        <path
+          d="M327.8 56.2C297.5 25.9 257 5.7 212 1V121c-6.3-1.9-13-3-20-3s-13.7 1-20 3V1C75.4 11 0 92.7 0 192v128 c0 106 86 192 192 192s192-86 192-192V192C384 139 362.5 91 327.8 56.2z M192 264.8c-27.1 0-49.1-22-49.1-49.1 c0-13.6 5.5-25.8 14.4-34.7c8.9-8.9 21.2-14.4 34.7-14.4s25.8 5.5 34.7 14.4c8.9 8.9 14.4 21.2 14.4 34.7s-5.5 25.8-14.4 34.7 C217.8 259.3 205.6 264.8 192 264.8z M21.5 215.7c30.8-39 66.4-73.2 140.4-70.1c-27.2 11.7-46.2 38.6-46.2 70.1 c0 31.4 19 58.4 46.2 70.1C87.9 288.8 52.2 254.7 21.5 215.7z" />
+      </symbol>
+    </svg>
+    <!-- #endregion -->
+
+    <svg id="SVG_VC_META" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+      <!--!Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+      <path d="M0 255.8C.1 132.2 100.3 32 224 32C347.7 32 448 132.3 448 256C448 379.7 347.8 479.9 224.1 480H50.9C22.8 480 .1 457.3 0 429.2H0V255.8H0zM342.6 192.7C342.6 153 307 124.2 269.4 124.2C234.5 124.2 203.6 150.5 199.3 184.1C199.1 187.9 198.9 189.1 198.9 192.6C198.8 213.7 198.9 235.4 198.1 257C199 283.1 199.1 309.1 198.1 333.6C198.1 360.7 178.7 379.1 153.4 379.1C128.1 379.1 107.6 358.9 107.6 333.6C108.1 305.9 130.2 288.3 156.1 287.5H156.3L182.6 287.3V250L156.3 250.2C109.2 249.8 71.7 286.7 70.4 333.6C70.4 379.2 107.9 416.5 153.4 416.5C196.4 416.5 232.1 382.9 236 340.9L236.2 287.4L268.8 287.1C294.1 287.3 293.8 249.3 268.6 249.8L236.2 250.1C236.2 243.7 236.3 237.3 236.3 230.9C236.4 218.2 236.4 205.5 236.2 192.7C236.3 176.2 252 161.5 269.4 161.5C286.9 161.5 305.3 170.2 305.3 192.7C305.3 195.9 305.2 197.8 305 199C303.1 209.5 310.2 219.4 320.7 220.9C331.3 222.4 340.9 214.8 341.9 204.3C342.5 200.1 342.6 196.4 342.6 192.7H342.6z"/>
+    </svg>
+
+
+    <!-- Windows Key - VC_META_L / VC_META_R -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+      <!--! Font Awesome Pro 6.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+      <path
+        d="M0 93.7l183.6-25.3v177.4H0V93.7zm0 324.6l183.6 25.3V268.4H0v149.9zm203.8 28L448 480V268.4H203.8v177.9zm0-380.6v180.1H448V32L203.8 65.7z" />
+    </svg>
+
+    <!-- Arrow Left -->
+    <svg id="SVG_VC_LEFT">
+      <use href="#icon-arrow"></use>
+    </svg>
+
+    <!-- Arrow Right -->
+    <svg id="SVG_VC_RIGHT" style="transform: rotate(180deg);">
+      <use href="#icon-arrow"></use>
+    </svg>
+
+    <!-- Arrow Up -->
+    <svg id="SVG_VC_UP" style="transform: rotate(90deg);">
+      <use href="#icon-arrow"></use>
+    </svg>
+
+    <!-- Arrow Down -->
+    <svg id="SVG_VC_DOWN" style="transform: rotate(270deg);">
+      <use href="#icon-arrow"></use>
+    </svg>
+
+    <!-- Enter -->
+    <svg id="SVG_VC_ENTER" style="transform: rotate(90deg);">
+      <use href="#icon-right-down-turn"></use>
+    </svg>
+
+    <!-- Num Enter -->
+    <div id="SVG_VC_KP_ENTER">
+      <span>NUM</span>
+      <svg style="transform: rotate(90deg);">
+        <use href="#icon-right-down-turn"></use>
+      </svg>
+    </div>
+
+    <!-- Backspace -->
+    <svg id="SVG_VC_BACKSPACE" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+      <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+      <path
+        d="M576 128c0-35.3-28.7-64-64-64H205.3c-17 0-33.3 6.7-45.3 18.7L9.4 233.4c-6 6-9.4 14.1-9.4 22.6s3.4 16.6 9.4 22.6L160 429.3c12 12 28.3 18.7 45.3 18.7H512c35.3 0 64-28.7 64-64V128zM271 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z" />
+    </svg>
+
+    <!-- Mouse Left Click -->
+    <svg id="SVG_MOUSE_LEFT">
+      <use href="#icon-mouse-button-left"></use>
+    </svg>
+
+    <!-- Mouse Middle Click -->
+    <svg id="SVG_MOUSE_MIDDLE" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+      <path
+        d="M327.8 56.2C297.5 25.9 257 5.7 212 1v119.9c-6.4-1.9-13.1-2.9-20-2.9c-7 0-13.7 1-20 3V1C75.4 11 0 92.7 0 192v128 c0 106 86 192 192 192s192-86 192-192V192C384 139 362.5 91 327.8 56.2z M192 138c7.1 0 13.9 1.5 20 4.2 c5.5 2.5 10.5 5.9 14.7 10.1c8.9 8.9 14.4 21.2 14.4 34.7v57.1c0 27.1-22 49.1-49.1 49.1s-49.1-22-49.1-49.1v-57.1 c0-20 12-37.2 29.1-44.9C178.1 139.5 184.9 138 192 138z" />
+    </svg>
+
+    <!-- dead_grave -->
+    <svg id="SVG_DEAD_GRAVE" viewBox="0 0 535 512" xmlns="http://www.w3.org/2000/svg">
+      <path d="M165.518 306.32L210.958 358.16L189.198 377.68L136.398 333.2L165.518 306.32Z"/>
+      <path d="M343.797 126.441H430.517V164.521H389.237V398.121H430.517V436.201H343.797V126.441Z"/>
+      <path d="M253.998 214.001L213.998 233.521L168.878 155.121L123.758 233.521L83.7578 214.001L149.998 102.961H187.758L253.998 214.001Z"/>
+    </svg>
+
+    <!-- Mouse Right Click (mirrored left click icon) -->
+    <svg id="SVG_MOUSE_RIGHT" style="transform: scale(-1.0, 1.0);">
+      <use href="#icon-mouse-button-left"></use>
+    </svg>
+    <!-- ccedilla -->
+    <svg id="SVG_CCEDILLA" viewBox="0 0 535 512" xmlns="http://www.w3.org/2000/svg">
+      <path d="M207.8 260C215.267 263.733 220.4 268.167 223.2 273.3C226 278.433 227.4 283.683 227.4 289.05C227.4 300.25 222.967 308.767 214.1 314.6C205.233 320.433 193.567 323.35 179.1 323.35C173.967 323.35 168.833 322.883 163.7 321.95C158.567 321.25 153.433 320.2 148.3 318.8L154.6 288.35C156.233 288.817 159.15 289.517 163.35 290.45C167.783 291.617 172.1 292.2 176.3 292.2C179.567 292.2 182.367 291.5 184.7 290.1C187.267 288.933 188.667 286.717 188.9 283.45C189.133 280.65 187.967 278.083 185.4 275.75C183.067 273.417 179.217 271.667 173.85 270.5L169.65 269.45C170.583 266.417 171.867 262.917 173.5 258.95C175.133 255.217 176.767 251.717 178.4 248.45C166.267 246.117 155.767 242.15 146.9 236.55C138.267 230.717 131.033 223.717 125.2 215.55C119.6 207.15 115.4 197.7 112.6 187.2C110.033 176.7 108.75 165.617 108.75 153.95C108.75 140.65 110.85 128.167 115.05 116.5C119.483 104.6 125.783 94.3333 133.95 85.7C142.117 76.8333 152.033 69.8333 163.7 64.7C175.367 59.5667 188.667 57 203.6 57C213.4 57 222.383 57.9333 230.55 59.8C238.717 61.4333 246.65 63.8833 254.35 67.15L243.5 108.8C238.6 106.933 233.233 105.3 227.4 103.9C221.567 102.5 215.033 101.8 207.8 101.8C192.4 101.8 180.85 106.583 173.15 116.15C165.683 125.717 161.95 138.317 161.95 153.95C161.95 170.517 165.45 183.35 172.45 192.45C179.683 201.55 192.167 206.1 209.9 206.1C216.2 206.1 222.967 205.517 230.2 204.35C237.433 203.183 244.083 201.317 250.15 198.75L257.5 241.45C252.133 243.783 245.483 245.767 237.55 247.4C229.85 249.033 221.333 250.083 212 250.55C211.067 252.417 210.25 254.167 209.55 255.8C208.85 257.433 208.267 258.833 207.8 260Z" />
+      <path d="M484.6 286.999C474.1 286.999 466.517 290.033 461.85 296.099C457.183 302.166 454.85 310.099 454.85 319.899V372.749C454.85 382.783 453.567 391.649 451 399.349C448.433 407.283 444.117 413.933 438.05 419.299C432.217 424.666 424.283 428.749 414.25 431.549C404.45 434.349 392.2 435.749 377.5 435.749H370.5V394.099H379.25C389.75 394.099 396.75 391.766 400.25 387.099C403.983 382.433 405.85 375.199 405.85 365.399V318.849C405.85 306.716 407.483 296.449 410.75 288.049C414.017 279.649 420.55 272.416 430.35 266.349C420.55 260.283 414.017 253.049 410.75 244.649C407.483 236.249 405.85 225.983 405.85 213.849V167.299C405.85 157.499 403.983 150.266 400.25 145.599C396.75 140.933 389.75 138.599 379.25 138.599H370.5V96.9492H377.5C392.2 96.9492 404.45 98.3492 414.25 101.149C424.283 103.949 432.217 108.033 438.05 113.399C444.117 118.766 448.433 125.416 451 133.349C453.567 141.049 454.85 149.916 454.85 159.949V212.799C454.85 222.599 457.183 230.533 461.85 236.599C466.517 242.666 474.1 245.699 484.6 245.699V286.999Z" />
+    </svg>
+
+    <svg id="SVG_DEAD_ACUTE" viewBox="0 0 535 512" xmlns="http://www.w3.org/2000/svg">
+      <path d="M155.679 138.988C148.553 138.988 142.421 136.502 137.284 131.531C132.147 126.476 129.578 120.511 129.578 113.633C129.578 106.59 132.147 100.624 137.284 95.7354C142.421 90.8467 148.553 88.4023 155.679 88.4023C162.888 88.4023 168.978 90.8467 173.95 95.7354C179.004 100.624 181.531 106.59 181.531 113.633C181.531 120.511 179.004 126.476 173.95 131.531C168.978 136.502 162.888 138.988 155.679 138.988ZM231.744 138.988C224.618 138.988 218.487 136.502 213.349 131.531C208.212 126.476 205.643 120.511 205.643 113.633C205.643 106.59 208.212 100.624 213.349 95.7354C218.487 90.8467 224.618 88.4023 231.744 88.4023C238.953 88.4023 245.043 90.8467 250.015 95.7354C255.069 100.624 257.597 106.59 257.597 113.633C257.597 120.511 255.069 126.476 250.015 131.531C245.043 136.502 238.953 138.988 231.744 138.988Z" />
+      <path d="M319.25 246.699C329.75 246.699 337.333 243.666 342 237.599C346.667 231.533 349 223.599 349 213.799V160.949C349 150.916 350.283 142.049 352.85 134.349C355.417 126.416 359.617 119.766 365.45 114.399C371.517 109.033 379.45 104.949 389.25 102.149C399.283 99.3492 411.65 97.9492 426.35 97.9492H433.35V139.599H424.6C414.1 139.599 406.983 141.933 403.25 146.599C399.75 151.266 398 158.499 398 168.299V214.849C398 226.983 396.367 237.249 393.1 245.649C389.833 254.049 383.3 261.283 373.5 267.349C383.3 273.416 389.833 280.649 393.1 289.049C396.367 297.449 398 307.716 398 319.849V366.399C398 376.199 399.75 383.433 403.25 388.099C406.983 392.766 414.1 395.099 424.6 395.099H433.35V436.749H426.35C411.65 436.749 399.283 435.349 389.25 432.549C379.45 429.749 371.517 425.666 365.45 420.299C359.617 414.933 355.417 408.283 352.85 400.349C350.283 392.649 349 383.783 349 373.749V320.899C349 311.099 346.667 303.166 342 297.099C337.333 291.033 329.75 287.999 319.25 287.999V246.699Z"/>
+      <path d="M227.652 298.752L169.902 347.402L146.102 326.052L195.802 269.352L227.652 298.752Z"/>
+    </svg>
+
+    <!-- plus -->
+    <svg id="SVG_PLUS" viewBox="0 0 535 512" xmlns="http://www.w3.org/2000/svg">
+      <path d="M132.148 339.648H190.598V274.898H238.198V339.648H296.648V383.398H238.198V448.148H190.598V383.398H132.148V339.648Z" />
+      <path d="M412.35 436.749H317.5V395.099H362.65V139.599H317.5V97.9492H412.35V436.749Z" />
+      <path d="M190.05 155.399C192.383 153.299 195.3 151.083 198.8 148.749C202.3 146.183 205.8 143.733 209.3 141.399C213.033 138.833 216.767 136.616 220.5 134.749C224.233 132.649 227.5 131.133 230.3 130.199L238.7 127.399L252.7 170.799L244.3 173.599C241.267 174.533 237.767 175.233 233.8 175.699C229.833 176.166 225.633 176.516 221.2 176.749C216.767 176.749 212.45 176.749 208.25 176.749C204.05 176.749 200.317 176.749 197.05 176.749C199.85 178.616 202.883 180.833 206.15 183.399C209.65 185.733 213.033 188.299 216.3 191.099C219.8 193.666 223.067 196.349 226.1 199.149C229.133 201.949 231.583 204.633 233.45 207.199L239.05 214.549L201.95 240.799L196.7 233.799C194.833 231.466 192.967 228.433 191.1 224.699C189.467 220.966 187.833 217.116 186.2 213.149C184.567 208.949 183.167 204.866 182 200.899C180.833 196.933 179.783 193.316 178.85 190.049C177.917 193.316 176.867 196.933 175.7 200.899C174.533 204.866 173.133 208.949 171.5 213.149C169.867 217.116 168.117 220.966 166.25 224.699C164.617 228.433 162.867 231.466 161 233.799L155.75 240.799L118.65 214.549L124.25 207.199C126.117 204.633 128.567 201.949 131.6 199.149C134.633 196.349 137.783 193.666 141.05 191.099C144.55 188.299 147.933 185.733 151.2 183.399C154.7 180.833 157.85 178.616 160.65 176.749C157.383 176.749 153.65 176.749 149.45 176.749C145.25 176.749 140.933 176.749 136.5 176.749C132.067 176.516 127.867 176.166 123.9 175.699C119.933 175.233 116.433 174.533 113.4 173.599L105 170.799L119 127.399L127.4 130.199C130.2 131.133 133.467 132.649 137.2 134.749C140.933 136.616 144.55 138.833 148.05 141.399C151.783 143.733 155.283 146.183 158.55 148.749C162.05 151.083 165.083 153.299 167.65 155.399C166.483 152.366 165.2 148.866 163.8 144.899C162.633 140.699 161.467 136.499 160.3 132.299C159.133 128.099 158.083 124.016 157.15 120.049C156.45 115.849 156.1 112.233 156.1 109.199V100.449H201.6V109.199C201.6 112.233 201.133 115.849 200.2 120.049C199.5 124.016 198.567 128.099 197.4 132.299C196.233 136.499 194.95 140.699 193.55 144.899C192.383 148.866 191.217 152.366 190.05 155.399Z"/>
+      </svg>
+
+    <!-- Mouse Extra Button 1 -->
+    <svg id="SVG_MOUSE_EXTRA1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+      <path
+        d="M327.8 56.2C297.5 25.9 257 5.7 212 1V121c-6.3-1.9-13-3-20-3s-13.7 1-20 3V1C75.4 11 0 92.7 0 192v128 c0 106 86 192 192 192s192-86 192-192V192C384 139 362.5 91 327.8 56.2z M89 380.8c-40.7 0-73.7-33-73.7-73.7v-50.5H89V380.8z" />
+    </svg>
+
+    <!-- Mouse Extra Button 2 -->
+    <svg id="SVG_MOUSE_EXTRA2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+      <path
+        d="M327.8 56.2C297.5 25.9 257 5.7 212 1V121c-6.3-1.9-13-3-20-3s-13.7 1-20 3V1C75.4 11 0 92.7 0 192v128 c0 106 86 192 192 192s192-86 192-192V192C384 139 362.5 91 327.8 56.2z M89 256.5H15.3V206c0-40.7 33-73.7 73.7-73.7V256.5z" />
+    </svg>
+
+    <!-- Mouse Wheel Up -->
+    <svg id="SVG_MOUSE_WHEELUP" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+      <path
+        d="M327.8 56.2C297.5 25.9 257 5.7 212 1v20.1c-6.6-0.8-13.3-1.1-20-1.1c-6.8 0-13.4 0.4-20 1.2V1C75.4 11 0 92.7 0 192v128 c0 106 86 192 192 192s192-86 192-192V192C384 139 362.5 91 327.8 56.2z M192 45.2c39 30.7 73.2 66.4 70 140.4 c-11.7-27.1-38.6-46.1-70-46.1s-58.4 19-70 46.1C118.8 111.6 153 75.9 192 45.2z M192 264.8c-13.6 0-25.8-5.5-34.7-14.4 c-8.9-8.9-14.4-21.2-14.4-34.7c0-27.1 22-49.1 49.1-49.1c13.6 0 25.8 5.5 34.7 14.4c8.9 8.9 14.4 21.2 14.4 34.7 s-5.5 25.8-14.4 34.7C217.8 259.3 205.6 264.8 192 264.8z" />
+    </svg>
+
+    <!-- Mouse Wheel Down -->
+    <svg id="SVG_MOUSE_WHEELDOWN" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+      <path
+        d="M327.8 56.2C297.5 25.9 257 5.7 212 1V121c-6.3-1.9-13-3-20-3s-13.7 1-20 3V1C75.4 11 0 92.7 0 192v128 c0 106 86 192 192 192s192-86 192-192V192C384 139 362.5 91 327.8 56.2z M192 166.5c13.6 0 25.8 5.5 34.7 14.4 c8.9 8.9 14.4 21.2 14.4 34.7s-5.5 25.8-14.4 34.7c-8.9 8.9-21.2 14.4-34.7 14.4s-25.8-5.5-34.7-14.4c-8.9-8.9-14.4-21.2-14.4-34.7 C142.9 188.5 164.9 166.5 192 166.5z M192 386.2c-39-30.8-73.2-66.4-70-140.4c11.7 27.1 38.6 46.1 70 46.1s58.4-19 70-46.1 C265.2 319.7 231 355.4 192 386.2z" />
+    </svg>
+
+    <!-- Mouse Wheel Right (mirrored wheel left) -->
+    <svg id="SVG_MOUSE_WHEELRIGHT" style="transform: scale(-1.0, 1.0);">
+      <use href="#icon-mouse-wheel-left"></use>
+    </svg>
+
+    <!-- Mouse Wheel Left -->
+    <svg id="SVG_MOUSE_WHEELLEFT">
+      <use href="#icon-mouse-wheel-left"></use>
+    </svg>
+  </div>
+  <!-- #endregion -->
+
+  <div id="history"></div>
+</body>
+
+<script>
+  // #region Keys with Icons
+
+  /* Init SVG Icons */
+  document
+    .querySelectorAll("#icons-container svg")
+    .forEach((i) => i.classList.add("icon-sm"));
+  document
+    .querySelectorAll("#icons-container svg path")
+    .forEach((p) => p.setAttribute("fill", "currentColor"));
+
+  /**
+   * For Keys to replace with Icons
+   * Key: libuihook keycode
+   * Value: <svg> icon element
+   */
+  var KEYICONS = {
+    Super_L: document.getElementById("SVG_VC_META"), // VC_META_L Windows or Command Key
+    Super_R: document.getElementById("SVG_VC_META"), // VC_META_R Windows or Command Key
+
+    // Arrow Keys
+    UpArrow: document.getElementById("SVG_VC_UP"), // ARROW UP
+    LeftArrow: document.getElementById("SVG_VC_LEFT"), // ARROW LEFT
+    RightArrow: document.getElementById("SVG_VC_RIGHT"), // ARROW RIGHT
+    DownArrow: document.getElementById("SVG_VC_DOWN"), // ARROW DOWN
+    /* libuihook values */
+    Up: document.getElementById("SVG_VC_UP"), // ARROW UP
+    Left: document.getElementById("SVG_VC_LEFT"), // ARROW LEFT
+    Right: document.getElementById("SVG_VC_RIGHT"), // ARROW RIGHT
+    Down: document.getElementById("SVG_VC_DOWN"), // ARROW DOWN
+    /* https://github.com/univrsal/input-overlay/issues/174 */
+    Up: document.getElementById("SVG_VC_UP"), // ARROW UP
+    Left: document.getElementById("SVG_VC_LEFT"), // ARROW LEFT
+    Right: document.getElementById("SVG_VC_RIGHT"), // ARROW RIGHT
+    DownArrow: document.getElementById("SVG_VC_DOWN"), // ARROW DOWN
+
+    Return: document.getElementById("SVG_VC_ENTER"),
+    KP_Enter: document.getElementById("SVG_VC_KP_ENTER"),
+
+    BackSpace: document.getElementById("SVG_VC_BACKSPACE"),
+  };
+
+  // #endregion
+
+  // #region Mouse codes
+
+  /**
+   * Encoding helpers to avoid mistakes from typing different values among
+   * different usages of them.
+   */
+  var MOUSEENCODE = {
+    flag: 1 << 16, // Mouse code flag
+    wheel: 1 << 4, // Wheel scroll flag
+    wheel_rot: 1 << 3, // Wheel rotation flag
+    wheel_y: 3, // Vertical wheel direction
+    wheel_x: 4, // Horizontal wheel direction
+    mask: 0xffff, // Bit mask to remove mouse code flag
+    btn_start: 8, // Bit flag of first known button
+    btn_end: 14, // Bit flag of last known button
+  };
+
+  /**
+   * key: encoded mouse code
+   * value: key label
+   *
+   * Comment out keys that you don't want to show
+   */
+  var MOUSECODES = new Map([
+    // The buttons are the bit flags we get from the event
+
+    // Basic buttons
+    ["BTN_LEFT", document.getElementById("SVG_MOUSE_LEFT").outerHTML], // Lowest is 256. Don't know why
+    ["BTN_RIGHT", document.getElementById("SVG_MOUSE_RIGHT").outerHTML],
+    ["BTN_MIDDLE", document.getElementById("SVG_MOUSE_MIDDLE").outerHTML],
+
+    ["dead_grave", document.getElementById("SVG_DEAD_GRAVE").outerHTML],
+    ["plus", document.getElementById("SVG_PLUS").outerHTML],
+    ["ccedilla", document.getElementById("SVG_CCEDILLA").outerHTML],
+    ["dead_acute", document.getElementById("SVG_DEAD_ACUTE").outerHTML],
+    
+
+    // Extra mouse buttons
+    [1 << 11, document.getElementById("SVG_MOUSE_EXTRA1").outerHTML],
+    [1 << 12, document.getElementById("SVG_MOUSE_EXTRA2").outerHTML],
+
+    // Wheel
+    // bits 0,1,2: direction (3 = vertical, 4 = horizontal)
+    // bit 3: rotation (0 = up/right, 1 = down/left)
+    // bit 4: wheel flag (8)
+    [
+      MOUSEENCODE.wheel | MOUSEENCODE.wheel_y,
+      document.getElementById("SVG_MOUSE_WHEELUP").outerHTML
+    ],
+    [
+      MOUSEENCODE.wheel | MOUSEENCODE.wheel_y | MOUSEENCODE.wheel_rot,
+      document.getElementById("SVG_MOUSE_WHEELDOWN").outerHTML
+    ],
+    [
+      MOUSEENCODE.wheel | MOUSEENCODE.wheel_x,
+      document.getElementById("SVG_MOUSE_WHEELLEFT").outerHTML
+    ],
+    [
+      MOUSEENCODE.wheel | MOUSEENCODE.wheel_x | MOUSEENCODE.wheel_rot,
+      document.getElementById("SVG_MOUSE_WHEELRIGHT").outerHTML
+    ],
+  ]);
+
+  // #endregion
+
+  /**
+   * This will either return an HTML string (icon)
+   * Or a plain string (libuiohook key name)
+   *
+   * @param {string} keycode - keycode from libuiohook
+   *
+   * @returns {string} Inline innerHTML equivalent of key
+   */
+  function getKeyHTML(keycode) {
+      var mouse = MOUSECODES.get(keycode);
+      if (!!mouse) {
+        return mouse;
+      }
+
+      var icon = KEYICONS[keycode];
+
+      if (!!icon) {
+        return icon.cloneNode(true).outerHTML;
+      } else {
+        // return alias if present
+        const keyMaps = {
+          "Delete": "SUPR",
+          "Control_L": "CTRL",
+          "Control_R": "CTRL",
+          "Alt_L": "ALT",
+          "Shift_L": "SHIFT",
+          "ISO_Level3_Shift": "ALT GR",
+          "Shift_R": "SHIFT",
+          "Caps_Lock": "MAYUS",
+          "ntilde": "Ñ",
+          "KP_Divide": "/",
+          "KP_Add": "+",
+          "KP_Subtract": "-",
+          "KP_Multiply": "*",
+          "KP_Delete": ".",
+          "masculine": "º",
+          "minus": "-",
+          "comma": ",",
+          "period": ".",
+          "dead_acute": "´",
+        }
+
+        return keyMaps[keycode] ?? keycode.toLocaleUpperCase();
+      }
+  }
+
+  // #region DOM Utils
+
+  /**
+   * Gets a {Set} of keycodes, wraps each item in span.key, joins them by
+   * a + (separator), and adds a repeat counter.
+   *
+   * @returns {HTMLElement} <p> element of key combination
+   */
+  function getKeyCombinationElement() {
+    try {
+      var innerHTMLofKeys = Array.from(_historyCurrentlyPressed)
+        // Convert each keycode into its HTML representation
+        .map((keycode) => getKeyHTML(keycode))
+        // Filter out non-existing keys in KEYCODES
+        .filter((html) => html !== "");
+
+      // Build innerHTML for the key combination
+      var innerHTMLOfKeyCombination = innerHTMLofKeys
+        .map(
+          (innerHTML) =>
+            createElementWithClass("span", innerHTML, ["key"]).outerHTML
+        )
+        .join(
+          createElementWithClass("span", SEPARATOR, ["separator"]).outerHTML
+        );
+
+      // Display repetition counter if 2 or higher
+      if (_repeatCount > 1) {
+        innerHTMLOfKeyCombination +=
+          createElementWithClass("span", _repeatCount, ["repeat"]).outerHTML;
+      }
+
+      return createElementWithClass("p", innerHTMLOfKeyCombination, [
+        "key-combination",
+      ]);
+    } catch (e) {
+      console.error(e);
+      return "";
+    }
+  }
+
+  /**
+   * Wraps an HTML string of a key with span
+   *
+   * @returns {HTMLElement} HTML Element created with classes
+   */
+  function createElementWithClass(element, innerHTML = "", classList = []) {
+    var el = document.createElement(element);
+    el.innerHTML = innerHTML;
+    el.classList.add(...classList);
+    return el;
+  }
+
+  // #endregion
+
+  // #region ----- YOU CAN CHANGE THESE VALUES -----
+
+  /**
+   * Max count of history shown. Lower = better performance.
+   * @type {number}
+   */
+  var HISTORY_MAX = 10;
+  /**
+   * Enable / Disable timeout for key combinations
+   * @type {boolean}
+   */
+  var HISTORY_TIMEOUT_ACTIVE = true;
+  /**
+   * Time delay in ms before the key is hidden.
+   * @type {number}
+   */
+  var HISTORY_TIMEOUT = 3500;
+  /**
+   * Align history to top of source when true and add newer keys to top.
+   * @type {boolean}
+   */
+  var HISTORY_TOP_ALIGN = false;
+  /**
+   * Separator between keys
+   * @type {string}
+   */
+  var SEPARATOR = "+";
+  /**
+   * When true, only display initial press of a key. I.e., held keys won't
+   * be added to history as multiple presses.
+   * @type {boolean}
+   */
+  var ONLY_INITIAL_PRESS = false;
+  /**
+   * Only count inputs as repeated if the interval between presses in ms
+   * is less than this value
+   * @type {number}
+   */
+  var REPEAT_TIMEOUT = 1500;
+
+  // #endregion
+
+  // Vertical align setup
+  if (!HISTORY_TOP_ALIGN) {
+    document.body.classList.add(["bottom-align"]);
+  }
+
+  // History
+  var _historyDiv = document.getElementById("history");
+  var _historyCurrentlyPressed = new Set();
+  var _historyLastPressed = new Set();
+  var _hideLastTimeoutID = undefined;
+  var _hideLastTimeoutElement = null;
+  var _repeatCount = 1;
+  var _repeatTimeoutID = undefined;
+  var _mouseButtonsMask = 0;
+
+  function onKeyEvent(data) {
+    if (data.event_type === "key_typed")
+      return;
+
+    // Interpret mouse events
+    if (data.event_type.startsWith("mouse")) {
+      // Ignore mouse movement and click events
+      if (
+        data.event_type === "mouse_moved" ||
+        data.event_type === "mouse_clicked" ||
+        data.event_type === "mouse_dragged"
+      )
+        return;
+
+      // Encode mouse data
+      var mouse_code_base = MOUSEENCODE.flag; // Bit flag for mouse codes
+
+      if (data.event_type === "mouse_wheel") {
+        mouse_code_base |= MOUSEENCODE.wheel; // Wheel flag
+        mouse_code_base |= data.direction; // Vertical = 3, horizontal = 4
+        mouse_code_base |= MOUSEENCODE.wheel_rot * (data.rotation > 0); // data.rotation is -1 or 1
+
+        updateUI(mouse_code_base, true);
+        // Wheel events don't have a "pressed" state, so "release" them after displaying
+        updateUI(mouse_code_base, false);
+      } else if (
+        data.event_type === "mouse_pressed" ||
+        data.event_type === "mouse_released"
+      ) {
+        updateUI(data.key, data.event_type === "mouse_pressed");
+      }
+
+      return;
+    }
+
+    // Keyboard event
+    updateUI(data.key, data.event_type === "key_pressed");
+  }
+
+  function getLatestChild() {
+    return HISTORY_TOP_ALIGN
+      ? _historyDiv.firstElementChild
+      : _historyDiv.lastElementChild;
+  }
+
+  function updateUI(keycode, isPressing) {
+    var latestChild = getLatestChild();
+
+    if (isPressing) {
+      // Is this an already pressed key?
+      if (_historyCurrentlyPressed.has(keycode)
+        // Are we ignoring key repetition?
+        && ONLY_INITIAL_PRESS) {
+        return;
+      }
+
+      resetRepeatTimeout();
+
+      // Update pressed keys state while comparing with previously pressed ones
+      // to detect repetition and combinations
+      var wasEmpty = _historyCurrentlyPressed.size == 0;
+      var wasSameKeys = compareSets(_historyCurrentlyPressed, _historyLastPressed);
+      _historyCurrentlyPressed.add(keycode); // Register new pressed key
+      var isRepeated = compareSets(_historyCurrentlyPressed, _historyLastPressed);
+
+      // Are we adding to previously pressed keys?
+      // _repeatCount is used to add a new grouping of keys if the previously pressed
+      // ones had been released and pressed more than once, so we don't replace the
+      // repeat counter with the new combination. This allows things like double shift
+      // then shift+a to be displayed separately
+      var isCombination = !wasEmpty && wasSameKeys && !isRepeated && _repeatCount == 1;
+
+      if (isRepeated) {
+        ++_repeatCount;
+      } else {
+        // Store current combination so we can detect future repeated presses
+        _historyLastPressed = new Set(_historyCurrentlyPressed);
+        _repeatCount = 1; // Reset repetitions counter
+      }
+
+      var combinationElement = getKeyCombinationElement();
+
+      // If it's a new group of keys, add as new element
+      if (!isCombination && !isRepeated) {
+        // Fade out elements that were kept because a key was still pressed
+        startRemovingLast();
+
+        if (HISTORY_TOP_ALIGN) {
+          _historyDiv.insertBefore(combinationElement, _historyDiv.firstChild);
+        } else {
+          _historyDiv.appendChild(combinationElement);
+
+          // Scroll down
+          scrollTo({
+            top: document.body.scrollHeight,
+          });
+        }
+
+        // Remove oldest element
+        if (_historyDiv.children.length > HISTORY_MAX) {
+          if (HISTORY_TOP_ALIGN)
+            _historyDiv.lastElementChild.remove();
+          else
+            _historyDiv.firstElementChild.remove();
+        }
+      }
+      // Starting key combination or repeating previous ones: set last item text
+      else {
+        latestChild.innerHTML = combinationElement.innerHTML;
+        cancelRemoveLast(); // Unhide or cancel hiding of last element
+      }
+    }
+    // If releasing a key
+    else {
+      // Update current keys state
+      _historyCurrentlyPressed.delete(keycode);
+      // Fade element out if no more held keys left
+      if (_historyCurrentlyPressed.size == 0) {
+        startRemovingLast();
+      }
+    }
+  }
+
+  function startRemovingLast() {
+    if (HISTORY_TIMEOUT_ACTIVE) {
+      // Add removing class of last key combination
+      var elementToHide = getLatestChild();
+      if (!elementToHide || elementToHide.classList.contains("hidden"))
+        return; // History is empty or element is already hidden
+
+      // Store info for if we need to cancel hiding later
+      _hideLastTimeoutElement = elementToHide;
+      _hideLastTimeoutID = setTimeout(() => {
+        elementToHide.classList.add("hidden");
+      }, HISTORY_TIMEOUT);
+    }
+  }
+
+  function cancelRemoveLast() {
+    if (HISTORY_TIMEOUT_ACTIVE) {
+      var elementToUnhide = getLatestChild();
+      if (!elementToUnhide ||
+        _hideLastTimeoutElement != elementToUnhide)
+        return; // History is empty or last element is not setup to hide
+
+      // Unhide if already hidden
+      elementToUnhide.classList.remove("hidden");
+      // Cancel hide timeout
+      clearTimeout(_hideLastTimeoutID);
+    }
+  }
+
+  function resetRepeatTimeout() {
+    if (_repeatTimeoutID !== undefined) {
+      clearTimeout(_repeatTimeoutID);
+    }
+    _repeatTimeoutID = setTimeout(() => {
+      _repeatTimeoutID = undefined;
+      _historyLastPressed.clear();
+    }, REPEAT_TIMEOUT);
+  }
+
+  function compareSets(a, b) {
+    return a.size === b.size &&
+      [...a].every((elem) => b.has(elem));
+  }
+
+
+  // Socket connection.
+  const socket = io();
+  socket.on("connect", () => {
+    console.log("Connected socket to backend.");
+  });
+
+  socket.on("input", (packet) => {
+    console.log("EVENTO: ", packet)
+
+    if (!packet.event_type) return;
+
+    onKeyEvent(packet);
+  });
+
+  start_websocket();
+</script>
+
+</html>

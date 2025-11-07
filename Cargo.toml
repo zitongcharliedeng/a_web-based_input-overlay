@@ -1,13 +1,18 @@
 [package]
-name = "input-overlay-raylib"
-version = "0.1.0"
+name = "oskd"
+version = "0.1.1"
 edition = "2021"
 
-[dependencies]
-raylib = "5.0"
-rdev = "0.5.3"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
+[dependencies]
+axum = "0.6.17"
+clap = { version = "4.5.23", features = ["derive"] }
+evdev = { version = "0.12.2", features = ["tokio", "serde"] }
+http = "0.2.9"
+rdev = { version = "0.5.3", features = ["serialize"] }
+# rdev = { git = "https://github.com/AlexKnauth/rdev.git", features = ["serialize"], branch ="serialize" }
+serde_json = "1.0.96"
+socketio-server = { path = "./libs/socketio-server" }
+tokio = { version = "1.28.0", features = ["full"] }
+xkbcommon = { version = "0.8", features = ["wayland"] }

@@ -1,0 +1,44 @@
+{
+  "options": {
+    "doNotRepeatLastKey": true,
+    "printOnlyCombinations": true,
+    "rowLayout": "left-to-right"
+  },
+  "modifiersKeys": [
+    "ControlLeft",
+    "ControlRight",
+    "Alt",
+    "AltGr",
+    "MetaLeft",
+    "MetaRight"
+  ],
+  "keyMapping": {
+    "ControlLeft": "Ctrl",
+    "ControlRight": "Ctrl",
+    "Escape": "Esc",
+    "ShiftLeft": "Shift",
+    "ShiftRight": "Shift",
+    "UpArrow": "▲",
+    "DownArrow": "▼",
+    "LeftArrow": "◀",
+    "RightArrow": "▶",
+    "Return": "↩",
+    "Backspace": "←",
+    "Alt": "Alt",
+    "AltGr": "Alt",
+    "MetaLeft": "⊞",
+    "MetaRight": "⊞",
+    "Space": "―",
+    "CapsLock": "Caps",
+    "Tab": "Tab",
+    "ClickLeft": "ClickLeft",
+    "ClickRight": "ClickRight"
+  },
+  "keyStyle": {
+    "fontSize": "1rem",
+    "textColor": "#fffa",
+    "backgroundColor": "#000c",
+    "borderRadius": "7px",
+    "padding": "10px"
+  }
+}
