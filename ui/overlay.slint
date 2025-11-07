@@ -1,0 +1,104 @@
+export component OverlayWindow {
+    in property <bool> w-pressed;
+    in property <bool> a-pressed;
+    in property <bool> s-pressed;
+    in property <bool> d-pressed;
+    in property <int> mouse-x;
+    in property <int> mouse-y;
+    in property <bool> mouse-left;
+    in property <bool> mouse-right;
+    in property <float> stick-x;
+    in property <float> stick-y;
+
+    background: #0a0a1a;
+
+    VerticalLayout {
+        spacing: 15px;
+        padding: 15px;
+
+        Text {
+            text: "Input Overlay - Slint + evdev";
+            font-size: 18px;
+            color: #00ff00;
+        }
+
+        Text {
+            text: "WASD Keys";
+            font-size: 12px;
+            color: #00ddff;
+        }
+
+        HorizontalLayout {
+            spacing: 8px;
+            Rectangle {
+                width: 50px;
+                height: 50px;
+                background: w-pressed ? #00ff00 : #333333;
+                border-radius: 6px;
+                Text { text: "W"; font-size: 20px; color: w-pressed ? #000000 : #ffffff; }
+            }
+            Rectangle {
+                width: 50px;
+                height: 50px;
+                background: a-pressed ? #00ff00 : #333333;
+                border-radius: 6px;
+                Text { text: "A"; font-size: 20px; color: a-pressed ? #000000 : #ffffff; }
+            }
+            Rectangle {
+                width: 50px;
+                height: 50px;
+                background: s-pressed ? #00ff00 : #333333;
+                border-radius: 6px;
+                Text { text: "S"; font-size: 20px; color: s-pressed ? #000000 : #ffffff; }
+            }
+            Rectangle {
+                width: 50px;
+                height: 50px;
+                background: d-pressed ? #00ff00 : #333333;
+                border-radius: 6px;
+                Text { text: "D"; font-size: 20px; color: d-pressed ? #000000 : #ffffff; }
+            }
+        }
+
+        Text {
+            text: "Mouse: " + mouse-x + ", " + mouse-y;
+            font-size: 11px;
+            color: #00ddff;
+        }
+
+        HorizontalLayout {
+            spacing: 8px;
+            Rectangle {
+                width: 40px;
+                height: 40px;
+                background: mouse-left ? #ff00ff : #333333;
+                border-radius: 4px;
+                Text { text: "L"; font-size: 14px; color: mouse-left ? #000000 : #ffffff; }
+            }
+            Rectangle {
+                width: 40px;
+                height: 40px;
+                background: mouse-right ? #ff00ff : #333333;
+                border-radius: 4px;
+                Text { text: "R"; font-size: 14px; color: mouse-right ? #000000 : #ffffff; }
+            }
+        }
+
+        Text {
+            text: "Stick: X=" + (stick-x * 100.0 / 100.0) + " Y=" + (stick-y * 100.0 / 100.0);
+            font-size: 11px;
+            color: #00ff00;
+        }
+
+        Rectangle {
+            height: 30px;
+            background: #0a0a0a;
+            border-radius: 4px;
+            Text {
+                text: "Wayland native | Global evdev input";
+                font-size: 10px;
+                color: #888888;
+            }
+        }
+    }
+}
