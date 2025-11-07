@@ -1,0 +1,25 @@
+[package]
+name = "input-overlay-dioxus"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "input-overlay"
+path = "src/main.rs"
+
+[dependencies]
+dioxus = { version = "0.4", features = ["desktop"] }
+dioxus-desktop = "0.4"
+evdev = "0.12"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync"] }
+crossbeam-channel = "0.5"
+log = "0.4"
+env_logger = "0.11"
+anyhow = "1.0"
+
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+opt-level = 3
+lto = true
