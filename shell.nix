@@ -29,15 +29,18 @@ in pkgs.mkShell {
     patchelf
     python3
     pkg-config
+    autoconf
+    automake
+    libtool
+    libevdev
 
     # Tauri/Wry dependencies (needed for webview and window management)
     gtk3
-    webkitgtk_6_0
+    webkitgtk_4_1
     openssl
     gdk-pixbuf
     atk
     cairo
-    libsoup_3
   ] ++ runtimeLibs;
 
   # For nix-ld compatibility (if user has it enabled)
