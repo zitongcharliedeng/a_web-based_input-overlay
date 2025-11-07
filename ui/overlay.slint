@@ -1,0 +1,327 @@
+// Input Overlay UI - Slint declarative interface
+// Transparent window overlay for visualizing global input on Wayland
+
+export component OverlayWindow {
+    // Properties bound from Rust backend
+    in property <bool> w-pressed: false;
+    in property <bool> a-pressed: false;
+    in property <bool> s-pressed: false;
+    in property <bool> d-pressed: false;
+
+    in property <int> mouse-x: 0;
+    in property <int> mouse-y: 0;
+    in property <bool> mouse-left-pressed: false;
+    in property <bool> mouse-right-pressed: false;
+
+    in property <float> gamepad-left-x: 0.0;
+    in property <float> gamepad-left-y: 0.0;
+
+    // Theme colors
+    background: @linear-gradient(45deg, #0a0a0a 0%, #1a1a1a 100%);
+
+    VerticalLayout {
+        spacing: 20px;
+        padding: 20px;
+        alignment: start;
+
+        // Title
+        Text {
+            text: "Input Overlay";
+            font-size: 28px;
+            font-weight: 700;
+            color: #00ff00;
+        }
+
+        // Keyboard section
+        VerticalLayout {
+            spacing: 10px;
+
+            Text {
+                text: "Movement Keys";
+                font-size: 16px;
+                font-weight: 600;
+                color: #00ddff;
+            }
+
+            HorizontalLayout {
+                spacing: 8px;
+                alignment: center;
+
+                // W Key
+                Rectangle {
+                    width: 60px;
+                    height: 60px;
+                    background: w-pressed ? #00ff00 : #333333;
+                    border-radius: 8px;
+                    border-width: 2px;
+                    border-color: w-pressed ? #00dd00 : #666666;
+
+                    VerticalLayout {
+                        alignment: center;
+                        Text {
+                            text: "W";
+                            font-size: 24px;
+                            font-weight: 700;
+                            color: w-pressed ? #000000 : #ffffff;
+                        }
+                    }
+                }
+
+                // A Key
+                Rectangle {
+                    width: 60px;
+                    height: 60px;
+                    background: a-pressed ? #00ff00 : #333333;
+                    border-radius: 8px;
+                    border-width: 2px;
+                    border-color: a-pressed ? #00dd00 : #666666;
+
+                    VerticalLayout {
+                        alignment: center;
+                        Text {
+                            text: "A";
+                            font-size: 24px;
+                            font-weight: 700;
+                            color: a-pressed ? #000000 : #ffffff;
+                        }
+                    }
+                }
+
+                // S Key
+                Rectangle {
+                    width: 60px;
+                    height: 60px;
+                    background: s-pressed ? #00ff00 : #333333;
+                    border-radius: 8px;
+                    border-width: 2px;
+                    border-color: s-pressed ? #00dd00 : #666666;
+
+                    VerticalLayout {
+                        alignment: center;
+                        Text {
+                            text: "S";
+                            font-size: 24px;
+                            font-weight: 700;
+                            color: s-pressed ? #000000 : #ffffff;
+                        }
+                    }
+                }
+
+                // D Key
+                Rectangle {
+                    width: 60px;
+                    height: 60px;
+                    background: d-pressed ? #00ff00 : #333333;
+                    border-radius: 8px;
+                    border-width: 2px;
+                    border-color: d-pressed ? #00dd00 : #666666;
+
+                    VerticalLayout {
+                        alignment: center;
+                        Text {
+                            text: "D";
+                            font-size: 24px;
+                            font-weight: 700;
+                            color: d-pressed ? #000000 : #ffffff;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Mouse section
+        VerticalLayout {
+            spacing: 10px;
+
+            Text {
+                text: "Mouse";
+                font-size: 16px;
+                font-weight: 600;
+                color: #00ddff;
+            }
+
+            HorizontalLayout {
+                spacing: 10px;
+                alignment: center;
+
+                // Mouse position
+                Rectangle {
+                    width: 120px;
+                    height: 50px;
+                    background: #1a1a2e;
+                    border-radius: 6px;
+                    border-width: 1px;
+                    border-color: #666666;
+
+                    VerticalLayout {
+                        alignment: center;
+                        Text {
+                            text: "Position: " + mouse-x + ", " + mouse-y;
+                            font-size: 12px;
+                            color: #00ff00;
+                        }
+                    }
+                }
+
+                // Mouse left button indicator
+                Rectangle {
+                    width: 50px;
+                    height: 50px;
+                    background: mouse-left-pressed ? #ff00ff : #1a1a2e;
+                    border-radius: 6px;
+                    border-width: 1px;
+                    border-color: mouse-left-pressed ? #dd00dd : #666666;
+
+                    VerticalLayout {
+                        alignment: center;
+                        Text {
+                            text: "L";
+                            font-size: 14px;
+                            font-weight: 600;
+                            color: mouse-left-pressed ? #000000 : #ffffff;
+                        }
+                    }
+                }
+
+                // Mouse right button indicator
+                Rectangle {
+                    width: 50px;
+                    height: 50px;
+                    background: mouse-right-pressed ? #ff00ff : #1a1a2e;
+                    border-radius: 6px;
+                    border-width: 1px;
+                    border-color: mouse-right-pressed ? #dd00dd : #666666;
+
+                    VerticalLayout {
+                        alignment: center;
+                        Text {
+                            text: "R";
+                            font-size: 14px;
+                            font-weight: 600;
+                            color: mouse-right-pressed ? #000000 : #ffffff;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Gamepad section
+        VerticalLayout {
+            spacing: 10px;
+
+            Text {
+                text: "Gamepad - Left Stick";
+                font-size: 16px;
+                font-weight: 600;
+                color: #00ddff;
+            }
+
+            HorizontalLayout {
+                spacing: 10px;
+                alignment: center;
+
+                // Gamepad stick visualization
+                Rectangle {
+                    width: 120px;
+                    height: 120px;
+                    background: #1a1a2e;
+                    border-radius: 8px;
+                    border-width: 2px;
+                    border-color: #444444;
+
+                    // Crosshair background
+                    Rectangle {
+                        width: 2px;
+                        height: 100%;
+                        x: 50%;
+                        background: #444444;
+                    }
+
+                    Rectangle {
+                        height: 2px;
+                        width: 100%;
+                        y: 50%;
+                        background: #444444;
+                    }
+
+                    // Stick indicator circle (moves based on input)
+                    Rectangle {
+                        width: 16px;
+                        height: 16px;
+                        background: #00ff00;
+                        border-radius: 8px;
+                        x: 50% - 8px + gamepad-left-x * 40px;
+                        y: 50% - 8px - gamepad-left-y * 40px;
+                    }
+                }
+
+                // Numeric values
+                Rectangle {
+                    width: 120px;
+                    height: 120px;
+                    background: #1a1a2e;
+                    border-radius: 8px;
+                    border-width: 2px;
+                    border-color: #444444;
+
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 10px;
+
+                        Text {
+                            text: "X: " + (gamepad-left-x * 1000.0 / 1000.0);
+                            font-size: 14px;
+                            color: #00ff00;
+                        }
+
+                        Text {
+                            text: "Y: " + (gamepad-left-y * 1000.0 / 1000.0);
+                            font-size: 14px;
+                            color: #00ff00;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Status footer
+        HorizontalLayout {
+            spacing: 10px;
+            alignment: center;
+
+            Rectangle {
+                background: #0a0a0a;
+                border-radius: 4px;
+                border-width: 1px;
+                border-color: #444444;
+
+                VerticalLayout {
+                    alignment: center;
+                    padding: 8px;
+                    Text {
+                        text: "Global input capture via evdev";
+                        font-size: 12px;
+                        color: #888888;
+                    }
+                }
+            }
+
+            Rectangle {
+                background: #00330033;
+                border-radius: 4px;
+                border-width: 1px;
+                border-color: #00aa00;
+
+                VerticalLayout {
+                    alignment: center;
+                    padding: 8px;
+                    Text {
+                        text: "Wayland Native";
+                        font-size: 12px;
+                        color: #00ff00;
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,30 @@
+{
+  "build": {
+    "beforeBuildCommand": "",
+    "beforeDevCommand": "",
+    "devPath": "../",
+    "frontendDist": "../"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Input Overlay - Tauri + evdev",
+        "width": 1600,
+        "height": 600,
+        "minWidth": 400,
+        "minHeight": 300,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "transparent": true,
+        "skipTaskbar": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "package": {
+    "productName": "input-overlay",
+    "version": "0.1.0"
+  }
+}
