@@ -12,18 +12,34 @@ const enableFrame = process.argv.includes('--with-window-frame');
 const enableDevTools = process.argv.includes('--with-dev-console');
 let globalInputAvailable = false;
 
-// Try to initialize uiohook for global input capture
+// Try to initialize global input capture
+// Priority: evdev (Wayland/Linux) > uiohook-napi (X11/Windows/macOS)
 let uIOhook = null;
+let evdevCapture = null;
 let activeView = null; // Store reference to send events
 
-try {
-  const uiohook = require('uiohook-napi');
-  uIOhook = uiohook.uIOhook;
-  globalInputAvailable = true;
-  console.log('[Main] ✓ uiohook-napi loaded successfully');
-} catch (error) {
-  console.log('[Main] ✗ uiohook-napi not available:', error.message);
-  console.log('[Main] Global input hooks disabled (will use DOM events only)');
+// Try evdev first (best for Wayland)
+if (process.platform === 'linux') {
+  try {
+    const EvdevInputCapture = require('./browserInputListeners/evdevInput');
+    evdevCapture = new EvdevInputCapture();
+    console.log('[Main] evdev input capture available');
+  } catch (error) {
+    console.log('[Main] ✗ evdev not available:', error.message);
+  }
+}
+
+// Try uiohook-napi as fallback (works on X11, Windows, macOS)
+if (!evdevCapture) {
+  try {
+    const uiohook = require('uiohook-napi');
+    uIOhook = uiohook.uIOhook;
+    globalInputAvailable = true;
+    console.log('[Main] ✓ uiohook-napi loaded successfully');
+  } catch (error) {
+    console.log('[Main] ✗ uiohook-napi not available:', error.message);
+    console.log('[Main] Global input hooks disabled (will use DOM events only)');
+  }
 }
 
 // IPC handlers for renderer queries

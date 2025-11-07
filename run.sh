@@ -10,6 +10,6 @@
 
 set -e
 
-# uiohook-napi requires X11 libraries: libXtst (XTest extension)
-# Pass all arguments to electron
-nix-shell -p nodejs electron xorg.libXtst --run "electron . $*"
+# Use shell.nix for proper native module support
+# This automatically patches uiohook-napi with correct library paths
+nix-shell --run "electron . $*"
