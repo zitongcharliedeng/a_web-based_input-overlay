@@ -29,6 +29,10 @@
           gobject-introspection
           cargo-tauri
           openssl
+          libevdev
+          autoconf
+          automake
+          libtool
         ] ++ (with pkgs.xorg; [
           libX11
           libXtst
