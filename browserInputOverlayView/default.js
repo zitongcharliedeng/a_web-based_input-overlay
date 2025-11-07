@@ -21,8 +21,17 @@ window.addEventListener("load", function () {
 	// Initialize canvas
 	canvas = document.getElementById("canvas");
 	var ctx = canvas.getContext("2d");
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
+
+	// Set canvas to fixed 1920x1080 to match Tauri window config
+	// (not using window.innerWidth/innerHeight as they may be affected by DPI scaling)
+	const CANVAS_WIDTH = 1920;
+	const CANVAS_HEIGHT = 1080;
+
+	canvas.width = CANVAS_WIDTH;
+	canvas.height = CANVAS_HEIGHT;
+
+	console.log('[Canvas] Set to:', { width: canvas.width, height: canvas.height });
+	console.log('[Window] Size:', { innerWidth: window.innerWidth, innerHeight: window.innerHeight, devicePixelRatio: window.devicePixelRatio });
 
 	// Initialize input systems
 	mouse = new Mouse();
@@ -91,10 +100,10 @@ window.addEventListener("load", function () {
 	window.requestAnimationFrame(updateLoop);
 	frameUpdate();
 
-	// Handle window resizing
+	// Handle window resizing (keep canvas at fixed 1920x1080)
 	function resizeCanvas() {
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
+		canvas.width = CANVAS_WIDTH;
+		canvas.height = CANVAS_HEIGHT;
 		frameUpdate();
 	}
 	window.addEventListener("resize", resizeCanvas);
