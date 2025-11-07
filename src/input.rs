@@ -48,16 +48,11 @@ fn capture_evdev_events() -> Result<()> {
                             }
                         }
                         EventType::ABSOLUTE => {
-                            let axis = match event.code() {
-                                0x00 => "ABS_X",
-                                0x01 => "ABS_Y",
-                                0x03 => "ABS_RX",
-                                0x04 => "ABS_RY",
-                                _ => return None,
-                            };
-                            let value = (event.value() as f32 / 127.0).clamp(-1.0, 1.0);
-                            if value.abs() > 0.1 {
-                                println!("Axis {}: {:.2}", axis, value);
+                            if let Some(axis) = axis_to_string(event.code()) {
+                                let value = (event.value() as f32 / 127.0).clamp(-1.0, 1.0);
+                                if value.abs() > 0.1 {
+                                    println!("Axis {}: {:.2}", axis, value);
+                                }
                             }
                         }
                         _ => {}
@@ -73,6 +68,14 @@ fn key_to_string(code: u16) -> Option<String> {
     match code {
         17 => Some("W"), 30 => Some("A"), 31 => Some("S"), 32 => Some("D"),
         57 => Some("SPACE"), 42 => Some("SHIFT"), 29 => Some("CTRL"),
+        _ => None,
+    }.map(|s| s.to_string())
+}
+
+fn axis_to_string(code: u16) -> Option<String> {
+    match code {
+        0x00 => Some("ABS_X"), 0x01 => Some("ABS_Y"),
+        0x03 => Some("ABS_RX"), 0x04 => Some("ABS_RY"),
         _ => None,
     }.map(|s| s.to_string())
 }
