@@ -23,24 +23,58 @@
 		</table>
 	</div>
 
-	<!-- Test script to verify preload worked -->
+	<!-- Bridge uiohook global input to DOM events (Electron only) -->
 	<script>
-		// This runs in renderer process after preload
+		// uiohook keycode to KeyboardEvent.code mapping
+		const UIOHOOK_TO_KEYCODE = {
+			// Letters
+			30: 'KeyA', 48: 'KeyB', 46: 'KeyC', 32: 'KeyD', 18: 'KeyE',
+			33: 'KeyF', 34: 'KeyG', 35: 'KeyH', 23: 'KeyI', 36: 'KeyJ',
+			37: 'KeyK', 38: 'KeyL', 50: 'KeyM', 49: 'KeyN', 24: 'KeyO',
+			25: 'KeyP', 16: 'KeyQ', 19: 'KeyR', 31: 'KeyS', 20: 'KeyT',
+			22: 'KeyU', 47: 'KeyV', 17: 'KeyW', 45: 'KeyX', 21: 'KeyY',
+			44: 'KeyZ',
+			// Numbers
+			2: 'Digit1', 3: 'Digit2', 4: 'Digit3', 5: 'Digit4', 6: 'Digit5',
+			7: 'Digit6', 8: 'Digit7', 9: 'Digit8', 10: 'Digit9', 11: 'Digit0',
+			// Special keys
+			57: 'Space', 28: 'Enter', 1: 'Escape', 14: 'Backspace',
+			15: 'Tab', 42: 'ShiftLeft', 54: 'ShiftRight',
+			29: 'ControlLeft', 97: 'ControlRight',
+			56: 'AltLeft', 100: 'AltRight'
+		};
+
 		if (window.electronAPI) {
 			console.log('[Renderer] ✓ electronAPI is available!');
 			console.log('[Renderer] Has global input:', window.electronAPI.hasGlobalInput());
 			console.log('[Renderer] Is readonly:', window.electronAPI.isReadonly());
 
-			// Set up global keyboard listeners to test IPC
+			// Bridge uiohook events to synthetic DOM KeyboardEvents
 			window.electronAPI.onGlobalKeyDown((data) => {
-				console.log('[Renderer] Received global keydown:', data.keycode, 'at', data.timestamp);
+				const code = UIOHOOK_TO_KEYCODE[data.keycode];
+				if (code) {
+					console.log('[Renderer] Dispatching synthetic keydown:', code, '(uiohook:', data.keycode + ')');
+					document.dispatchEvent(new KeyboardEvent('keydown', {
+						code: code,
+						bubbles: true,
+						cancelable: true
+					}));
+				}
 			});
 
 			window.electronAPI.onGlobalKeyUp((data) => {
-				console.log('[Renderer] Received global keyup:', data.keycode, 'at', data.timestamp);
+				const code = UIOHOOK_TO_KEYCODE[data.keycode];
+				if (code) {
+					console.log('[Renderer] Dispatching synthetic keyup:', code);
+					document.dispatchEvent(new KeyboardEvent('keyup', {
+						code: code,
+						bubbles: true,
+						cancelable: true
+					}));
+				}
 			});
 
-			console.log('[Renderer] Global keyboard listeners attached');
+			console.log('[Renderer] ✓ Global input bridge active (uiohook → DOM events)');
 		} else {
 			console.log('[Renderer] ✗ electronAPI not found (running as web version)');
 		}
