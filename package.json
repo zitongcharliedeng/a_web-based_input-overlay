@@ -21,6 +21,7 @@
     "http-server": "^14.1.1"
   },
   "dependencies": {
-    "uiohook-napi": "^1.5.4"
+    "uiohook-napi": "^1.5.4",
+    "@kmamal/sdl": "^0.6.0"
   }
 }

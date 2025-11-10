@@ -26,6 +26,19 @@ try {
   console.log('[Main] Global input hooks disabled (will use DOM events only)');
 }
 
+// Try to initialize SDL for gamepad capture
+let sdl = null;
+let gamepadPollInterval = null;
+let connectedGamepads = new Map(); // Track connected gamepads by device ID
+
+try {
+  sdl = require('@kmamal/sdl');
+  console.log('[Main] ✓ @kmamal/sdl loaded successfully');
+} catch (error) {
+  console.log('[Main] ✗ @kmamal/sdl not available:', error.message);
+  console.log('[Main] SDL gamepad support disabled (will use Web Gamepad API only)');
+}
+
 // IPC handlers for renderer queries
 ipcMain.on('get-readonly-state', (event) => {
   event.returnValue = isReadonly;
@@ -127,6 +140,64 @@ app.whenReady().then(() => {
     console.log('[Main] ✓ Global input hooks started');
   }
 
+  // Start SDL gamepad polling if available
+  if (sdl) {
+    console.log('[Main] Starting SDL gamepad polling...');
+
+    // Poll gamepads at 60Hz (matches requestAnimationFrame)
+    gamepadPollInterval = setInterval(() => {
+      const controllers = sdl.controller.devices;
+      const currentGamepads = [];
+
+      // Poll each connected controller
+      for (let i = 0; i < controllers.length; i++) {
+        try {
+          const controller = controllers[i];
+          if (!controller) continue;
+
+          // Read controller state
+          const state = {
+            index: i,
+            id: controller.name || `SDL Controller ${i}`,
+            connected: true,
+            timestamp: Date.now(),
+            buttons: [],
+            axes: []
+          };
+
+          // Read axes (normalize to -1.0 to 1.0 range)
+          const axisCount = 6; // Standard gamepad has 6 axes
+          for (let a = 0; a < axisCount; a++) {
+            const value = controller.getAxis(a) || 0;
+            state.axes.push(value / 32768.0); // SDL returns -32768 to 32767
+          }
+
+          // Read buttons
+          const buttonCount = 17; // Standard gamepad has 17 buttons
+          for (let b = 0; b < buttonCount; b++) {
+            const pressed = controller.getButton(b) || false;
+            state.buttons.push({
+              pressed: pressed,
+              touched: pressed,
+              value: pressed ? 1.0 : 0.0
+            });
+          }
+
+          currentGamepads.push(state);
+        } catch (err) {
+          console.error('[Main] Error reading controller', i, ':', err.message);
+        }
+      }
+
+      // Send gamepad state to renderer
+      if (currentGamepads.length > 0) {
+        mainWindow.webContents.send('global-gamepad-state', currentGamepads);
+      }
+    }, 16); // ~60Hz (16ms)
+
+    console.log('[Main] ✓ SDL gamepad polling started at 60Hz');
+  }
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -139,6 +210,13 @@ app.on('window-all-closed', () => {
   if (uIOhook) {
     console.log('[Main] Stopping global input hooks...');
     uIOhook.stop();
+  }
+
+  // Stop SDL gamepad polling
+  if (gamepadPollInterval) {
+    console.log('[Main] Stopping SDL gamepad polling...');
+    clearInterval(gamepadPollInterval);
+    gamepadPollInterval = null;
   }
 
   if (process.platform !== 'darwin') {

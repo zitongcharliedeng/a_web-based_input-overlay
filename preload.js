@@ -38,6 +38,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('global-wheel', (_event, data) => callback(data));
   },
 
+  // Gamepad state (SDL polling)
+  onGlobalGamepadState: (callback) => {
+    ipcRenderer.on('global-gamepad-state', (_event, gamepads) => callback(gamepads));
+  },
+
   // App state
   isReadonly: () => {
     return ipcRenderer.sendSync('get-readonly-state');

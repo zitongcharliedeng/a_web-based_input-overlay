@@ -23,8 +23,38 @@
 		</table>
 	</div>
 
-	<!-- Bridge uiohook global input to DOM events (Electron only) -->
+	<!-- Bridge SDL gamepad and uiohook global input to Web APIs (Electron only) -->
 	<script>
+		// SDL gamepad state storage
+		let sdlGamepads = [];
+
+		// Override navigator.getGamepads() to return SDL state (blackbox approach)
+		if (window.electronAPI) {
+			const originalGetGamepads = navigator.getGamepads.bind(navigator);
+
+			// Replace navigator.getGamepads() with SDL-backed version
+			navigator.getGamepads = function() {
+				// If SDL has gamepad data, return it; otherwise fall back to browser API
+				if (sdlGamepads.length > 0) {
+					// Convert to GamepadList-like array
+					const result = [];
+					for (let i = 0; i < 4; i++) { // Standard Gamepad API supports max 4 gamepads
+						result[i] = sdlGamepads[i] || null;
+					}
+					return result;
+				}
+				// Fallback to browser's native gamepad API (when focused)
+				return originalGetGamepads();
+			};
+
+			// Listen for SDL gamepad state updates
+			window.electronAPI.onGlobalGamepadState((gamepads) => {
+				sdlGamepads = gamepads;
+			});
+
+			console.log('[Renderer] ✓ SDL gamepad override active (navigator.getGamepads patched)');
+		}
+
 		// uiohook keycode to KeyboardEvent.code mapping
 		const UIOHOOK_TO_KEYCODE = {
 			// Letters
