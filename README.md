@@ -4,12 +4,20 @@ Transparent overlay for streamers. Shows input visualization, camera, audio, cha
 
 ## Quick Start
 
-### Windows (First Time Setup)
+### Windows Setup
 
 ```powershell
-# Install Node.js from nodejs.org and Git from git-scm.com, then:
+# Install Node.js from nodejs.org and Git from git-scm.com
+
+# If repo doesn't exist:
 git clone https://github.com/zitongcharliedeng/a_web-based_input-overlay.git
 cd a_web-based_input-overlay
+
+# If repo exists (update):
+cd a_web-based_input-overlay
+git fetch origin
+
+# Checkout branch:
 git checkout uiohook-attempt
 npm install
 ```
