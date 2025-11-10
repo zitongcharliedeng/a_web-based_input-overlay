@@ -1,4 +1,4 @@
-const { app, BaseWindow, WebContentsView, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
 // Linux GTK compatibility (from stream-overlay)
@@ -14,7 +14,7 @@ let globalInputAvailable = false;
 
 // Try to initialize uiohook for global input capture
 let uIOhook = null;
-let activeView = null; // Store reference to send events
+let mainWindow = null; // Store reference to send events
 
 try {
   const uiohook = require('uiohook-napi');
@@ -43,38 +43,27 @@ function createWindow() {
   const width = 1600;
   const height = 600;
 
-  // Create BaseWindow (like stream-overlay)
-  const win = new BaseWindow({
+  // Create BrowserWindow with transparency
+  const win = new BrowserWindow({
     width: width,
     height: height,
     transparent: true,
-    frame: enableFrame,  // Show frame for debugging
+    frame: enableFrame,
     alwaysOnTop: true,
     skipTaskbar: false,
+    backgroundColor: '#40404040',  // Semi-transparent grey for debugging
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    }
   });
-
-  // Set background to semi-transparent grey (for debugging)
-  win.setBackgroundColor('rgba(64, 64, 64, 0.25)');
 
   // Enhanced always-on-top with screen-saver level
   win.setAlwaysOnTop(true, 'screen-saver', 1);
 
-  // Create WebContentsView for the overlay content
-  const view = new WebContentsView({
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js'),
-      backgroundColor: '#00000000'  // Transparent background
-    }
-  });
-
-  // Add view to window and set bounds to fill the window
-  win.contentView.addChildView(view);
-  view.setBounds({ x: 0, y: 0, width: width, height: height });
-
   // Load the HTML file
-  view.webContents.loadFile('index.html');
+  win.loadFile('index.html');
 
   // Readonly mode: click-through for overlay use (can't edit config)
   // Interactive mode: can drag and edit objects
@@ -99,15 +88,14 @@ function createWindow() {
   // Open DevTools (warning: breaks transparency)
   if (enableDevTools) {
     console.log('[Main] DevTools enabled (transparency will break)');
-    view.webContents.openDevTools();
+    win.webContents.openDevTools();
   }
 
-  return { win, view };
+  return win;
 }
 
 app.whenReady().then(() => {
-  const { win, view } = createWindow();
-  activeView = view; // Store reference for IPC
+  mainWindow = createWindow();
 
   // Start global input hooks if available
   if (uIOhook) {
@@ -121,7 +109,7 @@ app.whenReady().then(() => {
         timestamp: Date.now()
       };
       console.log('[Main] Global keydown:', data.keycode);
-      activeView.webContents.send('global-keydown', data);
+      mainWindow.webContents.send('global-keydown', data);
     });
 
     uIOhook.on('keyup', (event) => {
@@ -131,7 +119,7 @@ app.whenReady().then(() => {
         timestamp: Date.now()
       };
       console.log('[Main] Global keyup:', data.keycode);
-      activeView.webContents.send('global-keyup', data);
+      mainWindow.webContents.send('global-keyup', data);
     });
 
     // Start the hook
