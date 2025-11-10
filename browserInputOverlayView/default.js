@@ -62,6 +62,24 @@ window.addEventListener("load", function () {
 		// Update gamepad state
 		window.gamepads = navigator.getGamepads();
 
+		// Debug: Log gamepad detection (once)
+		if (!window._gamepadDebugLogged) {
+			const pads = window.gamepads;
+			let connectedCount = 0;
+			for (let i = 0; i < pads.length; i++) {
+				if (pads[i]) connectedCount++;
+			}
+			if (connectedCount > 0) {
+				console.log('[Game Loop] Gamepad detected! Count:', connectedCount);
+				for (let i = 0; i < pads.length; i++) {
+					if (pads[i]) {
+						console.log('[Game Loop] Gamepad', i, ':', pads[i].id, '- Axes:', pads[i].axes.length, 'Buttons:', pads[i].buttons.length);
+					}
+				}
+				window._gamepadDebugLogged = true;
+			}
+		}
+
 		// Update scene logic
 		if (activeScene.update.call(activeScene, delta) === true) {
 			updateScreen = true;

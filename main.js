@@ -192,42 +192,17 @@ app.whenReady().then(() => {
             axes: []
           };
 
-          // Read axes (SDL standard gamepad layout)
-          const axisMap = [
-            sdl.controller.axis.LEFT_X,
-            sdl.controller.axis.LEFT_Y,
-            sdl.controller.axis.RIGHT_X,
-            sdl.controller.axis.RIGHT_Y,
-            sdl.controller.axis.TRIGGER_LEFT,
-            sdl.controller.axis.TRIGGER_RIGHT
-          ];
-
-          for (const axis of axisMap) {
-            const value = controller.getAxis(axis) || 0;
+          // Read axes (use numeric indices - SDL standard gamepad mapping)
+          // 0: Left X, 1: Left Y, 2: Right X, 3: Right Y, 4: Left trigger, 5: Right trigger
+          for (let axisIndex = 0; axisIndex < 6; axisIndex++) {
+            const value = controller.getAxis(axisIndex) || 0;
             state.axes.push(value / 32768.0); // Normalize to -1.0 to 1.0
           }
 
-          // Read buttons (SDL standard gamepad layout)
-          const buttonMap = [
-            sdl.controller.button.A,
-            sdl.controller.button.B,
-            sdl.controller.button.X,
-            sdl.controller.button.Y,
-            sdl.controller.button.LEFT_SHOULDER,
-            sdl.controller.button.RIGHT_SHOULDER,
-            sdl.controller.button.BACK,
-            sdl.controller.button.START,
-            sdl.controller.button.LEFT_STICK,
-            sdl.controller.button.RIGHT_STICK,
-            sdl.controller.button.DPAD_UP,
-            sdl.controller.button.DPAD_DOWN,
-            sdl.controller.button.DPAD_LEFT,
-            sdl.controller.button.DPAD_RIGHT,
-            sdl.controller.button.GUIDE
-          ];
-
-          for (const button of buttonMap) {
-            const pressed = controller.getButton(button) || false;
+          // Read buttons (use numeric indices - SDL standard gamepad mapping)
+          // 0: A, 1: B, 2: X, 3: Y, 4: LB, 5: RB, 6: Back, 7: Start, 8: LS, 9: RS, 10-13: D-pad, 14: Guide
+          for (let buttonIndex = 0; buttonIndex < 15; buttonIndex++) {
+            const pressed = controller.getButton(buttonIndex) || false;
             state.buttons.push({
               pressed: pressed,
               touched: pressed,

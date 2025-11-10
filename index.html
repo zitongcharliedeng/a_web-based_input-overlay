@@ -48,11 +48,21 @@
 			};
 
 			// Listen for SDL gamepad state updates
+			let sdlDataReceived = false;
 			window.electronAPI.onGlobalGamepadState((gamepads) => {
+				if (!sdlDataReceived) {
+					console.log('[Renderer] ✓ First SDL gamepad data received:', gamepads.length, 'controller(s)');
+					if (gamepads.length > 0) {
+						console.log('[Renderer] Controller 0:', gamepads[0].id, '- Axes:', gamepads[0].axes.length, 'Buttons:', gamepads[0].buttons.length);
+					}
+					sdlDataReceived = true;
+				}
 				sdlGamepads = gamepads;
 			});
 
 			console.log('[Renderer] ✓ SDL gamepad override active (navigator.getGamepads patched)');
+		} else {
+			console.log('[Renderer] ✗ electronAPI not found (running as web version)');
 		}
 
 		// uiohook keycode to KeyboardEvent.code mapping
