@@ -5,9 +5,12 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "start:win": "electron .",
+    "start:web": "start index.html",
     "start:nix": "nix-shell -p nodejs electron --run 'electron .'",
     "start:nix-x11": "nix-shell -p nodejs electron --run 'ELECTRON_OZONE_PLATFORM_HINT=x11 electron .'",
     "dev": "electron . --enable-logging",
+    "dev:win": "electron . --enable-logging",
     "dev:nix": "nix-shell -p nodejs electron --run 'electron . --enable-logging'",
     "dev:nix-x11": "nix-shell -p nodejs electron --run 'ELECTRON_OZONE_PLATFORM_HINT=x11 electron . --enable-logging'",
     "check": "tsc --noEmit"
