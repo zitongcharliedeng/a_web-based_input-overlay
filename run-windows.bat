@@ -24,14 +24,20 @@ if errorlevel 1 (
 echo.
 
 REM Launch both versions
-echo [3/3] Launching web + Electron...
+echo [3/3] Launching web server + Electron...
+echo.
+echo Web version will open at http://localhost:8080
+echo Electron window will also appear
 echo.
 echo TEST: Press WASD keys when focused, then Alt+Tab away and press again
 echo QUESTION: Does Electron still capture keys when unfocused?
 echo.
 
-start index.html
-timeout /t 1 /nobreak >nul
+REM Start web server in background
+start /b npm run start:web
+timeout /t 2 /nobreak >nul
+
+REM Start Electron in foreground
 call npm run start:win
 
 pause
