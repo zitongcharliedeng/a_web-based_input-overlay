@@ -29,7 +29,6 @@ try {
 // Try to initialize SDL for gamepad capture
 let sdl = null;
 let gamepadPollInterval = null;
-let openControllers = new Map(); // Track opened SDL controllers
 
 try {
   sdl = require('@kmamal/sdl');
@@ -140,99 +139,104 @@ app.whenReady().then(() => {
     console.log('[Main] ✓ Global input hooks started');
   }
 
-  // Start SDL gamepad polling if available
+  // Start SDL gamepad event listeners if available
   if (sdl) {
-    console.log('[Main] Starting SDL gamepad polling...');
+    console.log('[Main] Starting SDL gamepad event listeners...');
 
-    // Helper to refresh controller list (devices array already contains controller objects)
-    const updateConnectedControllers = () => {
-      const devices = sdl.controller.devices;
-      console.log('[Main] Scanning controllers, found:', devices.length);
+    // Track controller state (SDL uses events, not polling)
+    const controllerStates = new Map(); // Map<deviceId, state>
 
-      // Rebuild controller map from devices array
-      openControllers.clear();
-      devices.forEach((controller, index) => {
-        if (controller) {
-          openControllers.set(index, controller);
-          console.log('[Main] ✓ Controller', index, ':', controller.name || 'Unknown');
+    // Initialize state for already-connected controllers
+    const devices = sdl.controller.devices;
+    console.log('[Main] Found', devices.length, 'existing controller(s)');
+    devices.forEach((device) => {
+      if (device) {
+        console.log('[Main] ✓ Controller:', device.name || device.id);
+        controllerStates.set(device.id, {
+          index: device.id,
+          id: device.name || `SDL Controller ${device.id}`,
+          connected: true,
+          timestamp: Date.now(),
+          buttons: new Array(15).fill(false),
+          axes: new Array(6).fill(0)
+        });
+      }
+    });
 
-          // Debug: Log what properties/methods the controller actually has
-          if (index === 0 && !global._sdlDebugLogged) {
-            console.log('[Main] DEBUG: Controller object type:', typeof controller);
-            console.log('[Main] DEBUG: Controller keys:', Object.keys(controller));
-            console.log('[Main] DEBUG: Has getAxis?', typeof controller.getAxis);
-            console.log('[Main] DEBUG: Has axis?', typeof controller.axis);
-            console.log('[Main] DEBUG: Has buttons?', typeof controller.buttons);
-            global._sdlDebugLogged = true;
-          }
-        }
-      });
-    };
+    // Listen for axis motion events
+    sdl.controller.on('axisMotion', (event) => {
+      const state = controllerStates.get(event.which);
+      if (state) {
+        state.axes[event.axis] = event.value / 32768.0; // Normalize -32768..32767 to -1.0..1.0
+        state.timestamp = Date.now();
+      }
+    });
 
-    // Initial scan for already-connected controllers
-    updateConnectedControllers();
+    // Listen for button events
+    sdl.controller.on('buttonDown', (event) => {
+      const state = controllerStates.get(event.which);
+      if (state) {
+        state.buttons[event.button] = true;
+        state.timestamp = Date.now();
+      }
+    });
 
-    // Listen for controller hotplug events
+    sdl.controller.on('buttonUp', (event) => {
+      const state = controllerStates.get(event.which);
+      if (state) {
+        state.buttons[event.button] = false;
+        state.timestamp = Date.now();
+      }
+    });
+
+    // Listen for controller connection/disconnection
     sdl.controller.on('deviceAdd', (event) => {
       console.log('[Main] Controller connected:', event.which);
-      updateConnectedControllers();
+      const devices = sdl.controller.devices;
+      const device = devices.find(d => d && d.id === event.which);
+      if (device) {
+        controllerStates.set(device.id, {
+          index: device.id,
+          id: device.name || `SDL Controller ${device.id}`,
+          connected: true,
+          timestamp: Date.now(),
+          buttons: new Array(15).fill(false),
+          axes: new Array(6).fill(0)
+        });
+      }
     });
 
     sdl.controller.on('deviceRemove', (event) => {
       console.log('[Main] Controller disconnected:', event.which);
-      updateConnectedControllers();
+      controllerStates.delete(event.which);
     });
 
-    // Poll gamepads at 60Hz (matches requestAnimationFrame)
+    // Send state to renderer at 60Hz
     gamepadPollInterval = setInterval(() => {
-      if (openControllers.size === 0) return;
+      if (controllerStates.size === 0) return;
 
       const currentGamepads = [];
-
-      // Poll each open controller
-      openControllers.forEach((controller, deviceId) => {
-        try {
-          // Read controller state
-          const state = {
-            index: deviceId,
-            id: controller.name || `SDL Controller ${deviceId}`,
-            connected: true,
-            timestamp: Date.now(),
-            buttons: [],
-            axes: []
-          };
-
-          // Read axes (use numeric indices - SDL standard gamepad mapping)
-          // 0: Left X, 1: Left Y, 2: Right X, 3: Right Y, 4: Left trigger, 5: Right trigger
-          for (let axisIndex = 0; axisIndex < 6; axisIndex++) {
-            const value = controller.getAxis(axisIndex) || 0;
-            state.axes.push(value / 32768.0); // Normalize to -1.0 to 1.0
-          }
-
-          // Read buttons (use numeric indices - SDL standard gamepad mapping)
-          // 0: A, 1: B, 2: X, 3: Y, 4: LB, 5: RB, 6: Back, 7: Start, 8: LS, 9: RS, 10-13: D-pad, 14: Guide
-          for (let buttonIndex = 0; buttonIndex < 15; buttonIndex++) {
-            const pressed = controller.getButton(buttonIndex) || false;
-            state.buttons.push({
-              pressed: pressed,
-              touched: pressed,
-              value: pressed ? 1.0 : 0.0
-            });
-          }
-
-          currentGamepads.push(state);
-        } catch (err) {
-          console.error('[Main] Error reading controller:', err.message);
-        }
+      controllerStates.forEach((state) => {
+        currentGamepads.push({
+          index: state.index,
+          id: state.id,
+          connected: state.connected,
+          timestamp: state.timestamp,
+          buttons: state.buttons.map(pressed => ({
+            pressed: pressed,
+            touched: pressed,
+            value: pressed ? 1.0 : 0.0
+          })),
+          axes: [...state.axes]
+        });
       });
 
-      // Send gamepad state to renderer
       if (currentGamepads.length > 0) {
         mainWindow.webContents.send('global-gamepad-state', currentGamepads);
       }
-    }, 16); // ~60Hz (16ms)
+    }, 16); // ~60Hz
 
-    console.log('[Main] ✓ SDL gamepad polling started at 60Hz');
+    console.log('[Main] ✓ SDL gamepad events active');
   }
 
   app.on('activate', () => {
@@ -249,16 +253,11 @@ app.on('window-all-closed', () => {
     uIOhook.stop();
   }
 
-  // Stop SDL gamepad polling
+  // Stop SDL gamepad updates
   if (gamepadPollInterval) {
-    console.log('[Main] Stopping SDL gamepad polling...');
+    console.log('[Main] Stopping SDL gamepad updates...');
     clearInterval(gamepadPollInterval);
     gamepadPollInterval = null;
-  }
-
-  // Clear controller map (SDL library manages controller lifecycle)
-  if (openControllers.size > 0) {
-    openControllers.clear();
   }
 
   if (process.platform !== 'darwin') {
