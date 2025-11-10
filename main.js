@@ -53,8 +53,8 @@ function createWindow() {
     skipTaskbar: false,
   });
 
-  // Set background to fully transparent
-  win.setBackgroundColor('rgba(0, 0, 0, 0.0)');
+  // Set background to semi-transparent grey (for debugging)
+  win.setBackgroundColor('rgba(64, 64, 64, 0.25)');
 
   // Enhanced always-on-top with screen-saver level
   win.setAlwaysOnTop(true, 'screen-saver', 1);
