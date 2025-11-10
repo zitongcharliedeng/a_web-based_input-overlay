@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "start:win": "electron .",
-    "start:web": "npx http-server -p 8080 -o",
+    "start:web": "http-server -p 8080 -o",
     "start:nix": "nix-shell -p nodejs electron --run 'electron .'",
     "start:nix-x11": "nix-shell -p nodejs electron --run 'ELECTRON_OZONE_PLATFORM_HINT=x11 electron .'",
     "dev": "electron . --enable-logging",
@@ -17,7 +17,8 @@
   },
   "devDependencies": {
     "electron": "^28.0.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "http-server": "^14.1.1"
   },
   "dependencies": {
     "uiohook-napi": "^1.5.4"

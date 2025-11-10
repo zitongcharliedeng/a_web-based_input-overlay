@@ -64,12 +64,10 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      backgroundColor: '#00000000'  // Transparent background
     }
   });
-
-  // Set view background to transparent (fixes white background)
-  view.setBackgroundColor('rgba(0, 0, 0, 0.0)');
 
   // Add view to window and set bounds to fill the window
   win.contentView.addChildView(view);
