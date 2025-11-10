@@ -7,7 +7,7 @@ echo.
 
 REM Pull latest
 echo [1/3] Pulling latest code...
-git pull origin uiohook-attempt
+git pull
 if errorlevel 1 (
     echo WARNING: Git pull failed. Continuing anyway...
 )

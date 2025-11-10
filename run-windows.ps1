@@ -6,7 +6,7 @@ Write-Host ""
 
 # Pull latest
 Write-Host "[1/3] Pulling latest code..." -ForegroundColor Yellow
-git pull origin uiohook-attempt
+git pull
 if ($LASTEXITCODE -ne 0) {
     Write-Host "WARNING: Git pull failed. Continuing anyway..." -ForegroundColor Red
 }
