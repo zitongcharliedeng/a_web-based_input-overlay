@@ -144,39 +144,33 @@ app.whenReady().then(() => {
   if (sdl) {
     console.log('[Main] Starting SDL gamepad polling...');
 
-    // Check for already-connected controllers
-    const existingDevices = sdl.controller.devices;
-    console.log('[Main] Detected', existingDevices.length, 'existing controller(s)');
+    // Helper to refresh controller list (devices array already contains controller objects)
+    const updateConnectedControllers = () => {
+      const devices = sdl.controller.devices;
+      console.log('[Main] Scanning controllers, found:', devices.length);
 
-    for (const device of existingDevices) {
-      try {
-        const controller = sdl.controller.open(device.id);
-        openControllers.set(device.id, controller);
-        console.log('[Main] ✓ Opened existing controller:', controller.name);
-      } catch (err) {
-        console.error('[Main] Failed to open controller', device.id, ':', err.message);
-      }
-    }
+      // Rebuild controller map from devices array
+      openControllers.clear();
+      devices.forEach((controller, index) => {
+        if (controller) {
+          openControllers.set(index, controller);
+          console.log('[Main] ✓ Controller', index, ':', controller.name || 'Unknown');
+        }
+      });
+    };
 
-    // Listen for NEW controller connections
+    // Initial scan for already-connected controllers
+    updateConnectedControllers();
+
+    // Listen for controller hotplug events
     sdl.controller.on('deviceAdd', (event) => {
-      console.log('[Main] SDL controller connected:', event.which);
-      try {
-        const controller = sdl.controller.open(event.which);
-        openControllers.set(event.which, controller);
-        console.log('[Main] ✓ Opened controller:', controller.name);
-      } catch (err) {
-        console.error('[Main] Failed to open controller:', err.message);
-      }
+      console.log('[Main] Controller connected:', event.which);
+      updateConnectedControllers();
     });
 
     sdl.controller.on('deviceRemove', (event) => {
-      console.log('[Main] SDL controller disconnected:', event.which);
-      const controller = openControllers.get(event.which);
-      if (controller) {
-        controller.close();
-        openControllers.delete(event.which);
-      }
+      console.log('[Main] Controller disconnected:', event.which);
+      updateConnectedControllers();
     });
 
     // Poll gamepads at 60Hz (matches requestAnimationFrame)
@@ -270,23 +264,15 @@ app.on('window-all-closed', () => {
     uIOhook.stop();
   }
 
-  // Stop SDL gamepad polling and close controllers
+  // Stop SDL gamepad polling
   if (gamepadPollInterval) {
     console.log('[Main] Stopping SDL gamepad polling...');
     clearInterval(gamepadPollInterval);
     gamepadPollInterval = null;
   }
 
-  if (sdl && openControllers.size > 0) {
-    // Close all open controllers
-    console.log('[Main] Closing SDL controllers...');
-    openControllers.forEach((controller) => {
-      try {
-        controller.close();
-      } catch (err) {
-        console.error('[Main] Error closing controller:', err.message);
-      }
-    });
+  // Clear controller map (SDL library manages controller lifecycle)
+  if (openControllers.size > 0) {
     openControllers.clear();
   }
 
