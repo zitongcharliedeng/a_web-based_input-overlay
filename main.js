@@ -144,7 +144,21 @@ app.whenReady().then(() => {
   if (sdl) {
     console.log('[Main] Starting SDL gamepad polling...');
 
-    // Listen for controller connection events
+    // Check for already-connected controllers
+    const existingDevices = sdl.controller.devices;
+    console.log('[Main] Detected', existingDevices.length, 'existing controller(s)');
+
+    for (const device of existingDevices) {
+      try {
+        const controller = sdl.controller.open(device.id);
+        openControllers.set(device.id, controller);
+        console.log('[Main] ✓ Opened existing controller:', controller.name);
+      } catch (err) {
+        console.error('[Main] Failed to open controller', device.id, ':', err.message);
+      }
+    }
+
+    // Listen for NEW controller connections
     sdl.controller.on('deviceAdd', (event) => {
       console.log('[Main] SDL controller connected:', event.which);
       try {
@@ -240,7 +254,6 @@ app.whenReady().then(() => {
     }, 16); // ~60Hz (16ms)
 
     console.log('[Main] ✓ SDL gamepad polling started at 60Hz');
-    console.log('[Main] Connect a controller to see it detected...');
   }
 
   app.on('activate', () => {
