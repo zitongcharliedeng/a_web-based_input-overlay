@@ -155,6 +155,16 @@ app.whenReady().then(() => {
         if (controller) {
           openControllers.set(index, controller);
           console.log('[Main] ✓ Controller', index, ':', controller.name || 'Unknown');
+
+          // Debug: Log what properties/methods the controller actually has
+          if (index === 0 && !global._sdlDebugLogged) {
+            console.log('[Main] DEBUG: Controller object type:', typeof controller);
+            console.log('[Main] DEBUG: Controller keys:', Object.keys(controller));
+            console.log('[Main] DEBUG: Has getAxis?', typeof controller.getAxis);
+            console.log('[Main] DEBUG: Has axis?', typeof controller.axis);
+            console.log('[Main] DEBUG: Has buttons?', typeof controller.buttons);
+            global._sdlDebugLogged = true;
+          }
         }
       });
     };
