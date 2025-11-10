@@ -14,7 +14,7 @@ if errorlevel 1 (
 echo.
 
 REM Install/update dependencies
-echo [2/3] Installing dependencies...
+echo [2/4] Installing dependencies...
 call npm install
 if errorlevel 1 (
     echo ERROR: npm install failed!
@@ -23,8 +23,16 @@ if errorlevel 1 (
 )
 echo.
 
+REM Compile TypeScript
+echo [3/4] Compiling TypeScript...
+call npx tsc
+if errorlevel 1 (
+    echo WARNING: TypeScript compilation had errors. Continuing anyway...
+)
+echo.
+
 REM Launch both versions
-echo [3/3] Launching web server + Electron...
+echo [4/4] Launching web server + Electron...
 echo.
 echo Web version will open at http://localhost:8080
 echo Electron window will also appear

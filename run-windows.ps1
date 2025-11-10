@@ -13,7 +13,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host ""
 
 # Install/update dependencies
-Write-Host "[2/3] Installing dependencies..." -ForegroundColor Yellow
+Write-Host "[2/4] Installing dependencies..." -ForegroundColor Yellow
 npm install
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: npm install failed!" -ForegroundColor Red
@@ -22,8 +22,16 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host ""
 
+# Compile TypeScript
+Write-Host "[3/4] Compiling TypeScript..." -ForegroundColor Yellow
+npx tsc
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "WARNING: TypeScript compilation had errors. Continuing anyway..." -ForegroundColor Red
+}
+Write-Host ""
+
 # Launch both versions
-Write-Host "[3/3] Launching web server + Electron..." -ForegroundColor Yellow
+Write-Host "[4/4] Launching web server + Electron..." -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Web version will open at http://localhost:8080" -ForegroundColor Green
 Write-Host "Electron window will also appear" -ForegroundColor Green
