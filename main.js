@@ -29,7 +29,7 @@ try {
 // Try to initialize SDL for gamepad capture
 let sdl = null;
 let gamepadPollInterval = null;
-let connectedGamepads = new Map(); // Track connected gamepads by device ID
+let openControllers = new Map(); // Track opened SDL controllers
 
 try {
   sdl = require('@kmamal/sdl');
@@ -144,38 +144,82 @@ app.whenReady().then(() => {
   if (sdl) {
     console.log('[Main] Starting SDL gamepad polling...');
 
+    // Listen for controller connection events
+    sdl.controller.on('deviceAdd', (event) => {
+      console.log('[Main] SDL controller connected:', event.which);
+      try {
+        const controller = sdl.controller.open(event.which);
+        openControllers.set(event.which, controller);
+        console.log('[Main] ✓ Opened controller:', controller.name);
+      } catch (err) {
+        console.error('[Main] Failed to open controller:', err.message);
+      }
+    });
+
+    sdl.controller.on('deviceRemove', (event) => {
+      console.log('[Main] SDL controller disconnected:', event.which);
+      const controller = openControllers.get(event.which);
+      if (controller) {
+        controller.close();
+        openControllers.delete(event.which);
+      }
+    });
+
     // Poll gamepads at 60Hz (matches requestAnimationFrame)
     gamepadPollInterval = setInterval(() => {
-      const controllers = sdl.controller.devices;
+      if (openControllers.size === 0) return;
+
       const currentGamepads = [];
 
-      // Poll each connected controller
-      for (let i = 0; i < controllers.length; i++) {
+      // Poll each open controller
+      openControllers.forEach((controller, deviceId) => {
         try {
-          const controller = controllers[i];
-          if (!controller) continue;
-
           // Read controller state
           const state = {
-            index: i,
-            id: controller.name || `SDL Controller ${i}`,
+            index: deviceId,
+            id: controller.name || `SDL Controller ${deviceId}`,
             connected: true,
             timestamp: Date.now(),
             buttons: [],
             axes: []
           };
 
-          // Read axes (normalize to -1.0 to 1.0 range)
-          const axisCount = 6; // Standard gamepad has 6 axes
-          for (let a = 0; a < axisCount; a++) {
-            const value = controller.getAxis(a) || 0;
-            state.axes.push(value / 32768.0); // SDL returns -32768 to 32767
+          // Read axes (SDL standard gamepad layout)
+          const axisMap = [
+            sdl.controller.axis.LEFT_X,
+            sdl.controller.axis.LEFT_Y,
+            sdl.controller.axis.RIGHT_X,
+            sdl.controller.axis.RIGHT_Y,
+            sdl.controller.axis.TRIGGER_LEFT,
+            sdl.controller.axis.TRIGGER_RIGHT
+          ];
+
+          for (const axis of axisMap) {
+            const value = controller.getAxis(axis) || 0;
+            state.axes.push(value / 32768.0); // Normalize to -1.0 to 1.0
           }
 
-          // Read buttons
-          const buttonCount = 17; // Standard gamepad has 17 buttons
-          for (let b = 0; b < buttonCount; b++) {
-            const pressed = controller.getButton(b) || false;
+          // Read buttons (SDL standard gamepad layout)
+          const buttonMap = [
+            sdl.controller.button.A,
+            sdl.controller.button.B,
+            sdl.controller.button.X,
+            sdl.controller.button.Y,
+            sdl.controller.button.LEFT_SHOULDER,
+            sdl.controller.button.RIGHT_SHOULDER,
+            sdl.controller.button.BACK,
+            sdl.controller.button.START,
+            sdl.controller.button.LEFT_STICK,
+            sdl.controller.button.RIGHT_STICK,
+            sdl.controller.button.DPAD_UP,
+            sdl.controller.button.DPAD_DOWN,
+            sdl.controller.button.DPAD_LEFT,
+            sdl.controller.button.DPAD_RIGHT,
+            sdl.controller.button.GUIDE
+          ];
+
+          for (const button of buttonMap) {
+            const pressed = controller.getButton(button) || false;
             state.buttons.push({
               pressed: pressed,
               touched: pressed,
@@ -185,9 +229,9 @@ app.whenReady().then(() => {
 
           currentGamepads.push(state);
         } catch (err) {
-          console.error('[Main] Error reading controller', i, ':', err.message);
+          console.error('[Main] Error reading controller:', err.message);
         }
-      }
+      });
 
       // Send gamepad state to renderer
       if (currentGamepads.length > 0) {
@@ -196,6 +240,7 @@ app.whenReady().then(() => {
     }, 16); // ~60Hz (16ms)
 
     console.log('[Main] ✓ SDL gamepad polling started at 60Hz');
+    console.log('[Main] Connect a controller to see it detected...');
   }
 
   app.on('activate', () => {
@@ -212,11 +257,24 @@ app.on('window-all-closed', () => {
     uIOhook.stop();
   }
 
-  // Stop SDL gamepad polling
+  // Stop SDL gamepad polling and close controllers
   if (gamepadPollInterval) {
     console.log('[Main] Stopping SDL gamepad polling...');
     clearInterval(gamepadPollInterval);
     gamepadPollInterval = null;
+  }
+
+  if (sdl && openControllers.size > 0) {
+    // Close all open controllers
+    console.log('[Main] Closing SDL controllers...');
+    openControllers.forEach((controller) => {
+      try {
+        controller.close();
+      } catch (err) {
+        console.error('[Main] Error closing controller:', err.message);
+      }
+    });
+    openControllers.clear();
   }
 
   if (process.platform !== 'darwin') {

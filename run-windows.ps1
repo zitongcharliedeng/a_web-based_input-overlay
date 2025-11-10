@@ -40,8 +40,8 @@ Write-Host "TEST: Press WASD keys when focused, then Alt+Tab away and press agai
 Write-Host "QUESTION: Does Electron still capture keys when unfocused?" -ForegroundColor Cyan
 Write-Host ""
 
-# Start web server in background
-Start-Process -NoNewWindow powershell -ArgumentList "npm run start:web"
+# Start web server in background with cache disabled
+Start-Process -NoNewWindow powershell -ArgumentList "npx http-server -p 8080 -c-1 -o"
 Start-Sleep -Seconds 2
 
 # Start Electron in foreground
