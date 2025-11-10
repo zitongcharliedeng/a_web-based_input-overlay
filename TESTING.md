@@ -6,21 +6,40 @@ This test determines if we need uiohook-napi at all, or if Electron's built-in e
 
 ## Windows Quick Start
 
+### Prerequisites
+
+1. Install [Node.js](https://nodejs.org/) (includes npm)
+2. Install [Git for Windows](https://git-scm.com/download/win)
+3. Clone the repository:
+   ```powershell
+   git clone https://github.com/zitongcharliedeng/a_web-based_input-overlay.git
+   cd a_web-based_input-overlay
+   git checkout uiohook-attempt
+   ```
+
 ### One-Click Test (Recommended)
 
+**PowerShell** (Recommended):
+```powershell
+.\run-windows.ps1
+```
+
+**Command Prompt**:
 ```cmd
 run-windows.bat
 ```
 
 This script will:
 1. Pull latest experimental code
-2. Install dependencies
+2. Install dependencies (including uiohook-napi)
 3. Compile TypeScript
 4. Launch **both** web version (browser) and Electron app
 
 ### Manual Test
 
-```cmd
+If you prefer to run steps individually:
+
+```powershell
 git pull origin uiohook-attempt
 npm install
 npm run start:web    # Opens in browser
