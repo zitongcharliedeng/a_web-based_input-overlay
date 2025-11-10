@@ -51,18 +51,22 @@
 
 			// Bridge uiohook events to synthetic DOM KeyboardEvents
 			window.electronAPI.onGlobalKeyDown((data) => {
+				console.log('[Renderer] IPC received keydown, keycode:', data.keycode);
 				const code = UIOHOOK_TO_KEYCODE[data.keycode];
 				if (code) {
-					console.log('[Renderer] Dispatching synthetic keydown:', code, '(uiohook:', data.keycode + ')');
+					console.log('[Renderer] Dispatching synthetic keydown:', code);
 					document.dispatchEvent(new KeyboardEvent('keydown', {
 						code: code,
 						bubbles: true,
 						cancelable: true
 					}));
+				} else {
+					console.warn('[Renderer] Unknown keycode:', data.keycode, '- add to mapping');
 				}
 			});
 
 			window.electronAPI.onGlobalKeyUp((data) => {
+				console.log('[Renderer] IPC received keyup, keycode:', data.keycode);
 				const code = UIOHOOK_TO_KEYCODE[data.keycode];
 				if (code) {
 					console.log('[Renderer] Dispatching synthetic keyup:', code);
