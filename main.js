@@ -163,52 +163,28 @@ app.whenReady().then(() => {
       }
     });
 
-    // Listen for axis motion events
-    sdl.controller.on('axisMotion', (event) => {
-      const state = controllerStates.get(event.which);
-      if (state) {
-        state.axes[event.axis] = event.value / 32768.0; // Normalize -32768..32767 to -1.0..1.0
-        state.timestamp = Date.now();
-      }
-    });
+    // Debug: Find out what events SDL actually supports
+    console.log('[Main] DEBUG: SDL controller object:', sdl.controller);
+    console.log('[Main] DEBUG: SDL controller keys:', Object.keys(sdl.controller));
 
-    // Listen for button events
-    sdl.controller.on('buttonDown', (event) => {
-      const state = controllerStates.get(event.which);
-      if (state) {
-        state.buttons[event.button] = true;
-        state.timestamp = Date.now();
-      }
-    });
+    // Try registering listeners for various possible event names
+    const possibleEvents = [
+      'axis', 'axisMotion', 'axisMove',
+      'button', 'buttonDown', 'buttonUp', 'buttonPress', 'buttonRelease',
+      'deviceAdd', 'deviceRemove', 'deviceAdded', 'deviceRemoved'
+    ];
 
-    sdl.controller.on('buttonUp', (event) => {
-      const state = controllerStates.get(event.which);
-      if (state) {
-        state.buttons[event.button] = false;
-        state.timestamp = Date.now();
+    console.log('[Main] Testing which events are valid...');
+    possibleEvents.forEach(eventName => {
+      try {
+        const testHandler = (event) => {
+          console.log(`[Main] SDL event '${eventName}' fired:`, JSON.stringify(event));
+        };
+        sdl.controller.on(eventName, testHandler);
+        console.log('[Main] ✓ Successfully registered:', eventName);
+      } catch (err) {
+        console.log('[Main] ✗ Invalid event name:', eventName, '-', err.message);
       }
-    });
-
-    // Listen for controller connection/disconnection
-    sdl.controller.on('deviceAdd', (event) => {
-      console.log('[Main] Controller connected:', event.which);
-      const devices = sdl.controller.devices;
-      const device = devices.find(d => d && d.id === event.which);
-      if (device) {
-        controllerStates.set(device.id, {
-          index: device.id,
-          id: device.name || `SDL Controller ${device.id}`,
-          connected: true,
-          timestamp: Date.now(),
-          buttons: new Array(15).fill(false),
-          axes: new Array(6).fill(0)
-        });
-      }
-    });
-
-    sdl.controller.on('deviceRemove', (event) => {
-      console.log('[Main] Controller disconnected:', event.which);
-      controllerStates.delete(event.which);
     });
 
     // Send state to renderer at 60Hz
