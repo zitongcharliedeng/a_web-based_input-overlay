@@ -23,49 +23,9 @@
 		</table>
 	</div>
 
-	<!-- Bridge SDL gamepad and uiohook global input to Web APIs (Electron only) -->
+	<!-- Bridge uiohook global input to Web APIs (Electron only) -->
 	<script>
-		// SDL gamepad state storage
-		let sdlGamepads = [];
-
-		// Override navigator.getGamepads() to return SDL state (blackbox approach)
-		if (window.electronAPI) {
-			const originalGetGamepads = navigator.getGamepads.bind(navigator);
-
-			// Replace navigator.getGamepads() with SDL-backed version
-			navigator.getGamepads = function() {
-				// If SDL has gamepad data, return it; otherwise fall back to browser API
-				if (sdlGamepads.length > 0) {
-					// Convert to GamepadList-like array
-					const result = [];
-					for (let i = 0; i < 4; i++) { // Standard Gamepad API supports max 4 gamepads
-						result[i] = sdlGamepads[i] || null;
-					}
-					return result;
-				}
-				// Fallback to browser's native gamepad API (when focused)
-				return originalGetGamepads();
-			};
-
-			// Listen for SDL gamepad state updates
-			let sdlDataReceived = false;
-			window.electronAPI.onGlobalGamepadState((gamepads) => {
-				if (!sdlDataReceived) {
-					console.log('[Renderer] ✓ First SDL gamepad data received:', gamepads.length, 'controller(s)');
-					if (gamepads.length > 0) {
-						console.log('[Renderer] Controller 0:', gamepads[0].id, '- Axes:', gamepads[0].axes.length, 'Buttons:', gamepads[0].buttons.length);
-					}
-					sdlDataReceived = true;
-				}
-				sdlGamepads = gamepads;
-			});
-
-			console.log('[Renderer] ✓ SDL gamepad override active (navigator.getGamepads patched)');
-		} else {
-			console.log('[Renderer] ✗ electronAPI not found (running as web version)');
-		}
-
-		// TEST: Periodically log gamepad state to see if it updates when unfocused
+		// TEST: Periodically log gamepad state to see if native API works in Electron
 		console.log('[Renderer] Starting gamepad state monitor (logs every 2s)...');
 		setInterval(() => {
 			const pads = navigator.getGamepads();

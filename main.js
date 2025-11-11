@@ -26,17 +26,7 @@ try {
   console.log('[Main] Global input hooks disabled (will use DOM events only)');
 }
 
-// Try to initialize SDL for gamepad capture
-let sdl = null;
-let gamepadPollInterval = null;
-
-try {
-  sdl = require('@kmamal/sdl');
-  console.log('[Main] ✓ @kmamal/sdl loaded successfully');
-} catch (error) {
-  console.log('[Main] ✗ @kmamal/sdl not available:', error.message);
-  console.log('[Main] SDL gamepad support disabled (will use Web Gamepad API only)');
-}
+// Gamepad support uses native Web Gamepad API (no SDL needed)
 
 // IPC handlers for renderer queries
 ipcMain.on('get-readonly-state', (event) => {
@@ -154,44 +144,7 @@ app.whenReady().then(() => {
     console.log('[Main] ✓ Global input hooks started');
   }
 
-  // Start SDL gamepad event listeners if available
-  if (sdl) {
-    console.log('[Main] Starting SDL setup...');
-    console.log('[Main] DEBUG: SDL top-level keys:', Object.keys(sdl));
-
-    // Check joystick module (lower-level than controller)
-    if (sdl.joystick) {
-      console.log('[Main] DEBUG: SDL joystick module keys:', Object.keys(sdl.joystick));
-      console.log('[Main] DEBUG: SDL joystick devices:', sdl.joystick.devices);
-    }
-
-    // Check controller devices
-    const devices = sdl.controller.devices;
-    console.log('[Main] Found', devices.length, 'controller(s)');
-
-    if (devices.length > 0) {
-      const device = devices[0];
-      console.log('[Main] ✓ Controller:', device.name);
-      console.log('[Main] DEBUG: Full device object:', device);
-      console.log('[Main] DEBUG: Device keys:', Object.keys(device));
-
-      // Check if device has any state-reading methods or properties
-      console.log('[Main] DEBUG: Checking for state-reading methods...');
-      console.log('[Main] DEBUG:   device.state?', typeof device.state);
-      console.log('[Main] DEBUG:   device.getAxis?', typeof device.getAxis);
-      console.log('[Main] DEBUG:   device.getButton?', typeof device.getButton);
-      console.log('[Main] DEBUG:   device.buttons?', typeof device.buttons);
-      console.log('[Main] DEBUG:   device.axes?', typeof device.axes);
-      console.log('[Main] DEBUG:   device.read?', typeof device.read);
-      console.log('[Main] DEBUG:   device.poll?', typeof device.poll);
-
-      // Try calling methods on device._index (might be the actual index to use)
-      console.log('[Main] DEBUG: device._index =', device._index);
-    }
-
-    console.log('[Main] IMPORTANT: Analog stick movement triggers uiohook keycode 0!');
-    console.log('[Main] This means we might not need SDL - controller sends keyboard events');
-  }
+  console.log('[Main] Gamepad support: Using native Web Gamepad API (navigator.getGamepads)');
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -205,13 +158,6 @@ app.on('window-all-closed', () => {
   if (uIOhook) {
     console.log('[Main] Stopping global input hooks...');
     uIOhook.stop();
-  }
-
-  // Stop SDL gamepad updates
-  if (gamepadPollInterval) {
-    console.log('[Main] Stopping SDL gamepad updates...');
-    clearInterval(gamepadPollInterval);
-    gamepadPollInterval = null;
   }
 
   if (process.platform !== 'darwin') {
