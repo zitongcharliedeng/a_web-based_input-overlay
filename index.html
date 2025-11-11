@@ -23,9 +23,63 @@
 		</table>
 	</div>
 
-	<!-- Bridge uiohook global input to Web APIs (Electron only) -->
+	<!-- Bridge uiohook and native gamepad to Web APIs (Electron only) -->
 	<script>
-		// TEST: Periodically log gamepad state to see if native API works in Electron
+		// Native gamepad state storage (populated by main process events)
+		const nativeGamepads = new Map(); // Map<id, { axes: [], buttons: [] }>
+
+		// Override navigator.getGamepads() to return native gamepad state when available
+		if (window.electronAPI) {
+			const originalGetGamepads = navigator.getGamepads.bind(navigator);
+
+			navigator.getGamepads = function() {
+				// If we have native gamepad data, return it
+				if (nativeGamepads.size > 0) {
+					const result = [];
+					nativeGamepads.forEach((state, id) => {
+						// Create Gamepad-like object
+						result[id] = {
+							id: `Native Gamepad ${id}`,
+							index: id,
+							connected: true,
+							timestamp: performance.now(),
+							mapping: 'standard',
+							axes: state.axes.slice(), // Copy arrays
+							buttons: state.buttons.map(pressed => ({ pressed, touched: pressed, value: pressed ? 1.0 : 0.0 }))
+						};
+					});
+					// Fill remaining slots with null
+					for (let i = 0; i < 4; i++) {
+						if (!result[i]) result[i] = null;
+					}
+					return result;
+				}
+				// Fallback to browser API when focused
+				return originalGetGamepads();
+			};
+
+			// Listen for native gamepad axis changes
+			window.electronAPI.onGlobalGamepadAxis(({ id, axis, value }) => {
+				if (!nativeGamepads.has(id)) {
+					nativeGamepads.set(id, { axes: [], buttons: [] });
+				}
+				const state = nativeGamepads.get(id);
+				state.axes[axis] = value;
+			});
+
+			// Listen for native gamepad button changes
+			window.electronAPI.onGlobalGamepadButton(({ id, button, pressed }) => {
+				if (!nativeGamepads.has(id)) {
+					nativeGamepads.set(id, { axes: [], buttons: [] });
+				}
+				const state = nativeGamepads.get(id);
+				state.buttons[button] = pressed;
+			});
+
+			console.log('[Renderer] ✓ Native gamepad override active');
+		}
+
+		// TEST: Periodically log gamepad state
 		console.log('[Renderer] Starting gamepad state monitor (logs every 2s)...');
 		setInterval(() => {
 			const pads = navigator.getGamepads();
