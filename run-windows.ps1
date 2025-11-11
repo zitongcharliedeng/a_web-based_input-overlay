@@ -44,7 +44,7 @@ Write-Host ""
 Start-Process -NoNewWindow powershell -ArgumentList "npx http-server -p 8080 -c-1 -o"
 Start-Sleep -Seconds 2
 
-# Start Electron in foreground
-npm run start:win
+# Start Electron in foreground with DevTools
+electron . --with-dev-console
 
 Read-Host "Press Enter to exit"
