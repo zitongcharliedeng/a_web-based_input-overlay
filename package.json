@@ -22,6 +22,6 @@
   },
   "dependencies": {
     "uiohook-napi": "^1.5.4",
-    "gamepad": "^1.7.0"
+    "gamepad": "^1.6.0"
   }
 }
