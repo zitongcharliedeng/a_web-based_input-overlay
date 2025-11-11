@@ -144,29 +144,38 @@ app.whenReady().then(() => {
     console.log('[Main] Starting SDL setup...');
     console.log('[Main] DEBUG: SDL top-level keys:', Object.keys(sdl));
 
-    // Check if SDL has event polling
-    if (sdl.events) {
-      console.log('[Main] DEBUG: SDL has events module');
-      console.log('[Main] DEBUG: SDL events keys:', Object.keys(sdl.events));
+    // Check joystick module (lower-level than controller)
+    if (sdl.joystick) {
+      console.log('[Main] DEBUG: SDL joystick module keys:', Object.keys(sdl.joystick));
+      console.log('[Main] DEBUG: SDL joystick devices:', sdl.joystick.devices);
     }
 
-    // Check if SDL has a video module (needed for event polling)
-    if (sdl.video) {
-      console.log('[Main] DEBUG: SDL has video module');
-    }
-
-    // Initialize state for already-connected controllers
+    // Check controller devices
     const devices = sdl.controller.devices;
-    console.log('[Main] Found', devices.length, 'existing controller(s)');
-    devices.forEach((device) => {
-      if (device) {
-        console.log('[Main] ✓ Controller:', device.name || device.id);
-        console.log('[Main] DEBUG: Device object keys:', Object.keys(device));
-      }
-    });
+    console.log('[Main] Found', devices.length, 'controller(s)');
 
-    console.log('[Main] SDL controller only supports these events:', ['deviceAdd', 'deviceRemove', 'deviceRemap']);
-    console.log('[Main] Need to use SDL global event polling or direct state reading');
+    if (devices.length > 0) {
+      const device = devices[0];
+      console.log('[Main] ✓ Controller:', device.name);
+      console.log('[Main] DEBUG: Full device object:', device);
+      console.log('[Main] DEBUG: Device keys:', Object.keys(device));
+
+      // Check if device has any state-reading methods or properties
+      console.log('[Main] DEBUG: Checking for state-reading methods...');
+      console.log('[Main] DEBUG:   device.state?', typeof device.state);
+      console.log('[Main] DEBUG:   device.getAxis?', typeof device.getAxis);
+      console.log('[Main] DEBUG:   device.getButton?', typeof device.getButton);
+      console.log('[Main] DEBUG:   device.buttons?', typeof device.buttons);
+      console.log('[Main] DEBUG:   device.axes?', typeof device.axes);
+      console.log('[Main] DEBUG:   device.read?', typeof device.read);
+      console.log('[Main] DEBUG:   device.poll?', typeof device.poll);
+
+      // Try calling methods on device._index (might be the actual index to use)
+      console.log('[Main] DEBUG: device._index =', device._index);
+    }
+
+    console.log('[Main] IMPORTANT: Analog stick movement triggers uiohook keycode 0!');
+    console.log('[Main] This means we might not need SDL - controller sends keyboard events');
   }
 
   app.on('activate', () => {
