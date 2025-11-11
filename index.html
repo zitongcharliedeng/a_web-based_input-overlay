@@ -65,6 +65,18 @@
 			console.log('[Renderer] ✗ electronAPI not found (running as web version)');
 		}
 
+		// TEST: Periodically log gamepad state to see if it updates when unfocused
+		console.log('[Renderer] Starting gamepad state monitor (logs every 2s)...');
+		setInterval(() => {
+			const pads = navigator.getGamepads();
+			for (let i = 0; i < pads.length; i++) {
+				if (pads[i]) {
+					const axes = pads[i].axes.map(a => a.toFixed(2)).join(',');
+					console.log('[Renderer] Gamepad', i, '- axes:[' + axes + '] - timestamp:', pads[i].timestamp);
+				}
+			}
+		}, 2000);
+
 		// uiohook keycode to KeyboardEvent.code mapping
 		const UIOHOOK_TO_KEYCODE = {
 			// Letters

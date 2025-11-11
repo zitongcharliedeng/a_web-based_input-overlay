@@ -113,6 +113,8 @@ app.whenReady().then(() => {
   if (uIOhook) {
     console.log('[Main] Starting global input hooks...');
 
+    let keycode0Count = 0;
+
     // Keyboard events
     uIOhook.on('keydown', (event) => {
       const data = {
@@ -120,7 +122,16 @@ app.whenReady().then(() => {
         rawcode: event.rawcode,
         timestamp: Date.now()
       };
-      console.log('[Main] Global keydown:', data.keycode);
+
+      if (data.keycode === 0) {
+        keycode0Count++;
+        if (keycode0Count === 1 || keycode0Count % 10 === 0) {
+          console.log('[Main] Keycode 0 detected (possibly joystick?) - count:', keycode0Count);
+        }
+      } else {
+        console.log('[Main] Global keydown:', data.keycode);
+      }
+
       mainWindow.webContents.send('global-keydown', data);
     });
 
@@ -130,7 +141,11 @@ app.whenReady().then(() => {
         rawcode: event.rawcode,
         timestamp: Date.now()
       };
-      console.log('[Main] Global keyup:', data.keycode);
+
+      if (data.keycode !== 0) {
+        console.log('[Main] Global keyup:', data.keycode);
+      }
+
       mainWindow.webContents.send('global-keyup', data);
     });
 
