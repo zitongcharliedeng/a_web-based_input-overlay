@@ -141,10 +141,19 @@ app.whenReady().then(() => {
 
   // Start SDL gamepad event listeners if available
   if (sdl) {
-    console.log('[Main] Starting SDL gamepad event listeners...');
+    console.log('[Main] Starting SDL setup...');
+    console.log('[Main] DEBUG: SDL top-level keys:', Object.keys(sdl));
 
-    // Track controller state (SDL uses events, not polling)
-    const controllerStates = new Map(); // Map<deviceId, state>
+    // Check if SDL has event polling
+    if (sdl.events) {
+      console.log('[Main] DEBUG: SDL has events module');
+      console.log('[Main] DEBUG: SDL events keys:', Object.keys(sdl.events));
+    }
+
+    // Check if SDL has a video module (needed for event polling)
+    if (sdl.video) {
+      console.log('[Main] DEBUG: SDL has video module');
+    }
 
     // Initialize state for already-connected controllers
     const devices = sdl.controller.devices;
@@ -152,67 +161,12 @@ app.whenReady().then(() => {
     devices.forEach((device) => {
       if (device) {
         console.log('[Main] ✓ Controller:', device.name || device.id);
-        controllerStates.set(device.id, {
-          index: device.id,
-          id: device.name || `SDL Controller ${device.id}`,
-          connected: true,
-          timestamp: Date.now(),
-          buttons: new Array(15).fill(false),
-          axes: new Array(6).fill(0)
-        });
+        console.log('[Main] DEBUG: Device object keys:', Object.keys(device));
       }
     });
 
-    // Debug: Find out what events SDL actually supports
-    console.log('[Main] DEBUG: SDL controller object:', sdl.controller);
-    console.log('[Main] DEBUG: SDL controller keys:', Object.keys(sdl.controller));
-
-    // Try registering listeners for various possible event names
-    const possibleEvents = [
-      'axis', 'axisMotion', 'axisMove',
-      'button', 'buttonDown', 'buttonUp', 'buttonPress', 'buttonRelease',
-      'deviceAdd', 'deviceRemove', 'deviceAdded', 'deviceRemoved'
-    ];
-
-    console.log('[Main] Testing which events are valid...');
-    possibleEvents.forEach(eventName => {
-      try {
-        const testHandler = (event) => {
-          console.log(`[Main] SDL event '${eventName}' fired:`, JSON.stringify(event));
-        };
-        sdl.controller.on(eventName, testHandler);
-        console.log('[Main] ✓ Successfully registered:', eventName);
-      } catch (err) {
-        console.log('[Main] ✗ Invalid event name:', eventName, '-', err.message);
-      }
-    });
-
-    // Send state to renderer at 60Hz
-    gamepadPollInterval = setInterval(() => {
-      if (controllerStates.size === 0) return;
-
-      const currentGamepads = [];
-      controllerStates.forEach((state) => {
-        currentGamepads.push({
-          index: state.index,
-          id: state.id,
-          connected: state.connected,
-          timestamp: state.timestamp,
-          buttons: state.buttons.map(pressed => ({
-            pressed: pressed,
-            touched: pressed,
-            value: pressed ? 1.0 : 0.0
-          })),
-          axes: [...state.axes]
-        });
-      });
-
-      if (currentGamepads.length > 0) {
-        mainWindow.webContents.send('global-gamepad-state', currentGamepads);
-      }
-    }, 16); // ~60Hz
-
-    console.log('[Main] ✓ SDL gamepad events active');
+    console.log('[Main] SDL controller only supports these events:', ['deviceAdd', 'deviceRemove', 'deviceRemap']);
+    console.log('[Main] Need to use SDL global event polling or direct state reading');
   }
 
   app.on('activate', () => {
