@@ -1152,25 +1152,29 @@ Extend to VR gaming:
 - ✅ Migrated mouse.js to TypeScript (mouse.ts)
 - ✅ Restored TEST CASE 1 with multi-input support (keyboard + mouse + gamepad)
 - ✅ Added mouse wheel support (scroll up/down)
-- ✅ Implemented single-frame wheel events (wheelEvents.up/down) to fix scroll visibility
+- ✅ Implemented single-frame wheel events (wheelEvents.up/down)
 - ✅ All inputs are additive (keyboard, mouse buttons, mouse wheel, gamepad can all trigger same indicator)
 - ✅ PlanarInputIndicator_Radial restored to TEST CASE 1
 - ✅ Mouse buttons work with unfocused input (global input hook)
+- ✅ Fixed tsconfig.json rootDir to prevent double-nested compilation output
+- ✅ Scroll wheel indicators confirmed working (visible in screen recordings at 60fps)
 
 **Current Status:**
-- **Latest Commit**: `e6cb6a2` - fix: add single-frame wheel events for scroll up/down detection
+- **Latest Commit**: `d477f61` - fix: add single-frame wheel events for scroll up/down detection
 - **Branch**: `claude/read-the-l-011CUyxYQP7k5L551y7LxcUT`
-- **Test Cases Working**:
+- **All Test Cases Passing**:
   - TEST 1: Multi-input WASD (gamepad stick + keyboard + mouse)
   - TEST 2: Digital keyboard keys (ZXC)
   - TEST 3: Gamepad buttons (A/B/X/Y)
   - TEST 3B: Gamepad triggers (LT/RT analog)
   - TEST 4: Thumbstick visualization
-  - TEST 5: Mouse buttons + scroll wheel
+  - TEST 5: Mouse buttons (5-button) + scroll wheel (up/down) ← ALL WORKING
 
-**Known Issue:**
-- Scroll wheel indicators may still be too fast to see (instantaneous events < 60fps frame time)
-- Solution in pending features: Global fade-out duration parameter
+**Technical Notes:**
+- Single-frame events are visible for 1 frame (16.67ms @ 60Hz, 6.94ms @ 144Hz)
+- Higher refresh rates = shorter visibility for instantaneous inputs
+- Screen recording at 60fps captures single-frame events successfully
+- Fade-out duration (Priority 1 feature) will improve visibility for all refresh rates
 
 ---
 
