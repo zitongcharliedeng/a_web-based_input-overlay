@@ -113,6 +113,55 @@
 				};
 			});
 
+			// Bridge uiohook mouse events to mouse state object
+			window.electronAPI.onGlobalMouseDown((data) => {
+				console.log('[Renderer] IPC received mousedown, button:', data.button);
+				// Convert uiohook button values (1-5) to standard values (0-4)
+				// uiohook: 1=Left, 2=Right, 3=Middle, 4=Back, 5=Forward
+				// standard: 0=Left, 1=Middle, 2=Right, 3=Back, 4=Forward
+				const buttonMap = { 1: 0, 3: 1, 2: 2, 4: 3, 5: 4 };
+				const button = buttonMap[data.button];
+
+				if (button !== undefined && window.mouse && window.mouse.buttons) {
+					if (window.mouse.buttons[button] === false) {
+						window.mouse.buttons[button] = true;
+						window.mouse.clicks[button] = true;
+						console.log('[Renderer] Updated mouse.buttons[' + button + '] = true');
+					}
+				}
+			});
+
+			window.electronAPI.onGlobalMouseUp((data) => {
+				console.log('[Renderer] IPC received mouseup, button:', data.button);
+				const buttonMap = { 1: 0, 3: 1, 2: 2, 4: 3, 5: 4 };
+				const button = buttonMap[data.button];
+
+				if (button !== undefined && window.mouse && window.mouse.buttons) {
+					if (window.mouse.buttons[button] === true) {
+						window.mouse.buttons[button] = false;
+						console.log('[Renderer] Updated mouse.buttons[' + button + '] = false');
+					}
+				}
+			});
+
+			window.electronAPI.onGlobalMouseMove((data) => {
+				// Update position (for future velocity tracking)
+				if (window.mouse) {
+					window.mouse.x = data.x;
+					window.mouse.y = data.y;
+				}
+			});
+
+			window.electronAPI.onGlobalWheel((data) => {
+				console.log('[Renderer] IPC received wheel, rotation:', data.rotation);
+				// Update wheel delta
+				if (window.mouse && window.mouse.wheelDelta) {
+					// rotation: positive = up, negative = down
+					window.mouse.wheelDelta.y = data.rotation;
+					console.log('[Renderer] Updated mouse.wheelDelta.y =', data.rotation);
+				}
+			});
+
 			console.log('[Renderer] ✓ Global input bridge active (uiohook + SDL → DOM/Web APIs)');
 		} else {
 			console.log('[Renderer] ✗ electronAPI not found (running as web version)');

@@ -156,6 +156,53 @@ app.whenReady().then(() => {
       mainWindow.webContents.send('global-keyup', data);
     });
 
+    // Mouse button events (button values: 1=Left, 2=Right, 3=Middle, 4=Back, 5=Forward)
+    uIOhook.on('mousedown', (event) => {
+      const data = {
+        button: event.button,  // uiohook uses 1-5, we'll convert to 0-4 in renderer
+        x: event.x,
+        y: event.y,
+        timestamp: Date.now()
+      };
+      console.log('[Main] Global mousedown:', data.button);
+      mainWindow.webContents.send('global-mousedown', data);
+    });
+
+    uIOhook.on('mouseup', (event) => {
+      const data = {
+        button: event.button,
+        x: event.x,
+        y: event.y,
+        timestamp: Date.now()
+      };
+      console.log('[Main] Global mouseup:', data.button);
+      mainWindow.webContents.send('global-mouseup', data);
+    });
+
+    // Mouse move events (for future velocity tracking)
+    uIOhook.on('mousemove', (event) => {
+      const data = {
+        x: event.x,
+        y: event.y,
+        timestamp: Date.now()
+      };
+      // Don't log every move (too spammy), just send to renderer
+      mainWindow.webContents.send('global-mousemove', data);
+    });
+
+    // Mouse wheel events
+    uIOhook.on('wheel', (event) => {
+      const data = {
+        rotation: event.rotation,  // Positive = up, negative = down
+        direction: event.direction,
+        x: event.x,
+        y: event.y,
+        timestamp: Date.now()
+      };
+      console.log('[Main] Global wheel:', data.rotation, data.direction);
+      mainWindow.webContents.send('global-wheel', data);
+    });
+
     // Start the hook
     uIOhook.start();
     console.log('[Main] ✓ Global input hooks started');
