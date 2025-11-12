@@ -165,7 +165,17 @@ app.whenReady().then(() => {
   // Start SDL gamepad polling
   if (sdl) {
     console.log('[Main] Initializing SDL gamepad polling...');
-    console.log('[Main] Trying both Controller API (high-level) and Joystick API (low-level)');
+    console.log('[Main] Creating hidden SDL window (required for event pump)...');
+
+    // Create hidden SDL window to pump events (SDL requirement)
+    const sdlWindow = sdl.video.createWindow({
+      title: 'SDL Event Pump',
+      width: 1,
+      height: 1,
+      hidden: true  // Keep it hidden
+    });
+
+    console.log('[Main] SDL window created for event pumping');
 
     // Store current gamepad state (normalized to -1 to 1 range)
     const gamepadState = {
@@ -192,87 +202,51 @@ app.whenReady().then(() => {
         console.log('[Main] DEBUG: Controller.buttons:', controller.buttons);
 
         console.log('[Main] Controller opened successfully:', device.name);
-        console.log('[Main] Testing if ANY SDL events fire with wildcard listener...');
+        console.log('[Main] Using EVENT-BASED approach (like node-sdl examples)');
 
-        // Listen to ALL events to see if ANY events fire
-        controller.on('*', (eventType, ...args) => {
-          console.log('[Main] SDL Event fired!', eventType, args);
-        });
-
-        console.log('[Main] Using POLLING mode (like OBS plugin - events do not fire)');
-
-        // OBS-style polling: Read controller.axes and controller.buttons objects directly
-        // Poll at 60fps (16ms) to match game loop
-        let pollCount = 0;
-        const pollInterval = setInterval(() => {
-          if (controller._closed) {
-            clearInterval(pollInterval);
+        // Listen to ALL SDL events (same as node-sdl/examples/11-controller)
+        controller.on('*', (eventType) => {
+          if (eventType === 'close') {
+            console.log('[Main] Controller closed');
+            openedControllers.delete(device.id);
             return;
           }
 
-          pollCount++;
-
-          // Poll axis state (controller.axes is an OBJECT with named properties)
+          // Read current state when ANY event fires (axes/buttons update automatically)
           const axes = controller.axes;
-          if (axes) {
-            // DEBUG: Log raw values every 2 seconds regardless of threshold
-            if (pollCount % 120 === 0) {
-              console.log('[Main] DEBUG: Raw axis values:', {
-                leftStickX: axes.leftStickX,
-                leftStickY: axes.leftStickY,
-                rightStickX: axes.rightStickX,
-                rightStickY: axes.rightStickY
-              });
-            }
-
-            // Map named properties to array indices for Web Gamepad API
-            gamepadState.axes[0] = axes.leftStickX || 0;
-            gamepadState.axes[1] = axes.leftStickY || 0;
-            gamepadState.axes[2] = axes.rightStickX || 0;
-            gamepadState.axes[3] = axes.rightStickY || 0;
-
-            // Only log if stick moved significantly (avoid spam)
-            if (Math.abs(axes.leftStickX) > 0.1 || Math.abs(axes.leftStickY) > 0.1) {
-              console.log('[Main] Gamepad state poll: leftStick=', axes.leftStickX.toFixed(2), axes.leftStickY.toFixed(2));
-            }
-          }
-
-          // Poll button state (controller.buttons is an OBJECT with named properties)
           const buttons = controller.buttons;
-          if (buttons) {
-            // Map to standard gamepad button indices
-            const buttonMapping = [
-              'a', 'b', 'x', 'y',
-              'leftShoulder', 'rightShoulder',
-              'leftTrigger', 'rightTrigger',
-              'back', 'start',
-              'leftStick', 'rightStick',
-              'dpadUp', 'dpadDown', 'dpadLeft', 'dpadRight',
-              'guide'
-            ];
 
-            buttonMapping.forEach((buttonName, index) => {
-              const pressed = buttons[buttonName] || false;
-              const oldState = gamepadState.buttons[index]?.pressed || false;
+          // Map axes (OBJECT with named properties) to array indices
+          gamepadState.axes[0] = axes.leftStickX || 0;
+          gamepadState.axes[1] = axes.leftStickY || 0;
+          gamepadState.axes[2] = axes.rightStickX || 0;
+          gamepadState.axes[3] = axes.rightStickY || 0;
 
-              gamepadState.buttons[index] = {
-                pressed: pressed,
-                value: pressed ? 1.0 : 0.0
-              };
+          // Map buttons (OBJECT with named properties) to standard gamepad indices
+          const buttonMapping = [
+            'a', 'b', 'x', 'y',
+            'leftShoulder', 'rightShoulder',
+            'leftTrigger', 'rightTrigger',
+            'back', 'start',
+            'leftStick', 'rightStick',
+            'dpadUp', 'dpadDown', 'dpadLeft', 'dpadRight',
+            'guide'
+          ];
 
-              // Log button changes
-              if (pressed !== oldState) {
-                console.log(`[Main] Gamepad button '${buttonName}' changed to`, pressed);
-              }
-            });
-          }
+          buttonMapping.forEach((buttonName, index) => {
+            const pressed = buttons[buttonName] || false;
+            gamepadState.buttons[index] = {
+              pressed: pressed,
+              value: pressed ? 1.0 : 0.0
+            };
+          });
+
+          // Log events for debugging
+          console.log('[Main] SDL Event:', eventType, '| leftStick:', axes.leftStickX?.toFixed(2), axes.leftStickY?.toFixed(2));
 
           // Send updated state to renderer
           mainWindow.webContents.send('global-gamepad-state', gamepadState);
-        }, 16); // 60fps polling
-
-        // Store interval for cleanup
-        openedControllers.set(device.id + '_poll', pollInterval);
+        });
 
       } catch (error) {
         console.error('[Main] Failed to open controller:', error.message);
