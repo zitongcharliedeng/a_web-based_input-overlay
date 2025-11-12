@@ -40,13 +40,15 @@ Notes:
 **Objective:** Verify SDL gamepad polling works via separate thread (60fps)
 
 **Prerequisites:**
-- CMake installed (run `.\install-cmake-windows.ps1` if needed)
-- Dependencies installed (run `npm install`)
+- None! Script handles everything automatically
 
 **Steps:**
-1. Run: `.\build-and-run-windows.ps1`
+1. Run ONLY: `.\build-and-run-windows.ps1`
+   - Script checks CMake (installs if needed)
+   - Script runs npm install
+   - Script compiles TypeScript
+   - Script launches Electron with DevTools
 2. Check PowerShell for startup logs
-3. DevTools will open automatically
 
 **Human Action #1: STARTUP CHECK**
 Look for these lines in PowerShell:
