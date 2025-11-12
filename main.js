@@ -172,7 +172,7 @@ app.whenReady().then(() => {
       console.log('[Main] Found controller:', device.name);
 
       try {
-        sdlController = sdl.controller.openDevice(device.id);
+        sdlController = sdl.controller.openDevice(device);  // Pass whole device object
         console.log('[Main] Controller opened successfully');
 
         // Store gamepad state (standard Web Gamepad API format)
