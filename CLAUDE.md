@@ -1145,14 +1145,282 @@ Extend to VR gaming:
 - Always-on-top works perfectly
 - Conclusion: COSMIC doesn't support click-through yet (very new DE)
 
+### Latest Session Progress (2025-11-12)
+
+**Completed:**
+- ✅ Added unfocused mouse button tracking via uiohook-napi
+- ✅ Migrated mouse.js to TypeScript (mouse.ts)
+- ✅ Restored TEST CASE 1 with multi-input support (keyboard + mouse + gamepad)
+- ✅ Added mouse wheel support (scroll up/down)
+- ✅ Implemented single-frame wheel events (wheelEvents.up/down) to fix scroll visibility
+- ✅ All inputs are additive (keyboard, mouse buttons, mouse wheel, gamepad can all trigger same indicator)
+- ✅ PlanarInputIndicator_Radial restored to TEST CASE 1
+- ✅ Mouse buttons work with unfocused input (global input hook)
+
+**Current Status:**
+- **Latest Commit**: `e6cb6a2` - fix: add single-frame wheel events for scroll up/down detection
+- **Branch**: `claude/read-the-l-011CUyxYQP7k5L551y7LxcUT`
+- **Test Cases Working**:
+  - TEST 1: Multi-input WASD (gamepad stick + keyboard + mouse)
+  - TEST 2: Digital keyboard keys (ZXC)
+  - TEST 3: Gamepad buttons (A/B/X/Y)
+  - TEST 3B: Gamepad triggers (LT/RT analog)
+  - TEST 4: Thumbstick visualization
+  - TEST 5: Mouse buttons + scroll wheel
+
+**Known Issue:**
+- Scroll wheel indicators may still be too fast to see (instantaneous events < 60fps frame time)
+- Solution in pending features: Global fade-out duration parameter
+
+---
+
+## 🔮 Pending Features & Refactoring (DO NOT IMPLEMENT YET)
+
+### Priority 0: Code Refactoring (Must Do First)
+
+**Goal:** Clean up codebase before adding new features
+
+1. **Remove Non-DRY Logic**
+   - Identify and consolidate duplicated code patterns
+   - Extract common functionality into shared utilities
+   - Refactor repetitive object creation patterns
+
+2. **Improve Variable Naming**
+   - Rename `linkedAxis` to `radialCompensationAxis` or `perpendicularAxis`
+   - Review all variable names for semantic clarity
+   - Use consistent naming conventions throughout
+
+3. **Complete TypeScript Migration**
+   - Convert Text.js → Text.ts
+   - Convert Thumbstick.js → Thumbstick.ts (apply nested config pattern)
+   - Convert PropertyEdit.js → PropertyEdit.ts
+   - Convert draw.js → draw.ts
+   - Convert keyboard.js → keyboard.ts
+   - Convert gamepad.js → gamepad.ts
+
+4. **Build System Improvements**
+   - Create proper release binaries (electron-builder)
+   - Better dev commands (npm scripts)
+   - Improve click-through/readonly mode implementation
+   - Fix GitHub Pages deployment issues
+
+---
+
+### Priority 1: Visual Feedback Enhancement
+
+**Problem:** Fast events (scroll, clicks) complete faster than 60fps frame time, making them invisible
+
+**Solution: Global Fade-Out Duration Parameter**
+
+1. **Add Global Fade Configuration**
+   - New parameter: `fadeOutDuration` (default: 0 = current instant behavior)
+   - Measured in seconds (e.g., 0.2 = 200ms fade)
+   - Applied to all LinearInputIndicator objects
+
+2. **Implementation Details**
+   - When input becomes inactive, indicator value fades from 1.0 → 0.0 over X seconds
+   - Linear or eased fade curve (configurable)
+   - Maintains current instant-on behavior (no fade-in delay)
+   - Only fades when ALL input sources become inactive
+
+3. **Benefits**
+   - Makes scroll wheel events visible (they stay lit for fade duration)
+   - Makes fast mouse clicks more visible
+   - Gives users feedback on input registration
+   - Configurable per user preference (0 for instant, 0.2+ for visibility)
+
+**Example:**
+```typescript
+processing: {
+  linkedAxis: 0,
+  multiplier: 1,
+  antiDeadzone: 0,
+  fadeOutDuration: 0.2  // NEW: 200ms fade after input stops
+}
+```
+
+---
+
+### Priority 2: Configuration Management System
+
+**Goal:** Save/load/share overlay configurations easily
+
+**Feature: Configuration Export/Import UI**
+
+1. **Right-Click Context Menu (Background Only)**
+   - Right-click on canvas background (NOT on objects) opens menu:
+     - "Create New PlanarInputIndicator"
+     - "Create New LinearInputIndicator"
+     - "Change Canvas Background RGBA"
+     - "Show Configuration (Copy/Paste)" ← 4th option
+
+2. **Configuration Text Box**
+   - Modal/panel that displays entire scene configuration as JSON
+   - Shows all objects with:
+     - Position properties (x, y)
+     - All input/processing/display config
+     - Canvas background RGBA
+     - Global settings (fadeOutDuration, scale, etc.)
+   - Fully copy/pasteable text
+   - Friends can share configs via Discord/text
+
+3. **Live Configuration Update**
+   - Pasting new config into text box updates canvas in real-time
+   - Graceful error handling with validation warnings
+   - Shows which line/property is invalid if paste fails
+   - Preserves valid objects if only part of config is bad
+   - Undo/redo support for config changes
+
+**Example Configuration Format:**
+```json
+{
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "scale": 1.0,
+    "backgroundColor": "rgba(0, 0, 0, 0)"
+  },
+  "global": {
+    "fadeOutDuration": 0.2
+  },
+  "objects": [
+    {
+      "type": "LinearInputIndicator",
+      "x": 240,
+      "y": 60,
+      "width": 100,
+      "height": 100,
+      "input": {
+        "keyboard": { "keyCode": "KeyW" },
+        "mouse": { "button": 3, "wheel": null },
+        "gamepad": {
+          "stick": { "type": "left", "axis": "Y", "direction": "negative" },
+          "button": { "index": null }
+        }
+      },
+      "processing": {
+        "linkedAxis": 0,
+        "multiplier": 1,
+        "antiDeadzone": 0,
+        "fadeOutDuration": 0.2
+      },
+      "display": {
+        "text": "W",
+        "backgroundImage": "KeyDefault.png",
+        "fillStyle": "#00ff00"
+      }
+    }
+    // ... more objects
+  ]
+}
+```
+
+4. **Position Properties**
+   - All objects must include `x`, `y` in config
+   - Currently objects have position but not in serialized config
+   - Add position to configuration export/import
+
+---
+
+### Priority 3: Canvas Scaling & Fullscreen
+
+**Goal:** Make overlay adapt to different screen sizes and resolutions
+
+**Features:**
+
+1. **Stretch to Fit Screen (Overlay Mode)**
+   - Canvas automatically scales to fill entire screen in overlay mode
+   - Maintains aspect ratio or allows stretch (user preference)
+   - Responsive to window resize events
+
+2. **Scale/Zoom Parameter**
+   - New parameter: `canvas.scale` (default: 1.0)
+   - Scales entire canvas and all objects uniformly
+   - Allows users to make overlay bigger/smaller without repositioning objects
+   - Included in configuration JSON (source of truth)
+
+3. **Resolution Independence**
+   - Objects positioned in normalized coordinates (0-1) or absolute pixels (user choice)
+   - Scale factor applied at render time
+   - Allows same config to work on 1080p and 4K screens
+
+**Example:**
+```json
+{
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "scale": 1.5,  // NEW: 150% zoom
+    "fitMode": "contain"  // or "fill", "stretch"
+  }
+}
+```
+
+---
+
+### Priority 4: Enhanced Object Creation
+
+**Goal:** Create new objects without editing code
+
+**Right-Click Context Menu Implementation:**
+
+1. **Menu Structure**
+   ```
+   Right-click background:
+   ├─ Create New Linear Indicator
+   ├─ Create New Planar Indicator
+   ├─ Change Canvas Background RGBA
+   └─ Configuration (Copy/Paste)
+
+   Right-click object:
+   └─ Edit Properties (existing PropertyEdit)
+   ```
+
+2. **Object Creation Flow**
+   - Click "Create New Linear Indicator"
+   - New object appears at mouse position
+   - Immediately opens PropertyEdit dialog
+   - User configures input/processing/display
+   - Object added to scene
+
+3. **Canvas Background RGBA**
+   - Opens color picker with alpha slider
+   - Live preview of background change
+   - Useful for testing transparency, greenscreen, etc.
+
+---
+
+### Future Considerations (Low Priority)
+
+1. **Preset Sharing Platform**
+   - Community repository of overlay configs
+   - One-click import from URL
+   - Rating/voting system for popular presets
+
+2. **Visual Config Editor**
+   - Drag-and-drop object creation
+   - Visual property editor (no JSON editing required)
+   - Real-time preview
+
+3. **Animation System**
+   - Keyframe animations for objects
+   - Transition effects between states
+   - Particle effects on input
+
+4. **Performance Optimizations**
+   - Only redraw changed objects (dirty rectangle optimization)
+   - Offscreen canvas rendering
+   - WebGL acceleration for effects
+
+---
+
 ### Next Steps (When Resuming)
-1. Test on other Linux compositors (Hyprland, GNOME, KDE) to verify click-through works elsewhere
-2. Convert Text.js to TypeScript (simplest object)
-3. Convert Thumbstick.js to TypeScript (apply nested config pattern)
-4. Convert PropertyEdit.js to TypeScript
-5. Consider renaming `linkedAxis` to `radialCompensationAxis` or `perpendicularAxis`
-6. Make KeyImage user-customizable instead of hardcoded in scene
-7. Fix GitHub Pages 404 errors (path issues with ES6 modules)
+1. **REFACTOR FIRST** - Clean up non-DRY logic and naming before new features
+2. Complete TypeScript migration
+3. Implement fade-out duration parameter (fixes scroll wheel visibility)
+4. Add configuration export/import system
+5. Implement canvas scaling/fullscreen support
+6. Test on other Linux compositors (Hyprland, GNOME, KDE) for click-through verification
 
 ---
 
