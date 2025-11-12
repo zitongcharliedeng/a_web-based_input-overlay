@@ -30,22 +30,19 @@ try {
   console.log('[Main] Global input hooks disabled (will use DOM events only)');
 }
 
-// Try to initialize sdl2-gamecontroller for gamepad input
-// Uses its own polling thread (SDL_PumpEvents) - works with Electron's event loop!
-// Same library OBS input-overlay uses
-let gamecontroller = null;
+// Try to initialize @kmamal/sdl for gamepad input
+// Bundles SDL2 - no separate installation needed
+let sdl = null;
+let sdlController = null;
 let gamepadAvailable = false;
 
 try {
-  const { createController } = require('sdl2-gamecontroller');
-  // Create with 60fps polling interval (16ms) - runs in separate thread
-  gamecontroller = createController({ interval: 16 });
+  sdl = require('@kmamal/sdl');
   gamepadAvailable = true;
-  console.log('[Main] ✓ sdl2-gamecontroller loaded (60fps polling, unfocused support)');
+  console.log('[Main] ✓ @kmamal/sdl loaded (bundled SDL2, cross-platform)');
 } catch (error) {
-  console.log('[Main] ✗ sdl2-gamecontroller not available:', error.message);
+  console.log('[Main] ✗ @kmamal/sdl not available:', error.message);
   console.log('[Main] Native gamepad polling disabled (will use Web Gamepad API only)');
-  console.log('[Main] To install: Run install-cmake-windows.ps1 then npm install');
 }
 
 // IPC handlers for renderer queries
@@ -165,119 +162,73 @@ app.whenReady().then(() => {
   }
 
   // Start SDL gamepad polling if available
-  if (gamecontroller) {
-    console.log('[Main] Starting SDL gamepad polling...');
+  if (sdl) {
+    console.log('[Main] Searching for SDL controllers...');
 
-    // Store gamepad state (standard Web Gamepad API format)
-    // SDL axes: leftx, lefty, rightx, righty, triggerleft, triggerright
-    // Standard indices: 0=leftX, 1=leftY, 2=rightX, 3=rightY
-    const gamepadState = {
-      axes: [0, 0, 0, 0],
-      buttons: Array(17).fill(null).map(() => ({ pressed: false, value: 0 })),
-      timestamp: Date.now(),
-      connected: true
-    };
+    // Find first available controller
+    const devices = sdl.controller.devices;
+    if (devices.length > 0) {
+      const device = devices[0];
+      console.log('[Main] Found controller:', device.name);
 
-    // SDL axis name to standard gamepad index mapping
-    const axisMap = {
-      'leftx': 0,
-      'lefty': 1,
-      'rightx': 2,
-      'righty': 3
-      // Note: triggers are buttons in standard gamepad API, not axes
-    };
+      try {
+        sdlController = sdl.controller.openDevice(device.id);
+        console.log('[Main] Controller opened successfully');
 
-    // SDL button name to standard gamepad index mapping
-    const buttonMap = {
-      'a': 0,
-      'b': 1,
-      'x': 2,
-      'y': 3,
-      'back': 8,
-      'guide': 16,
-      'start': 9,
-      'leftstick': 10,
-      'rightstick': 11,
-      'leftshoulder': 4,
-      'rightshoulder': 5,
-      'dpup': 12,
-      'dpdown': 13,
-      'dpleft': 14,
-      'dpright': 15
-      // triggerleft: 6, triggerright: 7 (handled in axis-motion)
-    };
-
-    // Axis motion events
-    gamecontroller.on('controller-axis-motion', (data) => {
-      // data: { button: 'leftx', timestamp: number, value: number (-1 to 1), player: number }
-      const axisName = data.button.toLowerCase();
-
-      // Handle analog triggers separately (they're buttons in Web Gamepad API)
-      if (axisName === 'triggerleft') {
-        gamepadState.buttons[6] = {
-          pressed: data.value > 0.1,
-          value: Math.max(0, data.value)
+        // Store gamepad state (standard Web Gamepad API format)
+        const gamepadState = {
+          axes: [0, 0, 0, 0],
+          buttons: Array(17).fill(null).map(() => ({ pressed: false, value: 0 })),
+          timestamp: Date.now(),
+          connected: true
         };
-        console.log('[Main] SDL trigger left:', data.value.toFixed(3));
-      } else if (axisName === 'triggerright') {
-        gamepadState.buttons[7] = {
-          pressed: data.value > 0.1,
-          value: Math.max(0, data.value)
-        };
-        console.log('[Main] SDL trigger right:', data.value.toFixed(3));
-      } else if (axisMap.hasOwnProperty(axisName)) {
-        const axisIndex = axisMap[axisName];
-        gamepadState.axes[axisIndex] = data.value;
-        console.log('[Main] SDL axis', axisName + ':', data.value.toFixed(3));
+
+        // Poll controller state at 60fps (16ms interval)
+        const pollInterval = setInterval(() => {
+          if (!sdlController) {
+            clearInterval(pollInterval);
+            return;
+          }
+
+          // Read axes from controller.axes object
+          // @kmamal/sdl exposes: leftStickX, leftStickY, rightStickX, rightStickY, leftTrigger, rightTrigger
+          const axes = sdlController.axes || {};
+          gamepadState.axes[0] = axes.leftStickX || 0;
+          gamepadState.axes[1] = axes.leftStickY || 0;
+          gamepadState.axes[2] = axes.rightStickX || 0;
+          gamepadState.axes[3] = axes.rightStickY || 0;
+
+          // Read buttons from controller.buttons object
+          const buttons = sdlController.buttons || {};
+          gamepadState.buttons[0] = { pressed: buttons.a || false, value: buttons.a ? 1.0 : 0 };
+          gamepadState.buttons[1] = { pressed: buttons.b || false, value: buttons.b ? 1.0 : 0 };
+          gamepadState.buttons[2] = { pressed: buttons.x || false, value: buttons.x ? 1.0 : 0 };
+          gamepadState.buttons[3] = { pressed: buttons.y || false, value: buttons.y ? 1.0 : 0 };
+          gamepadState.buttons[4] = { pressed: buttons.leftShoulder || false, value: buttons.leftShoulder ? 1.0 : 0 };
+          gamepadState.buttons[5] = { pressed: buttons.rightShoulder || false, value: buttons.rightShoulder ? 1.0 : 0 };
+          gamepadState.buttons[6] = { pressed: (axes.leftTrigger || 0) > 0.1, value: Math.max(0, axes.leftTrigger || 0) };
+          gamepadState.buttons[7] = { pressed: (axes.rightTrigger || 0) > 0.1, value: Math.max(0, axes.rightTrigger || 0) };
+          gamepadState.buttons[8] = { pressed: buttons.back || false, value: buttons.back ? 1.0 : 0 };
+          gamepadState.buttons[9] = { pressed: buttons.start || false, value: buttons.start ? 1.0 : 0 };
+          gamepadState.buttons[10] = { pressed: buttons.leftStick || false, value: buttons.leftStick ? 1.0 : 0 };
+          gamepadState.buttons[11] = { pressed: buttons.rightStick || false, value: buttons.rightStick ? 1.0 : 0 };
+          gamepadState.buttons[12] = { pressed: buttons.dpadUp || false, value: buttons.dpadUp ? 1.0 : 0 };
+          gamepadState.buttons[13] = { pressed: buttons.dpadDown || false, value: buttons.dpadDown ? 1.0 : 0 };
+          gamepadState.buttons[14] = { pressed: buttons.dpadLeft || false, value: buttons.dpadLeft ? 1.0 : 0 };
+          gamepadState.buttons[15] = { pressed: buttons.dpadRight || false, value: buttons.dpadRight ? 1.0 : 0 };
+          gamepadState.buttons[16] = { pressed: buttons.guide || false, value: buttons.guide ? 1.0 : 0 };
+
+          gamepadState.timestamp = Date.now();
+          mainWindow.webContents.send('global-gamepad-state', gamepadState);
+        }, 16);
+
+        console.log('[Main] ✓ SDL gamepad polling started (60fps via setInterval)');
+      } catch (error) {
+        console.log('[Main] ✗ Failed to open controller:', error.message);
       }
-
-      gamepadState.timestamp = Date.now();
-      mainWindow.webContents.send('global-gamepad-state', gamepadState);
-    });
-
-    // Button down events
-    gamecontroller.on('controller-button-down', (data) => {
-      // data: { button: 'a', timestamp: number, player: number }
-      const buttonName = data.button.toLowerCase();
-
-      if (buttonMap.hasOwnProperty(buttonName)) {
-        const buttonIndex = buttonMap[buttonName];
-        gamepadState.buttons[buttonIndex] = { pressed: true, value: 1.0 };
-        console.log('[Main] SDL button down:', buttonName, '(index', buttonIndex + ')');
-
-        gamepadState.timestamp = Date.now();
-        mainWindow.webContents.send('global-gamepad-state', gamepadState);
-      }
-    });
-
-    // Button up events
-    gamecontroller.on('controller-button-up', (data) => {
-      const buttonName = data.button.toLowerCase();
-
-      if (buttonMap.hasOwnProperty(buttonName)) {
-        const buttonIndex = buttonMap[buttonName];
-        gamepadState.buttons[buttonIndex] = { pressed: false, value: 0 };
-        console.log('[Main] SDL button up:', buttonName, '(index', buttonIndex + ')');
-
-        gamepadState.timestamp = Date.now();
-        mainWindow.webContents.send('global-gamepad-state', gamepadState);
-      }
-    });
-
-    // Controller connected/disconnected
-    gamecontroller.on('controller-device-added', (data) => {
-      console.log('[Main] ✓ SDL controller connected (player', data.player + ')');
-      gamepadState.connected = true;
-      mainWindow.webContents.send('global-gamepad-state', gamepadState);
-    });
-
-    gamecontroller.on('controller-device-removed', (data) => {
-      console.log('[Main] ✗ SDL controller disconnected (player', data.player + ')');
-      gamepadState.connected = false;
-      mainWindow.webContents.send('global-gamepad-state', gamepadState);
-    });
-
-    console.log('[Main] ✓ SDL gamepad polling started (60fps internal thread)');
+    } else {
+      console.log('[Main] No controllers detected');
+    }
   }
 
   app.on('activate', () => {
