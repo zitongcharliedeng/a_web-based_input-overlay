@@ -165,6 +165,7 @@ app.whenReady().then(() => {
   // Start SDL gamepad polling
   if (sdl) {
     console.log('[Main] Initializing SDL gamepad polling...');
+    console.log('[Main] Trying both Controller API (high-level) and Joystick API (low-level)');
 
     // Store current gamepad state (normalized to -1 to 1 range)
     const gamepadState = {
@@ -172,12 +173,13 @@ app.whenReady().then(() => {
       buttons: Array(17).fill(false).map(() => ({ pressed: false, value: 0 }))
     };
 
-    // Track opened controllers
+    // Track opened devices
     const openedControllers = new Map();
+    const openedJoysticks = new Map();
 
-    // Listen for controller connections
+    // Try SDL Controller API first (game controller abstraction)
     sdl.controller.on('deviceAdd', (device) => {
-      console.log('[Main] Gamepad connected:', device.name);
+      console.log('[Main] Controller API: Gamepad connected:', device.name);
 
       try {
         // Open the device to get controller instance
@@ -237,7 +239,7 @@ app.whenReady().then(() => {
 
     // Handle disconnections
     sdl.controller.on('deviceRemove', (device) => {
-      console.log('[Main] Gamepad disconnected:', device.name);
+      console.log('[Main] Controller API: Gamepad disconnected:', device.name);
       const controller = openedControllers.get(device.id);
       if (controller) {
         controller.close();
@@ -245,13 +247,71 @@ app.whenReady().then(() => {
       }
     });
 
-    // Check for already connected devices
-    const devices = sdl.controller.devices;
-    console.log('[Main] Checking for connected gamepads:', devices.length);
-    devices.forEach(device => {
-      console.log('[Main] Found device:', device.name);
-      // Manually trigger deviceAdd for already connected devices
+    // Try SDL Joystick API (raw joystick access - works for devices not recognized as game controllers)
+    sdl.joystick.on('deviceAdd', (device) => {
+      console.log('[Main] Joystick API: Device connected:', device.name);
+
+      try {
+        const joystick = sdl.joystick.openDevice(device);
+        openedJoysticks.set(device.id, joystick);
+
+        console.log('[Main] DEBUG: Joystick object keys:', Object.keys(joystick));
+        console.log('[Main] DEBUG: Joystick.numAxes:', joystick.numAxes);
+        console.log('[Main] DEBUG: Joystick.numButtons:', joystick.numButtons);
+
+        // Axis motion events
+        joystick.on('axisMotion', (event) => {
+          console.log('[Main] Joystick axisMotion:', event);
+          const normalizedValue = event.value / 32768;
+          if (event.axis < 4) {
+            gamepadState.axes[event.axis] = normalizedValue;
+            console.log('[Main] Joystick axis update:', event.axis, '=', normalizedValue.toFixed(2));
+            mainWindow.webContents.send('global-gamepad-state', gamepadState);
+          }
+        });
+
+        // Button events
+        joystick.on('buttonDown', (event) => {
+          console.log('[Main] Joystick buttonDown:', event.button);
+          if (event.button < gamepadState.buttons.length) {
+            gamepadState.buttons[event.button] = { pressed: true, value: 1.0 };
+            mainWindow.webContents.send('global-gamepad-state', gamepadState);
+          }
+        });
+
+        joystick.on('buttonUp', (event) => {
+          console.log('[Main] Joystick buttonUp:', event.button);
+          if (event.button < gamepadState.buttons.length) {
+            gamepadState.buttons[event.button] = { pressed: false, value: 0.0 };
+            mainWindow.webContents.send('global-gamepad-state', gamepadState);
+          }
+        });
+
+      } catch (error) {
+        console.error('[Main] Failed to open joystick:', error.message);
+      }
+    });
+
+    sdl.joystick.on('deviceRemove', (device) => {
+      console.log('[Main] Joystick API: Device disconnected:', device.name);
+      const joystick = openedJoysticks.get(device.id);
+      if (joystick) {
+        joystick.close();
+        openedJoysticks.delete(device.id);
+      }
+    });
+
+    // Check for already connected devices (both APIs)
+    console.log('[Main] Checking for game controllers:', sdl.controller.devices.length);
+    sdl.controller.devices.forEach(device => {
+      console.log('[Main] Found controller:', device.name);
       sdl.controller.emit('deviceAdd', device);
+    });
+
+    console.log('[Main] Checking for joysticks:', sdl.joystick.devices.length);
+    sdl.joystick.devices.forEach(device => {
+      console.log('[Main] Found joystick:', device.name);
+      sdl.joystick.emit('deviceAdd', device);
     });
 
     console.log('[Main] ✓ SDL gamepad polling started (unfocused support enabled)');

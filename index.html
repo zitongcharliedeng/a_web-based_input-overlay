@@ -33,19 +33,19 @@
 		if (window.electronAPI) {
 			const originalGetGamepads = navigator.getGamepads.bind(navigator);
 
-			// DEBUG: Check if native API works
-			console.log('[Renderer] DEBUG: Testing native Gamepad API...');
+			// DEBUG: Check if native API works (log once at startup)
+			console.log('[Renderer] Testing native Gamepad API at startup...');
 			const nativeTest = originalGetGamepads();
-			console.log('[Renderer] DEBUG: Native getGamepads() returned:', nativeTest);
+			console.log('[Renderer] Native API initial test:', nativeTest);
+			if (nativeTest.every(gp => gp === null)) {
+				console.warn('[Renderer] WARNING: Native Gamepad API shows no controllers!');
+				console.warn('[Renderer] This means Chromium/Electron cannot see your gamepad.');
+				console.warn('[Renderer] Relying on SDL for gamepad input.');
+			}
 
 			navigator.getGamepads = function() {
-				// Always check native API first
-				const nativeGamepads = originalGetGamepads();
-				console.log('[Renderer] DEBUG: Native gamepads:', nativeGamepads);
-
-				// If we have SDL data, return it (already in Web Gamepad API format)
+				// If we have SDL data, return it
 				if (sdlState) {
-					console.log('[Renderer] DEBUG: Returning SDL state:', sdlState);
 					return [
 						{
 							id: 'SDL Gamepad (STANDARD GAMEPAD)',
@@ -60,17 +60,18 @@
 					];
 				}
 				// Fallback to browser API when focused
-				console.log('[Renderer] DEBUG: Falling back to native API');
-				return nativeGamepads;
+				return originalGetGamepads();
 			};
 
 			// Listen for SDL state updates
 			window.electronAPI.onGlobalGamepadState((state) => {
-				console.log('[Renderer] DEBUG: Received SDL state from main:', state);
+				if (!sdlState) {
+					console.log('[Renderer] First SDL state received from main process');
+				}
 				sdlState = state;
 			});
 
-			console.log('[Renderer] ✓ SDL gamepad override active (unfocused support enabled)');
+			console.log('[Renderer] ✓ SDL gamepad override active');
 		}
 
 		// TEST: Periodically log gamepad state
