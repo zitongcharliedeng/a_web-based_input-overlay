@@ -1,64 +1,70 @@
 # Web-Based Input Overlay
 
-Transparent overlay for streamers. Shows input visualization, camera, audio, chat in an always-on-top window.
+Transparent overlay for streamers. Shows input visualization (keyboard, mouse, gamepad), camera, audio, and chat in an always-on-top window.
 
-## Quick Start
+## For End Users
 
-### Windows Setup
+**Download the latest release from the [Releases](https://github.com/zitongcharliedeng/a_web-based_input-overlay/releases) tab.**
+
+Extract and run the executable. No installation required.
+
+## For Developers
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (18+)
+- [Git](https://git-scm.com/)
+- Windows 10/11 (primary development platform)
+
+### Setup
 
 ```powershell
-# Install Node.js from nodejs.org and Git from git-scm.com
-
-git clone -b claude/read-the-l-011CUyxYQP7k5L551y7LxcUT https://github.com/zitongcharliedeng/a_web-based_input-overlay.git
+git clone https://github.com/zitongcharliedeng/a_web-based_input-overlay.git
 cd a_web-based_input-overlay
 npm install
 ```
 
-### Windows (Run Tests)
+### Development
+
+**Run the overlay (with auto-compile and DevTools):**
 
 ```powershell
-.\run-windows.ps1
+.\build-and-run-windows.ps1
 ```
 
-Launches web version (browser) + Electron version. Test if input works when unfocused (Alt+Tab away and press WASD).
+This script will:
+1. Install dependencies (if needed)
+2. Compile TypeScript
+3. Launch Electron with DevTools
 
-### Linux (NixOS)
+**Manual TypeScript compilation:**
 
-```bash
-./run.sh              # Interactive mode
-./run-x11.sh          # XWayland mode
+```powershell
+npx tsc
 ```
 
-Compile TypeScript: `nix-shell -p nodejs --run "npx tsc"`
+**Run without rebuild:**
 
-## Platform Compatibility
+```powershell
+npm run dev:win
+```
 
-### Tested
+### Project Structure
 
-**Linux (NixOS):**
-- Transparency: ✅ Works (niri, COSMIC)
-- Always-on-top: ⚠️ Manual on niri, broken on COSMIC
-- Click-through: ❌ Broken on both
+```
+browserInputListeners/           # Pure input system (keyboard, mouse, gamepad)
+browserInputOverlayView/         # Main overlay application
+  ├── objects/                   # Visual components (LinearInputIndicator, etc.)
+  ├── actions/                   # Scene modifiers (PropertyEdit)
+  ├── _helpers/                  # Utilities (Vector, draw helpers)
+  └── _compiled/                 # TypeScript output (gitignored)
+```
 
-**Why broken:** COSMIC and niri are very new compositors still implementing window management.
+See [CLAUDE.md](CLAUDE.md) for full technical details and architecture.
 
-### Expected to Work (Untested)
+## Platform Support
 
-- **Windows 10/11:** DWM has mature transparency support
-- **macOS 11+:** NSWindow transparency well-supported
-- **Linux (GNOME/KDE/Hyprland):** Standard Wayland protocols
-
-## Testing Needed
-
-Does Electron capture DOM events when unfocused on Windows? If yes, we don't need `uiohook-napi`. See [TESTING.md](TESTING.md).
-
-## Architecture
-
-- TypeScript + Electron for cross-platform transparency
-- Web version (browser) for quick testing
-- `uiohook-napi` for global input hooks (if needed)
-
-See [CLAUDE.md](CLAUDE.md) for full technical details.
+Developed and tested on **Windows 10/11**. Should work on macOS and Linux (GNOME, KDE, Hyprland) with mature Wayland/X11 compositors.
 
 ## License
 
