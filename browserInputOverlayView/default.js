@@ -142,80 +142,69 @@ function scene_default(canvas, ctx) {
 	// All objects to be rendered in the scene
 	this.objects = [
 
-		// ===== TEST CASE 1: Mouse Buttons (WASD Layout) =====
-		createLabel(20, yOffset, "TEST 1: Mouse Buttons (WASD) - WITH radial compensation vs WITHOUT"),
-		createLabel(20, yOffset + 25, "M4(Back)=W, M1(Left)=A, M5(Forward)=S, M3(Middle)=D - Press multiple to test compensation"),
-
-		new PlanarInputIndicator_Radial(
-			20, yOffset + 60, 200, 200,
-			{
-				display: {
-					backgroundStyle: {lineWidth:4, strokeStyle:"#B4B4B4", fillStyle:"rgba(37, 37, 37, 0.43)"},
-					xLineStyle: {strokeStyle:"#B4B4B4", lineWidth:4},
-					yLineStyle: {strokeStyle:"#B4B4B4", lineWidth:4},
-					deadzoneStyle: {fillStyle:"#524d4d"},
-					inputVectorStyle: {strokeStyle:"#B4B4B4", lineWidth:4},
-					unitVectorStyle: {strokeStyle:"#524d4d", lineWidth:4}
-				}
-			}
-		),
+		// ===== TEST CASE 1: WASD Keyboard + Mouse Buttons =====
+		createLabel(20, yOffset, "TEST 1: WASD + Mouse Buttons - WITH radial compensation vs WITHOUT"),
+		createLabel(20, yOffset + 25, "Keyboard W/A/S/D + Mouse M4/M1/M5/M3 - Press multiple to test compensation"),
 
 		// WASD - WITH radial compensation (linkedAxis)
-		// Using mouse buttons: M4(Back)=W, M1(Left)=A, M5(Forward)=S, M3(Right)=D
+		// W key + M4 (Back button)
 		new LinearInputIndicator(
 			240, yOffset + 60, 100, 100,
 			{
 				input: {
-					keyboard: { keyCode: null },
+					keyboard: { keyCode: "KeyW" },
 					mouse: { button: 3 },  // M4 - Back button
 					gamepad: {
 						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 0 }, display: { text: "M4\nWith\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: 0 }, display: { text: "W+M4", backgroundImage: KeyImage }
 			}
 		),
+		// A key + M1 (Left button)
 		new LinearInputIndicator(
 			150, yOffset + 160, 100, 100,
 			{
 				input: {
-					keyboard: { keyCode: null },
+					keyboard: { keyCode: "KeyA" },
 					mouse: { button: 0 },  // M1 - Left button
 					gamepad: {
 						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 1 }, display: { text: "M1\nWith\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: 1 }, display: { text: "A+M1", backgroundImage: KeyImage }
 			}
 		),
+		// S key + M5 (Forward button)
 		new LinearInputIndicator(
 			250, yOffset + 160, 100, 100,
 			{
 				input: {
-					keyboard: { keyCode: null },
+					keyboard: { keyCode: "KeyS" },
 					mouse: { button: 4 },  // M5 - Forward button
 					gamepad: {
 						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 0 }, display: { text: "M5\nWith\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: 0 }, display: { text: "S+M5", backgroundImage: KeyImage }
 			}
 		),
+		// D key + M3 (Middle button)
 		new LinearInputIndicator(
 			350, yOffset + 160, 100, 100,
 			{
 				input: {
-					keyboard: { keyCode: null },
+					keyboard: { keyCode: "KeyD" },
 					mouse: { button: 1 },  // M3 - Middle button
 					gamepad: {
 						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 1 }, display: { text: "M3\nWith\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: 1 }, display: { text: "D+M3", backgroundImage: KeyImage }
 			}
 		),
 
@@ -224,56 +213,56 @@ function scene_default(canvas, ctx) {
 			740, yOffset + 60, 100, 100,
 			{
 				input: {
-					keyboard: { keyCode: null },
+					keyboard: { keyCode: "KeyW" },
 					mouse: { button: 3 },  // M4 - Back button
 					gamepad: {
 						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "M4\nWithout\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "W+M4", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
 			650, yOffset + 160, 100, 100,
 			{
 				input: {
-					keyboard: { keyCode: null },
+					keyboard: { keyCode: "KeyA" },
 					mouse: { button: 0 },  // M1 - Left button
 					gamepad: {
 						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "M1\nWithout\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "A+M1", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
 			750, yOffset + 160, 100, 100,
 			{
 				input: {
-					keyboard: { keyCode: null },
+					keyboard: { keyCode: "KeyS" },
 					mouse: { button: 4 },  // M5 - Forward button
 					gamepad: {
 						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "M5\nWithout\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "S+M5", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
 			850, yOffset + 160, 100, 100,
 			{
 				input: {
-					keyboard: { keyCode: null },
+					keyboard: { keyCode: "KeyD" },
 					mouse: { button: 1 },  // M3 - Middle button
 					gamepad: {
 						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "M3\nWithout\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "D+M3", backgroundImage: KeyImage }
 			}
 		),
 
@@ -378,15 +367,38 @@ function scene_default(canvas, ctx) {
 			}
 		),
 
-		// ===== TEST CASE 3: Gamepad Buttons (Digital) =====
-		(function() { yOffset += sectionSpacing; return createLabel(20, yOffset, "TEST 3: Gamepad Buttons (Digital)"); })(),
-		createLabel(20, yOffset + 25, "Face buttons (A/B/X/Y) - digital on/off, no pressure sensitivity"),
+		// ===== TEST CASE 3: Gamepad Buttons + Left Analog Stick =====
+		(function() { yOffset += sectionSpacing; return createLabel(20, yOffset, "TEST 3: Gamepad Buttons + Left Analog Stick"); })(),
+		createLabel(20, yOffset + 25, "Face buttons (A/B/X/Y) + Left stick analog visualization"),
 
-		new LinearInputIndicator(
-			150, yOffset + 60, 100, 100,
+		// Left analog stick visualization
+		new PlanarInputIndicator_Radial(
+			20, yOffset + 60, 200, 200,
 			{
 				input: {
 					keyboard: { keyCode: null },
+					gamepad: {
+						stick: { type: "left", axis: null, direction: null },
+						button: { index: null }
+					}
+				},
+				display: {
+					backgroundStyle: {lineWidth:4, strokeStyle:"#B4B4B4", fillStyle:"rgba(37, 37, 37, 0.43)"},
+					xLineStyle: {strokeStyle:"#B4B4B4", lineWidth:4},
+					yLineStyle: {strokeStyle:"#B4B4B4", lineWidth:4},
+					deadzoneStyle: {fillStyle:"#524d4d"},
+					inputVectorStyle: {strokeStyle:"#B4B4B4", lineWidth:4},
+					unitVectorStyle: {strokeStyle:"#524d4d", lineWidth:4}
+				}
+			}
+		),
+
+		new LinearInputIndicator(
+			240, yOffset + 60, 100, 100,
+			{
+				input: {
+					keyboard: { keyCode: null },
+					mouse: { button: null },
 					gamepad: {
 						stick: { type: null, axis: null, direction: null },
 						button: { index: 0 }  // A button
@@ -396,10 +408,11 @@ function scene_default(canvas, ctx) {
 			}
 		),
 		new LinearInputIndicator(
-			250, yOffset + 60, 100, 100,
+			350, yOffset + 60, 100, 100,
 			{
 				input: {
 					keyboard: { keyCode: null },
+					mouse: { button: null },
 					gamepad: {
 						stick: { type: null, axis: null, direction: null },
 						button: { index: 1 }  // B button
@@ -409,10 +422,11 @@ function scene_default(canvas, ctx) {
 			}
 		),
 		new LinearInputIndicator(
-			350, yOffset + 60, 100, 100,
+			460, yOffset + 60, 100, 100,
 			{
 				input: {
 					keyboard: { keyCode: null },
+					mouse: { button: null },
 					gamepad: {
 						stick: { type: null, axis: null, direction: null },
 						button: { index: 2 }  // X button
@@ -422,10 +436,11 @@ function scene_default(canvas, ctx) {
 			}
 		),
 		new LinearInputIndicator(
-			450, yOffset + 60, 100, 100,
+			570, yOffset + 60, 100, 100,
 			{
 				input: {
 					keyboard: { keyCode: null },
+					mouse: { button: null },
 					gamepad: {
 						stick: { type: null, axis: null, direction: null },
 						button: { index: 3 }  // Y button
