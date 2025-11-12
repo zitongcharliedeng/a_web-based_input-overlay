@@ -7,12 +7,13 @@
     "checkJs": false,
     "noEmit": false,
     "outDir": "./browserInputOverlayView/_compiled",
+    "rootDir": "./browserInputOverlayView",
     "strict": false,
     "noImplicitAny": false,
     "skipLibCheck": true,
     "moduleResolution": "node",
     "esModuleInterop": true
   },
-  "include": ["**/*.ts"],
-  "exclude": ["compiled", "node_modules"]
+  "include": ["browserInputOverlayView/**/*.ts"],
+  "exclude": ["compiled", "node_modules", "browserInputOverlayView/_compiled"]
 }

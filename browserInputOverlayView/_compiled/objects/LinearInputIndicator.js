@@ -7,7 +7,8 @@ const defaultLinearInputIndicatorProperties = {
             keyCode: null
         },
         mouse: {
-            button: null
+            button: null,
+            wheel: null
         },
         gamepad: {
             stick: {
@@ -64,6 +65,8 @@ function LinearInputIndicator(x, y, width, height, properties) {
         this.keyCode = this.input.keyboard.keyCode;
         // Mouse
         this.mouseButton = this.input.mouse.button;
+        this.mouseWheel = this.input.mouse.wheel;
+        console.log('[LinearInputIndicator Constructor] mouseWheel parsed:', this.mouseWheel);
         // Gamepad stick
         this.hasStickInput = (asConventionalGamepadAxisNumber(this.input.gamepad.stick) !== null);
         if (this.hasStickInput) {
@@ -106,6 +109,22 @@ LinearInputIndicator.prototype.update = function (delta) {
     const mouse = window.mouse;
     if (this.mouseButton !== null && mouse.buttons[this.mouseButton]) {
         value += 1;
+    }
+    // Get mouse wheel input (single-frame events like clicks)
+    if (this.mouseWheel !== null) {
+        console.log('[LinearInputIndicator] Checking wheel. mouse:', mouse);
+        console.log('[LinearInputIndicator] mouse.wheelEvents:', mouse.wheelEvents);
+        console.log('[LinearInputIndicator] this.mouseWheel:', this.mouseWheel);
+        if (mouse.wheelEvents) {
+            if (this.mouseWheel === "up" && mouse.wheelEvents.up) {
+                console.log('[LinearInputIndicator] Scroll UP detected! value += 1');
+                value += 1;
+            }
+            else if (this.mouseWheel === "down" && mouse.wheelEvents.down) {
+                console.log('[LinearInputIndicator] Scroll DOWN detected! value += 1');
+                value += 1;
+            }
+        }
     }
     // Key antiDeadzone has to be lowered when a linked axis surpasses the antiDeadzone for better directional indications
     // This is a lazy way to achieve this, but works for now
