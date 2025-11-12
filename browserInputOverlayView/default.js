@@ -142,9 +142,9 @@ function scene_default(canvas, ctx) {
 	// All objects to be rendered in the scene
 	this.objects = [
 
-		// ===== TEST CASE 1: Left Gamepad Stick =====
-		createLabel(20, yOffset, "TEST 1: Left Gamepad Stick - WITH radial compensation vs WITHOUT"),
-		createLabel(20, yOffset + 25, "Move diagonally: LEFT shows ~100% (compensated), RIGHT shows ~70% (raw circular)"),
+		// ===== TEST CASE 1: Mouse Buttons (WASD Layout) =====
+		createLabel(20, yOffset, "TEST 1: Mouse Buttons (WASD) - WITH radial compensation vs WITHOUT"),
+		createLabel(20, yOffset + 25, "M4(Back)=W, M1(Left)=A, M5(Forward)=S, M3(Middle)=D - Press multiple to test compensation"),
 
 		new PlanarInputIndicator_Radial(
 			20, yOffset + 60, 200, 200,
@@ -161,17 +161,19 @@ function scene_default(canvas, ctx) {
 		),
 
 		// WASD - WITH radial compensation (linkedAxis)
+		// Using mouse buttons: M4(Back)=W, M1(Left)=A, M5(Forward)=S, M3(Right)=D
 		new LinearInputIndicator(
 			240, yOffset + 60, 100, 100,
 			{
 				input: {
 					keyboard: { keyCode: null },
+					mouse: { button: 3 },  // M4 - Back button
 					gamepad: {
-						stick: { type: "left", axis: "Y", direction: "negative" },
+						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 0 }, display: { text: "W\nWith\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: 0 }, display: { text: "M4\nWith\nCompensation", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -179,12 +181,13 @@ function scene_default(canvas, ctx) {
 			{
 				input: {
 					keyboard: { keyCode: null },
+					mouse: { button: 0 },  // M1 - Left button
 					gamepad: {
-						stick: { type: "left", axis: "X", direction: "negative" },
+						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 1 }, display: { text: "A\nWith\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: 1 }, display: { text: "M1\nWith\nCompensation", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -192,12 +195,13 @@ function scene_default(canvas, ctx) {
 			{
 				input: {
 					keyboard: { keyCode: null },
+					mouse: { button: 4 },  // M5 - Forward button
 					gamepad: {
-						stick: { type: "left", axis: "Y", direction: "positive" },
+						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 0 }, display: { text: "S\nWith\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: 0 }, display: { text: "M5\nWith\nCompensation", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -205,12 +209,13 @@ function scene_default(canvas, ctx) {
 			{
 				input: {
 					keyboard: { keyCode: null },
+					mouse: { button: 1 },  // M3 - Middle button
 					gamepad: {
-						stick: { type: "left", axis: "X", direction: "positive" },
+						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 1 }, display: { text: "D\nWith\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: 1 }, display: { text: "M3\nWith\nCompensation", backgroundImage: KeyImage }
 			}
 		),
 
@@ -220,12 +225,13 @@ function scene_default(canvas, ctx) {
 			{
 				input: {
 					keyboard: { keyCode: null },
+					mouse: { button: 3 },  // M4 - Back button
 					gamepad: {
-						stick: { type: "left", axis: "Y", direction: "negative" },
+						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "W\nWithout\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "M4\nWithout\nCompensation", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -233,12 +239,13 @@ function scene_default(canvas, ctx) {
 			{
 				input: {
 					keyboard: { keyCode: null },
+					mouse: { button: 0 },  // M1 - Left button
 					gamepad: {
-						stick: { type: "left", axis: "X", direction: "negative" },
+						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "A\nWithout\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "M1\nWithout\nCompensation", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -246,12 +253,13 @@ function scene_default(canvas, ctx) {
 			{
 				input: {
 					keyboard: { keyCode: null },
+					mouse: { button: 4 },  // M5 - Forward button
 					gamepad: {
-						stick: { type: "left", axis: "Y", direction: "positive" },
+						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "S\nWithout\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "M5\nWithout\nCompensation", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -259,12 +267,13 @@ function scene_default(canvas, ctx) {
 			{
 				input: {
 					keyboard: { keyCode: null },
+					mouse: { button: 1 },  // M3 - Middle button
 					gamepad: {
-						stick: { type: "left", axis: "X", direction: "positive" },
+						stick: { type: null, axis: null, direction: null },
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "D\nWithout\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "M3\nWithout\nCompensation", backgroundImage: KeyImage }
 			}
 		),
 
