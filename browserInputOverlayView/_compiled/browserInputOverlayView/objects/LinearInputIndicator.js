@@ -110,14 +110,19 @@ LinearInputIndicator.prototype.update = function (delta) {
         value += 1;
     }
     // Get mouse wheel input (single-frame events like clicks)
-    if (this.mouseWheel !== null && mouse.wheelEvents) {
-        if (this.mouseWheel === "up" && mouse.wheelEvents.up) {
-            console.log('[LinearInputIndicator] Scroll UP detected! value += 1');
-            value += 1;
-        }
-        else if (this.mouseWheel === "down" && mouse.wheelEvents.down) {
-            console.log('[LinearInputIndicator] Scroll DOWN detected! value += 1');
-            value += 1;
+    if (this.mouseWheel !== null) {
+        console.log('[LinearInputIndicator] Checking wheel. mouse:', mouse);
+        console.log('[LinearInputIndicator] mouse.wheelEvents:', mouse.wheelEvents);
+        console.log('[LinearInputIndicator] this.mouseWheel:', this.mouseWheel);
+        if (mouse.wheelEvents) {
+            if (this.mouseWheel === "up" && mouse.wheelEvents.up) {
+                console.log('[LinearInputIndicator] Scroll UP detected! value += 1');
+                value += 1;
+            }
+            else if (this.mouseWheel === "down" && mouse.wheelEvents.down) {
+                console.log('[LinearInputIndicator] Scroll DOWN detected! value += 1');
+                value += 1;
+            }
         }
     }
     // Key antiDeadzone has to be lowered when a linked axis surpasses the antiDeadzone for better directional indications
