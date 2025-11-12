@@ -29,6 +29,7 @@ interface GamepadButtonInput {
 
 interface MouseInput {
 	button: number | null;  // 0: Left, 1: Middle, 2: Right, 3: Back, 4: Forward
+	wheel: "up" | "down" | null;  // Scroll wheel direction
 }
 
 interface InputConfig {
@@ -68,7 +69,8 @@ const defaultLinearInputIndicatorProperties: LinearInputIndicatorProperties = {
 			keyCode: null
 		},
 		mouse: {
-			button: null
+			button: null,
+			wheel: null
 		},
 		gamepad: {
 			stick: {
@@ -130,6 +132,7 @@ function LinearInputIndicator(x: number, y: number, width: number, height: numbe
 
 		// Mouse
 		this.mouseButton = this.input.mouse.button;
+		this.mouseWheel = this.input.mouse.wheel;
 
 		// Gamepad stick
 		this.hasStickInput = (asConventionalGamepadAxisNumber(this.input.gamepad.stick) !== null);
@@ -182,6 +185,15 @@ LinearInputIndicator.prototype.update = function (delta) {
 	const mouse = (window as any).mouse;
 	if (this.mouseButton !== null && mouse.buttons[this.mouseButton]) {
 		value += 1;
+	}
+
+	// Get mouse wheel input
+	if (this.mouseWheel !== null && mouse.wheelDelta) {
+		if (this.mouseWheel === "up" && mouse.wheelDelta.y > 0) {
+			value += 1;
+		} else if (this.mouseWheel === "down" && mouse.wheelDelta.y < 0) {
+			value += 1;
+		}
 	}
 
 	// Key antiDeadzone has to be lowered when a linked axis surpasses the antiDeadzone for better directional indications
