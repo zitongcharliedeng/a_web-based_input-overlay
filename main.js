@@ -196,15 +196,28 @@ app.whenReady().then(() => {
 
         // OBS-style polling: Read controller.axes and controller.buttons objects directly
         // Poll at 60fps (16ms) to match game loop
+        let pollCount = 0;
         const pollInterval = setInterval(() => {
           if (controller._closed) {
             clearInterval(pollInterval);
             return;
           }
 
+          pollCount++;
+
           // Poll axis state (controller.axes is an OBJECT with named properties)
           const axes = controller.axes;
           if (axes) {
+            // DEBUG: Log raw values every 2 seconds regardless of threshold
+            if (pollCount % 120 === 0) {
+              console.log('[Main] DEBUG: Raw axis values:', {
+                leftStickX: axes.leftStickX,
+                leftStickY: axes.leftStickY,
+                rightStickX: axes.rightStickX,
+                rightStickY: axes.rightStickY
+              });
+            }
+
             // Map named properties to array indices for Web Gamepad API
             gamepadState.axes[0] = axes.leftStickX || 0;
             gamepadState.axes[1] = axes.leftStickY || 0;
