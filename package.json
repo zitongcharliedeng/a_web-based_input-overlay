@@ -22,6 +22,6 @@
   },
   "dependencies": {
     "uiohook-napi": "^1.5.4",
-    "@kmamal/sdl": "^0.6.1"
+    "sdl2-gamecontroller": "^1.1.3"
   }
 }

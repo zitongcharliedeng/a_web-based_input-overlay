@@ -23,25 +23,23 @@
 		</table>
 	</div>
 
-	<!-- Bridge uiohook to Web APIs (Electron only) -->
+	<!-- Bridge uiohook and SDL to Web APIs (Electron only) -->
 	<script>
-		// NOTE: SDL doesn't work in Electron (event loop incompatibility)
-		// Using native Web Gamepad API instead
-		// Works when focused on all platforms
-		// Works unfocused on Linux (Chromium behavior)
+		// SDL gamepad state from main process (sdl2-gamecontroller)
+		// sdl2-gamecontroller runs SDL_PumpEvents() in separate thread
+		// This works with Electron's event loop and provides unfocused input
+		let sdlGamepadState = null;
+		const originalGetGamepads = navigator.getGamepads.bind(navigator);
 
-		// TEST: Periodically log gamepad state
-		console.log('[Renderer] Using NATIVE Web Gamepad API (no SDL override)');
-		console.log('[Renderer] Starting gamepad state monitor (logs every 2s)...');
-		setInterval(() => {
-			const pads = navigator.getGamepads();
-			for (let i = 0; i < pads.length; i++) {
-				if (pads[i]) {
-					const axes = pads[i].axes.map(a => a.toFixed(2)).join(',');
-					console.log('[Renderer] Gamepad', i, '- axes:[' + axes + '] - timestamp:', pads[i].timestamp);
-				}
+		// Override navigator.getGamepads() to return SDL state if available
+		navigator.getGamepads = function() {
+			if (sdlGamepadState && sdlGamepadState.connected) {
+				// Return SDL gamepad at index 0
+				return [sdlGamepadState, null, null, null];
 			}
-		}, 2000);
+			// Fallback to native Gamepad API (web version or no SDL)
+			return originalGetGamepads();
+		};
 
 		// uiohook keycode to KeyboardEvent.code mapping
 		const UIOHOOK_TO_KEYCODE = {
@@ -96,7 +94,25 @@
 				}
 			});
 
-			console.log('[Renderer] ✓ Global input bridge active (uiohook → DOM events)');
+			// Bridge SDL gamepad events to navigator.getGamepads()
+			window.electronAPI.onGlobalGamepadState((state) => {
+				console.log('[Renderer] SDL gamepad state update - axes:',
+					state.axes.map(a => a.toFixed(2)).join(','),
+					'- buttons:', state.buttons.filter(b => b.pressed).length, 'pressed');
+
+				// Store state with proper Gamepad interface properties
+				sdlGamepadState = {
+					axes: state.axes,
+					buttons: state.buttons,
+					connected: state.connected,
+					timestamp: state.timestamp,
+					id: 'SDL2 Gamepad (sdl2-gamecontroller)',
+					index: 0,
+					mapping: 'standard'
+				};
+			});
+
+			console.log('[Renderer] ✓ Global input bridge active (uiohook + SDL → DOM/Web APIs)');
 		} else {
 			console.log('[Renderer] ✗ electronAPI not found (running as web version)');
 		}
