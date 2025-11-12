@@ -27,7 +27,7 @@ Write-Host "1. Install via Chocolatey (recommended if you have it)" -ForegroundC
 Write-Host "2. Download installer manually" -ForegroundColor White
 Write-Host ""
 
-$choice = Read-Host "Enter choice (1 or 2)"
+$choice = Read-Host "Enter choice (1/2)"
 
 if ($choice -eq "1") {
     Write-Host ""
