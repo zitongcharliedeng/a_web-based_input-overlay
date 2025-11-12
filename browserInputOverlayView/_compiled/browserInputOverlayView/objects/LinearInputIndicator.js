@@ -66,6 +66,7 @@ function LinearInputIndicator(x, y, width, height, properties) {
         // Mouse
         this.mouseButton = this.input.mouse.button;
         this.mouseWheel = this.input.mouse.wheel;
+        console.log('[LinearInputIndicator Constructor] mouseWheel parsed:', this.mouseWheel);
         // Gamepad stick
         this.hasStickInput = (asConventionalGamepadAxisNumber(this.input.gamepad.stick) !== null);
         if (this.hasStickInput) {
