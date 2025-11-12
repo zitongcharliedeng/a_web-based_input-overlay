@@ -23,58 +23,15 @@
 		</table>
 	</div>
 
-	<!-- Bridge uiohook and native gamepad (SDL2) to Web APIs (Electron only) -->
+	<!-- Bridge uiohook to Web APIs (Electron only) -->
 	<script>
-		// Native SDL gamepad state (populated by main process polling)
-		// With SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1, works unfocused
-		let sdlState = null;
-
-		// Override navigator.getGamepads() to return SDL state when available
-		if (window.electronAPI) {
-			const originalGetGamepads = navigator.getGamepads.bind(navigator);
-
-			// DEBUG: Check if native API works (log once at startup)
-			console.log('[Renderer] Testing native Gamepad API at startup...');
-			const nativeTest = originalGetGamepads();
-			console.log('[Renderer] Native API initial test:', nativeTest);
-			if (nativeTest.every(gp => gp === null)) {
-				console.warn('[Renderer] WARNING: Native Gamepad API shows no controllers!');
-				console.warn('[Renderer] This means Chromium/Electron cannot see your gamepad.');
-				console.warn('[Renderer] Relying on SDL for gamepad input.');
-			}
-
-			navigator.getGamepads = function() {
-				// If we have SDL data, return it
-				if (sdlState) {
-					return [
-						{
-							id: 'SDL Gamepad (STANDARD GAMEPAD)',
-							index: 0,
-							connected: true,
-							timestamp: performance.now(),
-							mapping: 'standard',
-							axes: sdlState.axes,
-							buttons: sdlState.buttons
-						},
-						null, null, null
-					];
-				}
-				// Fallback to browser API when focused
-				return originalGetGamepads();
-			};
-
-			// Listen for SDL state updates
-			window.electronAPI.onGlobalGamepadState((state) => {
-				if (!sdlState) {
-					console.log('[Renderer] First SDL state received from main process');
-				}
-				sdlState = state;
-			});
-
-			console.log('[Renderer] ✓ SDL gamepad override active');
-		}
+		// NOTE: SDL doesn't work in Electron (event loop incompatibility)
+		// Using native Web Gamepad API instead
+		// Works when focused on all platforms
+		// Works unfocused on Linux (Chromium behavior)
 
 		// TEST: Periodically log gamepad state
+		console.log('[Renderer] Using NATIVE Web Gamepad API (no SDL override)');
 		console.log('[Renderer] Starting gamepad state monitor (logs every 2s)...');
 		setInterval(() => {
 			const pads = navigator.getGamepads();

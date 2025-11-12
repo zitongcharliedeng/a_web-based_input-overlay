@@ -162,127 +162,16 @@ app.whenReady().then(() => {
     console.log('[Main] ✓ Global input hooks started');
   }
 
-  // Start SDL gamepad polling
-  if (sdl) {
-    console.log('[Main] Initializing SDL gamepad polling...');
-    console.log('[Main] Creating hidden SDL window (required for event pump)...');
+  // GAMEPAD NOTE: SDL event-based API is incompatible with Electron's event loop
+  // SDL events never fire because Electron controls the main loop
+  // OBS plugin uses SDL_GetGamepadButton/Axis polling, but @kmamal/sdl doesn't expose those
+  //
+  // SOLUTION: Use Web Gamepad API (works natively in Chromium/Electron when focused)
+  // For unfocused support on Linux: Chromium already supports it (user confirmed it worked)
+  // For Windows: May need alternative approach (investigate later)
 
-    // Create hidden SDL window to pump events (SDL requirement)
-    const sdlWindow = sdl.video.createWindow({
-      title: 'SDL Event Pump',
-      width: 1,
-      height: 1,
-      hidden: true  // Keep it hidden
-    });
-
-    console.log('[Main] SDL window created for event pumping');
-
-    // Store current gamepad state (normalized to -1 to 1 range)
-    const gamepadState = {
-      axes: [0, 0, 0, 0], // leftx, lefty, rightx, righty
-      buttons: Array(17).fill(false).map(() => ({ pressed: false, value: 0 }))
-    };
-
-    // Track opened devices
-    const openedControllers = new Map();
-    const openedJoysticks = new Map();
-
-    // Try SDL Controller API first (game controller abstraction)
-    sdl.controller.on('deviceAdd', (device) => {
-      console.log('[Main] Controller API: Gamepad connected:', device.name);
-
-      try {
-        // Open the device to get controller instance
-        const controller = sdl.controller.openDevice(device);
-        openedControllers.set(device.id, controller);
-
-        // DEBUG: Log all controller properties
-        console.log('[Main] DEBUG: Controller object keys:', Object.keys(controller));
-        console.log('[Main] DEBUG: Controller.axes:', controller.axes);
-        console.log('[Main] DEBUG: Controller.buttons:', controller.buttons);
-
-        console.log('[Main] Controller opened successfully:', device.name);
-        console.log('[Main] Using EVENT-BASED approach (like node-sdl examples)');
-
-        // Listen to ALL SDL events (same as node-sdl/examples/11-controller)
-        controller.on('*', (eventType) => {
-          if (eventType === 'close') {
-            console.log('[Main] Controller closed');
-            openedControllers.delete(device.id);
-            return;
-          }
-
-          // Read current state when ANY event fires (axes/buttons update automatically)
-          const axes = controller.axes;
-          const buttons = controller.buttons;
-
-          // Map axes (OBJECT with named properties) to array indices
-          gamepadState.axes[0] = axes.leftStickX || 0;
-          gamepadState.axes[1] = axes.leftStickY || 0;
-          gamepadState.axes[2] = axes.rightStickX || 0;
-          gamepadState.axes[3] = axes.rightStickY || 0;
-
-          // Map buttons (OBJECT with named properties) to standard gamepad indices
-          const buttonMapping = [
-            'a', 'b', 'x', 'y',
-            'leftShoulder', 'rightShoulder',
-            'leftTrigger', 'rightTrigger',
-            'back', 'start',
-            'leftStick', 'rightStick',
-            'dpadUp', 'dpadDown', 'dpadLeft', 'dpadRight',
-            'guide'
-          ];
-
-          buttonMapping.forEach((buttonName, index) => {
-            const pressed = buttons[buttonName] || false;
-            gamepadState.buttons[index] = {
-              pressed: pressed,
-              value: pressed ? 1.0 : 0.0
-            };
-          });
-
-          // Log events for debugging
-          console.log('[Main] SDL Event:', eventType, '| leftStick:', axes.leftStickX?.toFixed(2), axes.leftStickY?.toFixed(2));
-
-          // Send updated state to renderer
-          mainWindow.webContents.send('global-gamepad-state', gamepadState);
-        });
-
-      } catch (error) {
-        console.error('[Main] Failed to open controller:', error.message);
-      }
-    });
-
-    // Handle disconnections
-    sdl.controller.on('deviceRemove', (device) => {
-      console.log('[Main] Controller API: Gamepad disconnected:', device.name);
-
-      // Clear polling interval
-      const pollInterval = openedControllers.get(device.id + '_poll');
-      if (pollInterval) {
-        clearInterval(pollInterval);
-        openedControllers.delete(device.id + '_poll');
-      }
-
-      // Close controller
-      const controller = openedControllers.get(device.id);
-      if (controller) {
-        controller.close();
-        openedControllers.delete(device.id);
-      }
-    });
-
-    // Check for already connected controllers
-    console.log('[Main] Checking for game controllers:', sdl.controller.devices.length);
-    sdl.controller.devices.forEach(device => {
-      console.log('[Main] Found controller:', device.name);
-      sdl.controller.emit('deviceAdd', device);
-    });
-
-    console.log('[Main] ✓ SDL gamepad polling started (unfocused support enabled)');
-  } else {
-    console.log('[Main] Gamepad support: Using Web Gamepad API only (no unfocused support)');
-  }
+  console.log('[Main] Gamepad: Using native Web Gamepad API (works when Electron window focused)');
+  console.log('[Main] Note: Unfocused gamepad may work on Linux but not Windows (Chromium behavior)');
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
