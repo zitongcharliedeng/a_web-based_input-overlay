@@ -80,14 +80,17 @@ canvas.addEventListener('mousemove', (e) => {
     mouse.y = e.y;
 });
 canvas.addEventListener('wheel', (e) => {
+    console.log('[mouse.ts] Wheel event! deltaY:', e.deltaY);
     // Update wheel delta
     mouse.wheelDelta.x = e.deltaX;
     mouse.wheelDelta.y = e.deltaY;
     // Set single-frame wheel events
     if (e.deltaY < 0) {
+        console.log('[mouse.ts] Setting wheelEvents.up = true');
         mouse.wheelEvents.up = true;
     }
     else if (e.deltaY > 0) {
+        console.log('[mouse.ts] Setting wheelEvents.down = true');
         mouse.wheelEvents.down = true;
     }
 });
