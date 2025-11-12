@@ -1,6 +1,10 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
+// Enable unfocused joystick input (SDL2 feature - GitHub issue #74)
+// This allows gamepad events even when window is not focused
+process.env.SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS = '1';
+
 // Linux GTK compatibility (from stream-overlay)
 if (process.platform === 'linux') {
   app.commandLine.appendSwitch('gtk-version', '3');
@@ -26,21 +30,20 @@ try {
   console.log('[Main] Global input hooks disabled (will use DOM events only)');
 }
 
-// Try to initialize SDL2 gamecontroller (same as OBS input-overlay plugin)
+// Try to initialize @kmamal/sdl for gamepad input
 // Cross-platform: Windows, Linux, macOS
-// Requires CMake for installation (one-time developer setup)
-let gamecontroller = null;
+// With SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1, works unfocused
+let sdl = null;
 let gamepadAvailable = false;
 
 try {
-  // Initialize SDL2 gamecontroller with 60fps polling (16ms interval)
-  gamecontroller = require('sdl2-gamecontroller/custom')({ interval: 16 });
+  sdl = require('@kmamal/sdl');
   gamepadAvailable = true;
-  console.log('[Main] ✓ sdl2-gamecontroller loaded (same as OBS plugin - proven to work unfocused)');
+  console.log('[Main] ✓ @kmamal/sdl loaded (unfocused gamepad enabled via SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS)');
 } catch (error) {
-  console.log('[Main] ✗ sdl2-gamecontroller not available:', error.message);
+  console.log('[Main] ✗ @kmamal/sdl not available:', error.message);
   console.log('[Main] Native gamepad polling disabled (will use Web Gamepad API only)');
-  console.log('[Main] To install: Run install-cmake-windows.ps1 then npm install');
+  console.log('[Main] To install: npm install');
 }
 
 // IPC handlers for renderer queries
@@ -159,57 +162,87 @@ app.whenReady().then(() => {
     console.log('[Main] ✓ Global input hooks started');
   }
 
-  // Start SDL2 gamepad polling (same architecture as OBS input-overlay plugin)
-  if (gamecontroller) {
-    console.log('[Main] Initializing SDL2 gamepad polling...');
+  // Start SDL gamepad polling
+  if (sdl) {
+    console.log('[Main] Initializing SDL gamepad polling...');
 
-    // Store current gamepad state (SDL sends incremental events, not full state)
+    // Store current gamepad state (normalized to -1 to 1 range)
     const gamepadState = {
-      axes: { leftx: 0, lefty: 0, rightx: 0, righty: 0, lefttrigger: 0, righttrigger: 0 },
-      buttons: {
-        a: false, b: false, x: false, y: false,
-        back: false, guide: false, start: false,
-        leftstick: false, rightstick: false,
-        leftshoulder: false, rightshoulder: false,
-        dpup: false, dpdown: false, dpleft: false, dpright: false
-      }
+      axes: [0, 0, 0, 0], // leftx, lefty, rightx, righty
+      buttons: Array(17).fill(false).map(() => ({ pressed: false, value: 0 }))
     };
 
-    // Device connection events
-    gamecontroller.on('controller-device-added', (data) => {
-      console.log('[Main] Gamepad connected:', data);
-    });
+    // Track opened controllers
+    const openedControllers = new Map();
 
-    gamecontroller.on('controller-device-removed', (data) => {
-      console.log('[Main] Gamepad disconnected:', data);
-    });
+    // Listen for controller connections
+    sdl.controller.on('deviceAdd', (device) => {
+      console.log('[Main] Gamepad connected:', device.name);
 
-    // Axis motion events
-    gamecontroller.on('controller-axis-motion', (data) => {
-      // data: { button, timestamp, value, player }
-      // button can be: leftx, lefty, rightx, righty, lefttrigger, righttrigger
-      if (gamepadState.axes.hasOwnProperty(data.button)) {
-        gamepadState.axes[data.button] = data.value;
-        mainWindow.webContents.send('global-gamepad-state', gamepadState);
+      try {
+        // Open the device to get controller instance
+        const controller = sdl.controller.openDevice(device);
+        openedControllers.set(device.id, controller);
+
+        console.log('[Main] Controller opened:', {
+          name: device.name,
+          axes: controller.axes?.length || 'unknown',
+          buttons: controller.buttons?.length || 'unknown'
+        });
+
+        // Axis motion events
+        controller.on('axisMotion', (event) => {
+          // event: { axis, value } where value is -32768 to 32767
+          // Normalize to -1 to 1 range
+          const normalizedValue = event.value / 32768;
+
+          if (event.axis < 4) {
+            gamepadState.axes[event.axis] = normalizedValue;
+            mainWindow.webContents.send('global-gamepad-state', gamepadState);
+          }
+        });
+
+        // Button events
+        controller.on('buttonDown', (event) => {
+          // event: { button }
+          if (event.button < gamepadState.buttons.length) {
+            gamepadState.buttons[event.button] = { pressed: true, value: 1.0 };
+            mainWindow.webContents.send('global-gamepad-state', gamepadState);
+          }
+        });
+
+        controller.on('buttonUp', (event) => {
+          if (event.button < gamepadState.buttons.length) {
+            gamepadState.buttons[event.button] = { pressed: false, value: 0.0 };
+            mainWindow.webContents.send('global-gamepad-state', gamepadState);
+          }
+        });
+
+      } catch (error) {
+        console.error('[Main] Failed to open controller:', error.message);
       }
     });
 
-    // Button events
-    gamecontroller.on('controller-button-down', (data) => {
-      if (gamepadState.buttons.hasOwnProperty(data.button)) {
-        gamepadState.buttons[data.button] = true;
-        mainWindow.webContents.send('global-gamepad-state', gamepadState);
+    // Handle disconnections
+    sdl.controller.on('deviceRemove', (device) => {
+      console.log('[Main] Gamepad disconnected:', device.name);
+      const controller = openedControllers.get(device.id);
+      if (controller) {
+        controller.close();
+        openedControllers.delete(device.id);
       }
     });
 
-    gamecontroller.on('controller-button-up', (data) => {
-      if (gamepadState.buttons.hasOwnProperty(data.button)) {
-        gamepadState.buttons[data.button] = false;
-        mainWindow.webContents.send('global-gamepad-state', gamepadState);
-      }
+    // Check for already connected devices
+    const devices = sdl.controller.devices;
+    console.log('[Main] Checking for connected gamepads:', devices.length);
+    devices.forEach(device => {
+      console.log('[Main] Found device:', device.name);
+      // Manually trigger deviceAdd for already connected devices
+      sdl.controller.emit('deviceAdd', device);
     });
 
-    console.log('[Main] ✓ SDL2 gamepad polling started (60fps - same as OBS plugin)');
+    console.log('[Main] ✓ SDL gamepad polling started (unfocused support enabled)');
   } else {
     console.log('[Main] Gamepad support: Using Web Gamepad API only (no unfocused support)');
   }
@@ -228,7 +261,11 @@ app.on('window-all-closed', () => {
     uIOhook.stop();
   }
 
-  // SDL2 gamecontroller cleans up automatically on process exit
+  // Close all SDL controllers
+  if (sdl) {
+    const openedControllers = new Map(); // Access from closure if needed
+    // Controllers will be cleaned up automatically on process exit
+  }
 
   if (process.platform !== 'darwin') {
     app.quit();

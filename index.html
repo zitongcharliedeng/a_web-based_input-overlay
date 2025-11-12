@@ -25,59 +25,26 @@
 
 	<!-- Bridge uiohook and native gamepad (SDL2) to Web APIs (Electron only) -->
 	<script>
-		// Native SDL2 gamepad state (populated by main process polling)
-		// Same architecture as OBS input-overlay plugin (proven to work unfocused)
+		// Native SDL gamepad state (populated by main process polling)
+		// With SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1, works unfocused
 		let sdlState = null;
 
-		// Override navigator.getGamepads() to return SDL2 state when available
+		// Override navigator.getGamepads() to return SDL state when available
 		if (window.electronAPI) {
 			const originalGetGamepads = navigator.getGamepads.bind(navigator);
 
 			navigator.getGamepads = function() {
-				// If we have SDL2 data, convert it to Web Gamepad API format
+				// If we have SDL data, return it (already in Web Gamepad API format)
 				if (sdlState) {
-					// Map SDL2 state to standard gamepad format
-					// SDL2: { axes: { leftx, lefty, rightx, righty, ... }, buttons: { a, b, x, y, ... } }
-					// Web API: { axes: [leftX, leftY, rightX, rightY], buttons: [...] }
-
-					const axes = [
-						sdlState.axes.leftx || 0,
-						sdlState.axes.lefty || 0,
-						sdlState.axes.rightx || 0,
-						sdlState.axes.righty || 0
-					];
-
-					// Standard gamepad button mapping (17 buttons)
-					// 0=A, 1=B, 2=X, 3=Y, 4=LB, 5=RB, 6=LT, 7=RT, 8=Back, 9=Start, 10=LS, 11=RS, 12=Up, 13=Down, 14=Left, 15=Right, 16=Guide
-					const buttons = [
-						sdlState.buttons.a || false,
-						sdlState.buttons.b || false,
-						sdlState.buttons.x || false,
-						sdlState.buttons.y || false,
-						sdlState.buttons.leftshoulder || false,
-						sdlState.buttons.rightshoulder || false,
-						(sdlState.axes.lefttrigger || 0) > 0.1,  // Trigger as button
-						(sdlState.axes.righttrigger || 0) > 0.1,
-						sdlState.buttons.back || false,
-						sdlState.buttons.start || false,
-						sdlState.buttons.leftstick || false,  // Thumbstick click
-						sdlState.buttons.rightstick || false,
-						sdlState.buttons.dpup || false,
-						sdlState.buttons.dpdown || false,
-						sdlState.buttons.dpleft || false,
-						sdlState.buttons.dpright || false,
-						sdlState.buttons.guide || false
-					].map(pressed => ({ pressed, touched: pressed, value: pressed ? 1.0 : 0.0 }));
-
 					return [
 						{
-							id: 'SDL2 Gamepad (STANDARD GAMEPAD)',
+							id: 'SDL Gamepad (STANDARD GAMEPAD)',
 							index: 0,
 							connected: true,
 							timestamp: performance.now(),
 							mapping: 'standard',
-							axes: axes,
-							buttons: buttons
+							axes: sdlState.axes,
+							buttons: sdlState.buttons
 						},
 						null, null, null
 					];
@@ -86,12 +53,12 @@
 				return originalGetGamepads();
 			};
 
-			// Listen for SDL2 state updates
+			// Listen for SDL state updates
 			window.electronAPI.onGlobalGamepadState((state) => {
 				sdlState = state;
 			});
 
-			console.log('[Renderer] ✓ SDL2 gamepad override active (same as OBS plugin)');
+			console.log('[Renderer] ✓ SDL gamepad override active (unfocused support enabled)');
 		}
 
 		// TEST: Periodically log gamepad state
