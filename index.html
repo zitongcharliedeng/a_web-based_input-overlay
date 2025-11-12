@@ -23,54 +23,54 @@
 		</table>
 	</div>
 
-	<!-- Bridge uiohook and native gamepad (XInput) to Web APIs (Electron only) -->
+	<!-- Bridge uiohook and native gamepad (SDL2) to Web APIs (Electron only) -->
 	<script>
-		// Native XInput gamepad state (populated by main process polling)
-		let xinputState = null;
+		// Native SDL2 gamepad state (populated by main process polling)
+		let sdlState = null;
 
-		// Override navigator.getGamepads() to return XInput state when available
+		// Override navigator.getGamepads() to return SDL2 state when available
 		if (window.electronAPI) {
 			const originalGetGamepads = navigator.getGamepads.bind(navigator);
 
 			navigator.getGamepads = function() {
-				// If we have XInput data, convert it to Web Gamepad API format
-				if (xinputState) {
-					// Map XInput state to standard gamepad format
-					// XInput: { LeftThumbstickX, LeftThumbstickY, RightThumbstickX, RightThumbstickY, LeftTrigger, RightTrigger, ... }
+				// If we have SDL2 data, convert it to Web Gamepad API format
+				if (sdlState) {
+					// Map SDL2 state to standard gamepad format
+					// SDL2: { axes: { leftx, lefty, rightx, righty, ... }, buttons: { a, b, x, y, ... } }
 					// Web API: { axes: [leftX, leftY, rightX, rightY], buttons: [...] }
 
 					const axes = [
-						xinputState.LeftThumbstickX || 0,
-						xinputState.LeftThumbstickY || 0,
-						xinputState.RightThumbstickX || 0,
-						xinputState.RightThumbstickY || 0
+						sdlState.axes.leftx || 0,
+						sdlState.axes.lefty || 0,
+						sdlState.axes.rightx || 0,
+						sdlState.axes.righty || 0
 					];
 
 					// Standard gamepad button mapping (17 buttons)
-					// 0=A, 1=B, 2=X, 3=Y, 4=LB, 5=RB, 6=LT, 7=RT, 8=Back, 9=Start, 10=LS, 11=RS, 12=Up, 13=Down, 14=Left, 15=Right
+					// 0=A, 1=B, 2=X, 3=Y, 4=LB, 5=RB, 6=LT, 7=RT, 8=Back, 9=Start, 10=LS, 11=RS, 12=Up, 13=Down, 14=Left, 15=Right, 16=Guide
 					const buttons = [
-						xinputState.A || false,
-						xinputState.B || false,
-						xinputState.X || false,
-						xinputState.Y || false,
-						xinputState.LeftShoulder || false,
-						xinputState.RightShoulder || false,
-						(xinputState.LeftTrigger || 0) > 0.1,  // Trigger as button
-						(xinputState.RightTrigger || 0) > 0.1,
-						xinputState.Back || false,
-						xinputState.Start || false,
-						xinputState.LeftThumb || false,  // Thumbstick click
-						xinputState.RightThumb || false,
-						xinputState.DPadUp || false,
-						xinputState.DPadDown || false,
-						xinputState.DPadLeft || false,
-						xinputState.DPadRight || false,
-						false  // Guide button (usually reserved)
+						sdlState.buttons.a || false,
+						sdlState.buttons.b || false,
+						sdlState.buttons.x || false,
+						sdlState.buttons.y || false,
+						sdlState.buttons.leftshoulder || false,
+						sdlState.buttons.rightshoulder || false,
+						(sdlState.axes.lefttrigger || 0) > 0.1,  // Trigger as button
+						(sdlState.axes.righttrigger || 0) > 0.1,
+						sdlState.buttons.back || false,
+						sdlState.buttons.start || false,
+						sdlState.buttons.leftstick || false,  // Thumbstick click
+						sdlState.buttons.rightstick || false,
+						sdlState.buttons.dpup || false,
+						sdlState.buttons.dpdown || false,
+						sdlState.buttons.dpleft || false,
+						sdlState.buttons.dpright || false,
+						sdlState.buttons.guide || false
 					].map(pressed => ({ pressed, touched: pressed, value: pressed ? 1.0 : 0.0 }));
 
 					return [
 						{
-							id: 'XInput Gamepad (STANDARD GAMEPAD)',
+							id: 'SDL2 Gamepad (STANDARD GAMEPAD)',
 							index: 0,
 							connected: true,
 							timestamp: performance.now(),
@@ -85,12 +85,12 @@
 				return originalGetGamepads();
 			};
 
-			// Listen for XInput state updates
+			// Listen for SDL2 state updates
 			window.electronAPI.onGlobalGamepadState((state) => {
-				xinputState = state;
+				sdlState = state;
 			});
 
-			console.log('[Renderer] ✓ XInput gamepad override active');
+			console.log('[Renderer] ✓ SDL2 gamepad override active');
 		}
 
 		// TEST: Periodically log gamepad state

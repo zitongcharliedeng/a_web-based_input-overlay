@@ -26,24 +26,18 @@ try {
   console.log('[Main] Global input hooks disabled (will use DOM events only)');
 }
 
-// Try to initialize XInput for native gamepad polling (Windows only)
-let XInputGamepad = null;
-let gamepad = null;
+// Try to initialize SDL2 gamecontroller for native gamepad polling (cross-platform)
+let gamecontroller = null;
 let gamepadAvailable = false;
 
-if (process.platform === 'win32') {
-  try {
-    const xinput = require('xinput-ffi');
-    XInputGamepad = xinput.XInputGamepad;
-    gamepadAvailable = true;
-    console.log('[Main] ✓ xinput-ffi loaded successfully (Windows XInput)');
-  } catch (error) {
-    console.log('[Main] ✗ xinput-ffi not available:', error.message);
-    console.log('[Main] Native gamepad polling disabled (will use Web Gamepad API only)');
-  }
-} else {
-  console.log('[Main] Native gamepad polling not available on', process.platform);
-  console.log('[Main] (Windows XInput only - will use Web Gamepad API)');
+try {
+  // Initialize SDL2 gamecontroller with 60fps polling (16ms interval)
+  gamecontroller = require('sdl2-gamecontroller/custom')({ interval: 16 });
+  gamepadAvailable = true;
+  console.log('[Main] ✓ sdl2-gamecontroller loaded successfully (cross-platform SDL)');
+} catch (error) {
+  console.log('[Main] ✗ sdl2-gamecontroller not available:', error.message);
+  console.log('[Main] Native gamepad polling disabled (will use Web Gamepad API only)');
 }
 
 // IPC handlers for renderer queries
@@ -162,22 +156,57 @@ app.whenReady().then(() => {
     console.log('[Main] ✓ Global input hooks started');
   }
 
-  // Start native gamepad polling if available (Windows XInput)
-  if (XInputGamepad) {
-    console.log('[Main] Initializing XInput gamepad polling...');
+  // Start native gamepad polling if available (SDL2)
+  if (gamecontroller) {
+    console.log('[Main] Initializing SDL2 gamepad polling...');
 
-    gamepad = new XInputGamepad();
+    // Store current gamepad state (SDL sends incremental events, not full state)
+    const gamepadState = {
+      axes: { leftx: 0, lefty: 0, rightx: 0, righty: 0, lefttrigger: 0, righttrigger: 0 },
+      buttons: {
+        a: false, b: false, x: false, y: false,
+        back: false, guide: false, start: false,
+        leftstick: false, rightstick: false,
+        leftshoulder: false, rightshoulder: false,
+        dpup: false, dpdown: false, dpleft: false, dpright: false
+      }
+    };
 
-    // Listen for input changes
-    gamepad.on('input', (state) => {
-      // Send entire gamepad state to renderer
-      mainWindow.webContents.send('global-gamepad-state', state);
+    // Device connection events
+    gamecontroller.on('controller-device-added', (data) => {
+      console.log('[Main] Gamepad connected:', data);
     });
 
-    // Start polling (60hz = ~16ms, matches typical game loop)
-    gamepad.poll({ hz: 60 });
+    gamecontroller.on('controller-device-removed', (data) => {
+      console.log('[Main] Gamepad disconnected:', data);
+    });
 
-    console.log('[Main] ✓ XInput gamepad polling started (60hz)');
+    // Axis motion events
+    gamecontroller.on('controller-axis-motion', (data) => {
+      // data: { button, timestamp, value, player }
+      // button can be: leftx, lefty, rightx, righty, lefttrigger, righttrigger
+      if (gamepadState.axes.hasOwnProperty(data.button)) {
+        gamepadState.axes[data.button] = data.value;
+        mainWindow.webContents.send('global-gamepad-state', gamepadState);
+      }
+    });
+
+    // Button events
+    gamecontroller.on('controller-button-down', (data) => {
+      if (gamepadState.buttons.hasOwnProperty(data.button)) {
+        gamepadState.buttons[data.button] = true;
+        mainWindow.webContents.send('global-gamepad-state', gamepadState);
+      }
+    });
+
+    gamecontroller.on('controller-button-up', (data) => {
+      if (gamepadState.buttons.hasOwnProperty(data.button)) {
+        gamepadState.buttons[data.button] = false;
+        mainWindow.webContents.send('global-gamepad-state', gamepadState);
+      }
+    });
+
+    console.log('[Main] ✓ SDL2 gamepad polling started (60fps)');
   } else {
     console.log('[Main] Gamepad support: Using Web Gamepad API only (no unfocused support)');
   }
@@ -196,11 +225,7 @@ app.on('window-all-closed', () => {
     uIOhook.stop();
   }
 
-  // Stop XInput gamepad polling
-  if (gamepad) {
-    console.log('[Main] Stopping XInput gamepad polling...');
-    gamepad.stop();
-  }
+  // SDL2 gamecontroller cleans up automatically on process exit
 
   if (process.platform !== 'darwin') {
     app.quit();
