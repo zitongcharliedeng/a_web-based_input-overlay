@@ -22,6 +22,11 @@ const mouse = {
     },
     // Wheel delta (scroll)
     wheelDelta: { x: 0, y: 0 },
+    // Single-frame wheel events (like clicks)
+    wheelEvents: {
+        up: false,
+        down: false
+    },
     // Backward compatibility getters (old API - button1, button2, button3)
     get button1() { return this.buttons[0]; },
     get button2() { return this.buttons[1]; },
@@ -40,6 +45,9 @@ const mouse = {
         this.clicks[2] = false;
         this.clicks[3] = false;
         this.clicks[4] = false;
+        // Reset wheel events (single-frame)
+        this.wheelEvents.up = false;
+        this.wheelEvents.down = false;
     }
 };
 // Get canvas element
@@ -75,5 +83,12 @@ canvas.addEventListener('wheel', (e) => {
     // Update wheel delta
     mouse.wheelDelta.x = e.deltaX;
     mouse.wheelDelta.y = e.deltaY;
+    // Set single-frame wheel events
+    if (e.deltaY < 0) {
+        mouse.wheelEvents.up = true;
+    }
+    else if (e.deltaY > 0) {
+        mouse.wheelEvents.down = true;
+    }
 });
 export { mouse };

@@ -5,7 +5,7 @@
 	<meta charset="UTF-8">
 	<title>analog keyboard overlay</title>
 	<!-- Cache-busting: increment version when updating code -->
-	<script type="module" src="browserInputOverlayView/default.js?v=5"></script>
+	<script type="module" src="browserInputOverlayView/default.js?v=6"></script>
 	<link rel="stylesheet" href="browserInputOverlayView/_assets/style.css?v=2">
 </head>
 
@@ -159,6 +159,14 @@
 					// rotation: positive = up, negative = down
 					window.mouse.wheelDelta.y = data.rotation;
 					console.log('[Renderer] Updated mouse.wheelDelta.y =', data.rotation);
+				}
+				// Set single-frame wheel events
+				if (window.mouse && window.mouse.wheelEvents) {
+					if (data.rotation > 0) {
+						window.mouse.wheelEvents.up = true;
+					} else if (data.rotation < 0) {
+						window.mouse.wheelEvents.down = true;
+					}
 				}
 			});
 

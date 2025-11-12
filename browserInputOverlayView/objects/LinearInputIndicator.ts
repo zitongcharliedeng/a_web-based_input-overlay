@@ -187,11 +187,11 @@ LinearInputIndicator.prototype.update = function (delta) {
 		value += 1;
 	}
 
-	// Get mouse wheel input
-	if (this.mouseWheel !== null && mouse.wheelDelta) {
-		if (this.mouseWheel === "up" && mouse.wheelDelta.y > 0) {
+	// Get mouse wheel input (single-frame events like clicks)
+	if (this.mouseWheel !== null && mouse.wheelEvents) {
+		if (this.mouseWheel === "up" && mouse.wheelEvents.up) {
 			value += 1;
-		} else if (this.mouseWheel === "down" && mouse.wheelDelta.y < 0) {
+		} else if (this.mouseWheel === "down" && mouse.wheelEvents.down) {
 			value += 1;
 		}
 	}
