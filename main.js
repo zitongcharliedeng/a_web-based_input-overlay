@@ -184,6 +184,12 @@ app.whenReady().then(() => {
         const controller = sdl.controller.openDevice(device);
         openedControllers.set(device.id, controller);
 
+        // DEBUG: Log all controller properties
+        console.log('[Main] DEBUG: Controller object keys:', Object.keys(controller));
+        console.log('[Main] DEBUG: Controller type:', typeof controller);
+        console.log('[Main] DEBUG: Controller.axes:', controller.axes);
+        console.log('[Main] DEBUG: Controller.buttons:', controller.buttons);
+
         console.log('[Main] Controller opened:', {
           name: device.name,
           axes: controller.axes?.length || 'unknown',
@@ -192,28 +198,34 @@ app.whenReady().then(() => {
 
         // Axis motion events
         controller.on('axisMotion', (event) => {
+          console.log('[Main] DEBUG: axisMotion event:', event);
           // event: { axis, value } where value is -32768 to 32767
           // Normalize to -1 to 1 range
           const normalizedValue = event.value / 32768;
 
           if (event.axis < 4) {
             gamepadState.axes[event.axis] = normalizedValue;
+            console.log('[Main] Gamepad axis update:', event.axis, '=', normalizedValue.toFixed(2));
             mainWindow.webContents.send('global-gamepad-state', gamepadState);
           }
         });
 
         // Button events
         controller.on('buttonDown', (event) => {
+          console.log('[Main] DEBUG: buttonDown event:', event);
           // event: { button }
           if (event.button < gamepadState.buttons.length) {
             gamepadState.buttons[event.button] = { pressed: true, value: 1.0 };
+            console.log('[Main] Gamepad button down:', event.button);
             mainWindow.webContents.send('global-gamepad-state', gamepadState);
           }
         });
 
         controller.on('buttonUp', (event) => {
+          console.log('[Main] DEBUG: buttonUp event:', event);
           if (event.button < gamepadState.buttons.length) {
             gamepadState.buttons[event.button] = { pressed: false, value: 0.0 };
+            console.log('[Main] Gamepad button up:', event.button);
             mainWindow.webContents.send('global-gamepad-state', gamepadState);
           }
         });

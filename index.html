@@ -33,9 +33,19 @@
 		if (window.electronAPI) {
 			const originalGetGamepads = navigator.getGamepads.bind(navigator);
 
+			// DEBUG: Check if native API works
+			console.log('[Renderer] DEBUG: Testing native Gamepad API...');
+			const nativeTest = originalGetGamepads();
+			console.log('[Renderer] DEBUG: Native getGamepads() returned:', nativeTest);
+
 			navigator.getGamepads = function() {
+				// Always check native API first
+				const nativeGamepads = originalGetGamepads();
+				console.log('[Renderer] DEBUG: Native gamepads:', nativeGamepads);
+
 				// If we have SDL data, return it (already in Web Gamepad API format)
 				if (sdlState) {
+					console.log('[Renderer] DEBUG: Returning SDL state:', sdlState);
 					return [
 						{
 							id: 'SDL Gamepad (STANDARD GAMEPAD)',
@@ -50,11 +60,13 @@
 					];
 				}
 				// Fallback to browser API when focused
-				return originalGetGamepads();
+				console.log('[Renderer] DEBUG: Falling back to native API');
+				return nativeGamepads;
 			};
 
 			// Listen for SDL state updates
 			window.electronAPI.onGlobalGamepadState((state) => {
+				console.log('[Renderer] DEBUG: Received SDL state from main:', state);
 				sdlState = state;
 			});
 
