@@ -192,6 +192,13 @@ app.whenReady().then(() => {
         console.log('[Main] DEBUG: Controller.buttons:', controller.buttons);
 
         console.log('[Main] Controller opened successfully:', device.name);
+        console.log('[Main] Testing if ANY SDL events fire with wildcard listener...');
+
+        // Listen to ALL events to see if ANY events fire
+        controller.on('*', (eventType, ...args) => {
+          console.log('[Main] SDL Event fired!', eventType, args);
+        });
+
         console.log('[Main] Using POLLING mode (like OBS plugin - events do not fire)');
 
         // OBS-style polling: Read controller.axes and controller.buttons objects directly
