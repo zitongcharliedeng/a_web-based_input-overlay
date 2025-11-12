@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "start:win": "electron .",
-    "start:web": "http-server -p 8080 -o",
+    "start:web": "http-server -p 8080 -c-1 -o",
     "start:nix": "nix-shell -p nodejs electron --run 'electron .'",
     "start:nix-x11": "nix-shell -p nodejs electron --run 'ELECTRON_OZONE_PLATFORM_HINT=x11 electron .'",
     "dev": "electron . --enable-logging",
