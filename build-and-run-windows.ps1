@@ -12,13 +12,13 @@ npm install
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
-    Write-Host "  ✗ npm install failed!" -ForegroundColor Red
+    Write-Host "  npm install failed!" -ForegroundColor Red
     Write-Host "  Check the error messages above." -ForegroundColor Yellow
     Read-Host "Press Enter to exit"
     exit 1
 }
 
-Write-Host "  ✓ Dependencies installed" -ForegroundColor Green
+Write-Host "  Dependencies installed" -ForegroundColor Green
 Write-Host ""
 
 # Step 2: Launch Electron
