@@ -38,12 +38,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('global-wheel', (_event, data) => callback(data));
   },
 
-  // Gamepad (native polling)
-  onGlobalGamepadAxis: (callback) => {
-    ipcRenderer.on('global-gamepad-axis', (_event, data) => callback(data));
-  },
-  onGlobalGamepadButton: (callback) => {
-    ipcRenderer.on('global-gamepad-button', (_event, data) => callback(data));
+  // Gamepad (native XInput polling - Windows only)
+  onGlobalGamepadState: (callback) => {
+    ipcRenderer.on('global-gamepad-state', (_event, state) => callback(state));
   },
 
   // App state

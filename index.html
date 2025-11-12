@@ -23,60 +23,74 @@
 		</table>
 	</div>
 
-	<!-- Bridge uiohook and native gamepad to Web APIs (Electron only) -->
+	<!-- Bridge uiohook and native gamepad (XInput) to Web APIs (Electron only) -->
 	<script>
-		// Native gamepad state storage (populated by main process events)
-		const nativeGamepads = new Map(); // Map<id, { axes: [], buttons: [] }>
+		// Native XInput gamepad state (populated by main process polling)
+		let xinputState = null;
 
-		// Override navigator.getGamepads() to return native gamepad state when available
+		// Override navigator.getGamepads() to return XInput state when available
 		if (window.electronAPI) {
 			const originalGetGamepads = navigator.getGamepads.bind(navigator);
 
 			navigator.getGamepads = function() {
-				// If we have native gamepad data, return it
-				if (nativeGamepads.size > 0) {
-					const result = [];
-					nativeGamepads.forEach((state, id) => {
-						// Create Gamepad-like object
-						result[id] = {
-							id: `Native Gamepad ${id}`,
-							index: id,
+				// If we have XInput data, convert it to Web Gamepad API format
+				if (xinputState) {
+					// Map XInput state to standard gamepad format
+					// XInput: { LeftThumbstickX, LeftThumbstickY, RightThumbstickX, RightThumbstickY, LeftTrigger, RightTrigger, ... }
+					// Web API: { axes: [leftX, leftY, rightX, rightY], buttons: [...] }
+
+					const axes = [
+						xinputState.LeftThumbstickX || 0,
+						xinputState.LeftThumbstickY || 0,
+						xinputState.RightThumbstickX || 0,
+						xinputState.RightThumbstickY || 0
+					];
+
+					// Standard gamepad button mapping (17 buttons)
+					// 0=A, 1=B, 2=X, 3=Y, 4=LB, 5=RB, 6=LT, 7=RT, 8=Back, 9=Start, 10=LS, 11=RS, 12=Up, 13=Down, 14=Left, 15=Right
+					const buttons = [
+						xinputState.A || false,
+						xinputState.B || false,
+						xinputState.X || false,
+						xinputState.Y || false,
+						xinputState.LeftShoulder || false,
+						xinputState.RightShoulder || false,
+						(xinputState.LeftTrigger || 0) > 0.1,  // Trigger as button
+						(xinputState.RightTrigger || 0) > 0.1,
+						xinputState.Back || false,
+						xinputState.Start || false,
+						xinputState.LeftThumb || false,  // Thumbstick click
+						xinputState.RightThumb || false,
+						xinputState.DPadUp || false,
+						xinputState.DPadDown || false,
+						xinputState.DPadLeft || false,
+						xinputState.DPadRight || false,
+						false  // Guide button (usually reserved)
+					].map(pressed => ({ pressed, touched: pressed, value: pressed ? 1.0 : 0.0 }));
+
+					return [
+						{
+							id: 'XInput Gamepad (STANDARD GAMEPAD)',
+							index: 0,
 							connected: true,
 							timestamp: performance.now(),
 							mapping: 'standard',
-							axes: state.axes.slice(), // Copy arrays
-							buttons: state.buttons.map(pressed => ({ pressed, touched: pressed, value: pressed ? 1.0 : 0.0 }))
-						};
-					});
-					// Fill remaining slots with null
-					for (let i = 0; i < 4; i++) {
-						if (!result[i]) result[i] = null;
-					}
-					return result;
+							axes: axes,
+							buttons: buttons
+						},
+						null, null, null
+					];
 				}
 				// Fallback to browser API when focused
 				return originalGetGamepads();
 			};
 
-			// Listen for native gamepad axis changes
-			window.electronAPI.onGlobalGamepadAxis(({ id, axis, value }) => {
-				if (!nativeGamepads.has(id)) {
-					nativeGamepads.set(id, { axes: [], buttons: [] });
-				}
-				const state = nativeGamepads.get(id);
-				state.axes[axis] = value;
+			// Listen for XInput state updates
+			window.electronAPI.onGlobalGamepadState((state) => {
+				xinputState = state;
 			});
 
-			// Listen for native gamepad button changes
-			window.electronAPI.onGlobalGamepadButton(({ id, button, pressed }) => {
-				if (!nativeGamepads.has(id)) {
-					nativeGamepads.set(id, { axes: [], buttons: [] });
-				}
-				const state = nativeGamepads.get(id);
-				state.buttons[button] = pressed;
-			});
-
-			console.log('[Renderer] ✓ Native gamepad override active');
+			console.log('[Renderer] ✓ XInput gamepad override active');
 		}
 
 		// TEST: Periodically log gamepad state

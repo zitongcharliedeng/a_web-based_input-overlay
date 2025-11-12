@@ -26,17 +26,24 @@ try {
   console.log('[Main] Global input hooks disabled (will use DOM events only)');
 }
 
-// Try to initialize gamepad for native polling
+// Try to initialize XInput for native gamepad polling (Windows only)
+let XInputGamepad = null;
 let gamepad = null;
 let gamepadAvailable = false;
 
-try {
-  gamepad = require('gamepad');
-  gamepadAvailable = true;
-  console.log('[Main] ✓ gamepad library loaded successfully');
-} catch (error) {
-  console.log('[Main] ✗ gamepad library not available:', error.message);
-  console.log('[Main] Native gamepad polling disabled (will use Web Gamepad API only)');
+if (process.platform === 'win32') {
+  try {
+    const xinput = require('xinput-ffi');
+    XInputGamepad = xinput.XInputGamepad;
+    gamepadAvailable = true;
+    console.log('[Main] ✓ xinput-ffi loaded successfully (Windows XInput)');
+  } catch (error) {
+    console.log('[Main] ✗ xinput-ffi not available:', error.message);
+    console.log('[Main] Native gamepad polling disabled (will use Web Gamepad API only)');
+  }
+} else {
+  console.log('[Main] Native gamepad polling not available on', process.platform);
+  console.log('[Main] (Windows XInput only - will use Web Gamepad API)');
 }
 
 // IPC handlers for renderer queries
@@ -155,41 +162,22 @@ app.whenReady().then(() => {
     console.log('[Main] ✓ Global input hooks started');
   }
 
-  // Start native gamepad polling if available
-  if (gamepad) {
-    console.log('[Main] Initializing native gamepad polling...');
+  // Start native gamepad polling if available (Windows XInput)
+  if (XInputGamepad) {
+    console.log('[Main] Initializing XInput gamepad polling...');
 
-    gamepad.init();
+    gamepad = new XInputGamepad();
 
-    // Poll for new devices every 1 second
-    setInterval(() => {
-      gamepad.detectDevices();
-    }, 1000);
-
-    // Listen for gamepad events
-    gamepad.on('attach', (id, device) => {
-      console.log('[Main] Gamepad attached:', id, '-', device.description);
+    // Listen for input changes
+    gamepad.on('input', (state) => {
+      // Send entire gamepad state to renderer
+      mainWindow.webContents.send('global-gamepad-state', state);
     });
 
-    gamepad.on('remove', (id) => {
-      console.log('[Main] Gamepad removed:', id);
-    });
+    // Start polling (60hz = ~16ms, matches typical game loop)
+    gamepad.poll({ hz: 60 });
 
-    // Move event fires when any axis changes
-    gamepad.on('move', (id, axis, value) => {
-      mainWindow.webContents.send('global-gamepad-axis', { id, axis, value });
-    });
-
-    // Button events
-    gamepad.on('down', (id, button) => {
-      mainWindow.webContents.send('global-gamepad-button', { id, button, pressed: true });
-    });
-
-    gamepad.on('up', (id, button) => {
-      mainWindow.webContents.send('global-gamepad-button', { id, button, pressed: false });
-    });
-
-    console.log('[Main] ✓ Native gamepad polling started');
+    console.log('[Main] ✓ XInput gamepad polling started (60hz)');
   } else {
     console.log('[Main] Gamepad support: Using Web Gamepad API only (no unfocused support)');
   }
@@ -206,6 +194,12 @@ app.on('window-all-closed', () => {
   if (uIOhook) {
     console.log('[Main] Stopping global input hooks...');
     uIOhook.stop();
+  }
+
+  // Stop XInput gamepad polling
+  if (gamepad) {
+    console.log('[Main] Stopping XInput gamepad polling...');
+    gamepad.stop();
   }
 
   if (process.platform !== 'darwin') {
