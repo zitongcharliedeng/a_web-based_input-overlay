@@ -505,6 +505,94 @@ function scene_default(canvas, ctx) {
 				processing: { linkedAxis: 0 }, display: { text: "S\nBackward\nGamepad Down", backgroundImage: KeyImage }
 			}
 		),
+
+		// ===== TEST CASE 5: Mouse Buttons =====
+		(function() { yOffset += sectionSpacing; return createLabel(20, yOffset, "TEST 5: Mouse Buttons"); })(),
+		createLabel(20, yOffset + 25, "All 5 standard mouse buttons - Left, Right, Middle, Back, Forward"),
+
+		// M1 - Left Mouse Button
+		new LinearInputIndicator(
+			50, yOffset + 60, 100, 100,
+			{
+				input: {
+					keyboard: { keyCode: null },
+					mouse: { button: 0 },
+					gamepad: {
+						stick: { type: null, axis: null, direction: null },
+						button: { index: null }
+					}
+				},
+				display: { text: "M1\nLeft\nClick", backgroundImage: KeyImage }
+			}
+		),
+
+		// M2 - Right Mouse Button
+		new LinearInputIndicator(
+			170, yOffset + 60, 100, 100,
+			{
+				input: {
+					keyboard: { keyCode: null },
+					mouse: { button: 2 },
+					gamepad: {
+						stick: { type: null, axis: null, direction: null },
+						button: { index: null }
+					}
+				},
+				display: { text: "M2\nRight\nClick", backgroundImage: KeyImage }
+			}
+		),
+
+		// M3 - Middle Mouse Button (Wheel Click)
+		new LinearInputIndicator(
+			290, yOffset + 60, 100, 100,
+			{
+				input: {
+					keyboard: { keyCode: null },
+					mouse: { button: 1 },
+					gamepad: {
+						stick: { type: null, axis: null, direction: null },
+						button: { index: null }
+					}
+				},
+				display: { text: "M3\nWheel\nClick", backgroundImage: KeyImage }
+			}
+		),
+
+		// M4 - Back Button
+		new LinearInputIndicator(
+			410, yOffset + 60, 100, 100,
+			{
+				input: {
+					keyboard: { keyCode: null },
+					mouse: { button: 3 },
+					gamepad: {
+						stick: { type: null, axis: null, direction: null },
+						button: { index: null }
+					}
+				},
+				display: { text: "M4\nBack\nButton", backgroundImage: KeyImage }
+			}
+		),
+
+		// M5 - Forward Button
+		new LinearInputIndicator(
+			530, yOffset + 60, 100, 100,
+			{
+				input: {
+					keyboard: { keyCode: null },
+					mouse: { button: 4 },
+					gamepad: {
+						stick: { type: null, axis: null, direction: null },
+						button: { index: null }
+					}
+				},
+				display: { text: "M5\nForward\nButton", backgroundImage: KeyImage }
+			}
+		),
+
+		// Note: Scroll wheel up/down would require axis-style input (wheelDelta.y)
+		// Currently LinearInputIndicator only supports digital button inputs
+		// TODO: Add scroll wheel visualization (needs axis/analog input support)
 	];
 
 	// Object dragging and property editing state
