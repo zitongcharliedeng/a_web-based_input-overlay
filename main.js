@@ -188,49 +188,71 @@ app.whenReady().then(() => {
 
         // DEBUG: Log all controller properties
         console.log('[Main] DEBUG: Controller object keys:', Object.keys(controller));
-        console.log('[Main] DEBUG: Controller type:', typeof controller);
         console.log('[Main] DEBUG: Controller.axes:', controller.axes);
         console.log('[Main] DEBUG: Controller.buttons:', controller.buttons);
 
-        console.log('[Main] Controller opened:', {
-          name: device.name,
-          axes: controller.axes?.length || 'unknown',
-          buttons: controller.buttons?.length || 'unknown'
-        });
+        console.log('[Main] Controller opened successfully:', device.name);
+        console.log('[Main] Using POLLING mode (like OBS plugin - events do not fire)');
 
-        // Axis motion events
-        controller.on('axisMotion', (event) => {
-          console.log('[Main] DEBUG: axisMotion event:', event);
-          // event: { axis, value } where value is -32768 to 32767
-          // Normalize to -1 to 1 range
-          const normalizedValue = event.value / 32768;
-
-          if (event.axis < 4) {
-            gamepadState.axes[event.axis] = normalizedValue;
-            console.log('[Main] Gamepad axis update:', event.axis, '=', normalizedValue.toFixed(2));
-            mainWindow.webContents.send('global-gamepad-state', gamepadState);
+        // OBS-style polling: Read controller.axes and controller.buttons objects directly
+        // Poll at 60fps (16ms) to match game loop
+        const pollInterval = setInterval(() => {
+          if (controller._closed) {
+            clearInterval(pollInterval);
+            return;
           }
-        });
 
-        // Button events
-        controller.on('buttonDown', (event) => {
-          console.log('[Main] DEBUG: buttonDown event:', event);
-          // event: { button }
-          if (event.button < gamepadState.buttons.length) {
-            gamepadState.buttons[event.button] = { pressed: true, value: 1.0 };
-            console.log('[Main] Gamepad button down:', event.button);
-            mainWindow.webContents.send('global-gamepad-state', gamepadState);
-          }
-        });
+          // Poll axis state (controller.axes is an OBJECT with named properties)
+          const axes = controller.axes;
+          if (axes) {
+            // Map named properties to array indices for Web Gamepad API
+            gamepadState.axes[0] = axes.leftStickX || 0;
+            gamepadState.axes[1] = axes.leftStickY || 0;
+            gamepadState.axes[2] = axes.rightStickX || 0;
+            gamepadState.axes[3] = axes.rightStickY || 0;
 
-        controller.on('buttonUp', (event) => {
-          console.log('[Main] DEBUG: buttonUp event:', event);
-          if (event.button < gamepadState.buttons.length) {
-            gamepadState.buttons[event.button] = { pressed: false, value: 0.0 };
-            console.log('[Main] Gamepad button up:', event.button);
-            mainWindow.webContents.send('global-gamepad-state', gamepadState);
+            // Only log if stick moved significantly (avoid spam)
+            if (Math.abs(axes.leftStickX) > 0.1 || Math.abs(axes.leftStickY) > 0.1) {
+              console.log('[Main] Gamepad state poll: leftStick=', axes.leftStickX.toFixed(2), axes.leftStickY.toFixed(2));
+            }
           }
-        });
+
+          // Poll button state (controller.buttons is an OBJECT with named properties)
+          const buttons = controller.buttons;
+          if (buttons) {
+            // Map to standard gamepad button indices
+            const buttonMapping = [
+              'a', 'b', 'x', 'y',
+              'leftShoulder', 'rightShoulder',
+              'leftTrigger', 'rightTrigger',
+              'back', 'start',
+              'leftStick', 'rightStick',
+              'dpadUp', 'dpadDown', 'dpadLeft', 'dpadRight',
+              'guide'
+            ];
+
+            buttonMapping.forEach((buttonName, index) => {
+              const pressed = buttons[buttonName] || false;
+              const oldState = gamepadState.buttons[index]?.pressed || false;
+
+              gamepadState.buttons[index] = {
+                pressed: pressed,
+                value: pressed ? 1.0 : 0.0
+              };
+
+              // Log button changes
+              if (pressed !== oldState) {
+                console.log(`[Main] Gamepad button '${buttonName}' changed to`, pressed);
+              }
+            });
+          }
+
+          // Send updated state to renderer
+          mainWindow.webContents.send('global-gamepad-state', gamepadState);
+        }, 16); // 60fps polling
+
+        // Store interval for cleanup
+        openedControllers.set(device.id + '_poll', pollInterval);
 
       } catch (error) {
         console.error('[Main] Failed to open controller:', error.message);
@@ -240,6 +262,15 @@ app.whenReady().then(() => {
     // Handle disconnections
     sdl.controller.on('deviceRemove', (device) => {
       console.log('[Main] Controller API: Gamepad disconnected:', device.name);
+
+      // Clear polling interval
+      const pollInterval = openedControllers.get(device.id + '_poll');
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        openedControllers.delete(device.id + '_poll');
+      }
+
+      // Close controller
       const controller = openedControllers.get(device.id);
       if (controller) {
         controller.close();
@@ -247,71 +278,11 @@ app.whenReady().then(() => {
       }
     });
 
-    // Try SDL Joystick API (raw joystick access - works for devices not recognized as game controllers)
-    sdl.joystick.on('deviceAdd', (device) => {
-      console.log('[Main] Joystick API: Device connected:', device.name);
-
-      try {
-        const joystick = sdl.joystick.openDevice(device);
-        openedJoysticks.set(device.id, joystick);
-
-        console.log('[Main] DEBUG: Joystick object keys:', Object.keys(joystick));
-        console.log('[Main] DEBUG: Joystick.numAxes:', joystick.numAxes);
-        console.log('[Main] DEBUG: Joystick.numButtons:', joystick.numButtons);
-
-        // Axis motion events
-        joystick.on('axisMotion', (event) => {
-          console.log('[Main] Joystick axisMotion:', event);
-          const normalizedValue = event.value / 32768;
-          if (event.axis < 4) {
-            gamepadState.axes[event.axis] = normalizedValue;
-            console.log('[Main] Joystick axis update:', event.axis, '=', normalizedValue.toFixed(2));
-            mainWindow.webContents.send('global-gamepad-state', gamepadState);
-          }
-        });
-
-        // Button events
-        joystick.on('buttonDown', (event) => {
-          console.log('[Main] Joystick buttonDown:', event.button);
-          if (event.button < gamepadState.buttons.length) {
-            gamepadState.buttons[event.button] = { pressed: true, value: 1.0 };
-            mainWindow.webContents.send('global-gamepad-state', gamepadState);
-          }
-        });
-
-        joystick.on('buttonUp', (event) => {
-          console.log('[Main] Joystick buttonUp:', event.button);
-          if (event.button < gamepadState.buttons.length) {
-            gamepadState.buttons[event.button] = { pressed: false, value: 0.0 };
-            mainWindow.webContents.send('global-gamepad-state', gamepadState);
-          }
-        });
-
-      } catch (error) {
-        console.error('[Main] Failed to open joystick:', error.message);
-      }
-    });
-
-    sdl.joystick.on('deviceRemove', (device) => {
-      console.log('[Main] Joystick API: Device disconnected:', device.name);
-      const joystick = openedJoysticks.get(device.id);
-      if (joystick) {
-        joystick.close();
-        openedJoysticks.delete(device.id);
-      }
-    });
-
-    // Check for already connected devices (both APIs)
+    // Check for already connected controllers
     console.log('[Main] Checking for game controllers:', sdl.controller.devices.length);
     sdl.controller.devices.forEach(device => {
       console.log('[Main] Found controller:', device.name);
       sdl.controller.emit('deviceAdd', device);
-    });
-
-    console.log('[Main] Checking for joysticks:', sdl.joystick.devices.length);
-    sdl.joystick.devices.forEach(device => {
-      console.log('[Main] Found joystick:', device.name);
-      sdl.joystick.emit('deviceAdd', device);
     });
 
     console.log('[Main] ✓ SDL gamepad polling started (unfocused support enabled)');

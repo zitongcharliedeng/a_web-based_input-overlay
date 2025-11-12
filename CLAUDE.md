@@ -588,6 +588,28 @@ npm run dev:electron
 ```
 Launches Electron window with transparency enabled.
 
+### Testing Protocol
+
+**IMPORTANT:** All development testing must follow the structured test protocol.
+
+**Test Documentation:** See [`TEST-PROTOCOL.md`](TEST-PROTOCOL.md) for detailed testing workflow
+
+**Key Principles:**
+- Structured test cases with clear human actions and expected results
+- YES/NO questions for efficient debugging communication
+- Baseline testing (web version) before Electron testing
+- Source of truth for test procedures (refer to file, not memory)
+
+**Quick Test Commands:**
+```bash
+# Test 1: Web version baseline (regression check)
+npm run start:web
+
+# Test 2: Electron with SDL gamepad polling
+.\build-and-run-windows.ps1
+# Follow TEST-PROTOCOL.md Test 2 for detailed steps
+```
+
 ### Development Commands
 
 ```bash
