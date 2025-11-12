@@ -38,7 +38,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('global-wheel', (_event, data) => callback(data));
   },
 
-  // Gamepad (native XInput polling - Windows only)
+  // Gamepad (native SDL2 polling - same as OBS input-overlay plugin)
   onGlobalGamepadState: (callback) => {
     ipcRenderer.on('global-gamepad-state', (_event, state) => callback(state));
   },

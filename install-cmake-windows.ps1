@@ -2,7 +2,13 @@
 
 Write-Host "CMake Installation for Windows" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "sdl2-gamecontroller requires CMake to compile native bindings." -ForegroundColor Yellow
+Write-Host "WHY: sdl2-gamecontroller uses SDL2 (same as OBS input-overlay plugin)" -ForegroundColor Green
+Write-Host "  - Cross-platform (Windows + Linux + macOS)" -ForegroundColor White
+Write-Host "  - Supports all controller types (Xbox, PS, Switch, generic)" -ForegroundColor White
+Write-Host "  - PROVEN to work unfocused (OBS doesn't need focus)" -ForegroundColor White
+Write-Host ""
+Write-Host "REQUIREMENT: CMake needed to compile SDL2 native bindings" -ForegroundColor Yellow
+Write-Host "  - One-time setup (standard tool for game development)" -ForegroundColor White
 Write-Host ""
 
 # Check if CMake is already installed
