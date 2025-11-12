@@ -27,8 +27,13 @@ interface GamepadButtonInput {
 	index: number | null;
 }
 
+interface MouseInput {
+	button: number | null;  // 0: Left, 1: Middle, 2: Right, 3: Back, 4: Forward
+}
+
 interface InputConfig {
 	keyboard: KeyboardInput;
+	mouse: MouseInput;
 	gamepad: {
 		stick: GamepadStickInput;
 		button: GamepadButtonInput;
@@ -61,6 +66,9 @@ const defaultLinearInputIndicatorProperties: LinearInputIndicatorProperties = {
 	input: {
 		keyboard: {
 			keyCode: null
+		},
+		mouse: {
+			button: null
 		},
 		gamepad: {
 			stick: {
@@ -120,6 +128,9 @@ function LinearInputIndicator(x: number, y: number, width: number, height: numbe
 		// Keyboard
 		this.keyCode = this.input.keyboard.keyCode;
 
+		// Mouse
+		this.mouseButton = this.input.mouse.button;
+
 		// Gamepad stick
 		this.hasStickInput = (asConventionalGamepadAxisNumber(this.input.gamepad.stick) !== null);
 		if (this.hasStickInput) {
@@ -166,6 +177,12 @@ LinearInputIndicator.prototype.update = function (delta) {
 	// Get keyboard input
 	const keyboard = (window as any).keyboard;
 	value += keyboard[this.keyCode] ? 1 : 0;
+
+	// Get mouse input
+	const mouse = (window as any).mouse;
+	if (this.mouseButton !== null && mouse.buttons[this.mouseButton]) {
+		value += 1;
+	}
 
 	// Key antiDeadzone has to be lowered when a linked axis surpasses the antiDeadzone for better directional indications
 	// This is a lazy way to achieve this, but works for now

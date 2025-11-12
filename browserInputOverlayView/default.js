@@ -1,4 +1,4 @@
-import { Mouse } from '../browserInputListeners/mouse.js';
+import { mouse } from '../browserInputListeners/mouse.js';
 import { keyboard } from '../browserInputListeners/keyboard.js';
 import { PlanarInputIndicator_Radial } from './_compiled/objects/PlanarInputIndicator_Radial.js';
 import { LinearInputIndicator } from './_compiled/objects/LinearInputIndicator.js';
@@ -9,11 +9,11 @@ import { canvas_properties } from './_helpers/draw.js';
 
 // Global variables
 var canvas;
-var mouse;
 
 // Make input systems globally accessible for input indicators
 window.gamepads = null;
 window.keyboard = keyboard;
+window.mouse = mouse;
 
 // Main framework - game loop and scene initialization
 window.addEventListener("load", function () {
@@ -24,8 +24,7 @@ window.addEventListener("load", function () {
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
-	// Initialize input systems
-	mouse = new Mouse();
+	// Input systems already initialized (imported as objects)
 
 	// Create and initialize the scene
 	var activeScene = new scene_default(canvas, ctx);

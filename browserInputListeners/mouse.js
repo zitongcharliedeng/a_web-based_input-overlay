@@ -1,73 +1,82 @@
 
 
+// Mouse state object (matches keyboard pattern: simple key-value pairs)
+var mouse = {
+	// Position
+	x: 0,
+	y: 0,
 
-function Mouse() {
+	// Buttons (using standard MouseEvent.button values)
+	// 0: Left, 1: Middle, 2: Right, 3: Back, 4: Forward
+	buttons: {
+		0: false,
+		1: false,
+		2: false,
+		3: false,
+		4: false
+	},
 
-    // Properties
-    this.x = 0,
-    this.y = 0,
-    this.button1 = false,
-    this.button1Click = false,
-    this.button2 = false,
-    this.button2Click = false,
-    this.button3 = false,
-    this.button3Click = false,
-    this.wheelDelta = {x: 0, y: 0},
+	// Single-frame click events (reset each update)
+	clicks: {
+		0: false,
+		1: false,
+		2: false,
+		3: false,
+		4: false
+	},
 
-    // Update loop
-    this.update = function(delta) {
+	// Wheel delta (scroll)
+	wheelDelta: { x: 0, y: 0 },
 
+	// Update loop (called each frame)
+	update: function(delta) {
+		// Decay wheel delta
 		this.wheelDelta.x *= 0.7 * delta;
 		this.wheelDelta.y *= 0.7 * delta;
-        this.button1Click = false;
-        this.button2Click = false;
-        this.button3Click = false;
-    }
 
+		// Reset click events (single-frame)
+		this.clicks[0] = false;
+		this.clicks[1] = false;
+		this.clicks[2] = false;
+		this.clicks[3] = false;
+		this.clicks[4] = false;
+	}
+};
 
-    // Mouse events
-    const self = this;
+// Mouse event listeners
+canvas.addEventListener('mousedown', function(e) {
+	// Update position
+	mouse.x = e.x;
+	mouse.y = e.y;
 
-    canvas.addEventListener('mousedown', function(e) {
+	// Update button state (e.button uses standard values 0-4)
+	if (mouse.buttons[e.button] === false) {
+		mouse.buttons[e.button] = true;
+		mouse.clicks[e.button] = true;
+	}
+});
 
-        // Update position;
-        self.x = e.x;
-        self.y = e.y;
+canvas.addEventListener('mouseup', function(e) {
+	// Update position
+	mouse.x = e.x;
+	mouse.y = e.y;
 
-        // Update button state
-        if (self[ 'button'+e.which ] === false) {
+	// Update button state
+	if (mouse.buttons[e.button] === true) {
+		mouse.buttons[e.button] = false;
+	}
+});
 
-            self[ 'button'+e.which ] = true;
-            self[ 'button'+e.which+'Click' ] = true;
-        }
-    });
+canvas.addEventListener('mousemove', function(e) {
+	// Update position
+	mouse.x = e.x;
+	mouse.y = e.y;
+});
 
-    canvas.addEventListener('mouseup', function(e) {
+canvas.addEventListener('wheel', function(e) {
+	// Update wheel delta
+	mouse.wheelDelta.x = e.deltaX;
+	mouse.wheelDelta.y = e.deltaY;
+});
 
-        // Update position;
-        self.x = e.x;
-        self.y = e.y;
-
-        // Update button state
-        if (self[ 'button'+e.which ] === true) {
-
-            self[ 'button'+e.which ] = false;
-        }
-    });
-
-    canvas.addEventListener('mousemove', function(e) {
-
-        // Update position;
-        self.x = e.x;
-        self.y = e.y;
-    });
-
-    canvas.addEventListener('wheel', function(e) {
-
-        // Update wheel delta
-        self.wheelDelta.x = e.deltaX;
-        self.wheelDelta.y = e.deltaY;
-    })
-}
-
-export { Mouse };
+export { mouse };
