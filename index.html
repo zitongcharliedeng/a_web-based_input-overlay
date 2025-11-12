@@ -5,7 +5,7 @@
 	<meta charset="UTF-8">
 	<title>analog keyboard overlay</title>
 	<!-- Cache-busting: increment version when updating code -->
-	<script type="module" src="browserInputOverlayView/default.js?v=7"></script>
+	<script type="module" src="browserInputOverlayView/default.js?v=8"></script>
 	<link rel="stylesheet" href="browserInputOverlayView/_assets/style.css?v=2">
 </head>
 
@@ -26,6 +26,10 @@
 
 	<!-- Bridge uiohook and SDL to Web APIs (Electron only) -->
 	<script>
+		console.log('[Renderer] Script started');
+		console.log('[Renderer] process.type:', typeof process !== 'undefined' ? process.type : 'undefined');
+		console.log('[Renderer] window.electronAPI:', typeof window.electronAPI);
+
 		// SDL gamepad state from main process (sdl2-gamecontroller)
 		// sdl2-gamecontroller runs SDL_PumpEvents() in separate thread
 		// This works with Electron's event loop and provides unfocused input
