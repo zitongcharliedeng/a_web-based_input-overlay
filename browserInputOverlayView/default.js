@@ -1,4 +1,4 @@
-import { mouse } from '../browserInputListeners/mouse.js';
+import { mouse } from './_compiled/browserInputListeners/mouse.js';
 import { keyboard } from '../browserInputListeners/keyboard.js';
 import { PlanarInputIndicator_Radial } from './_compiled/objects/PlanarInputIndicator_Radial.js';
 import { LinearInputIndicator } from './_compiled/objects/LinearInputIndicator.js';

@@ -1,7 +1,37 @@
 
+// Type definitions
+interface MouseButtons {
+	0: boolean;
+	1: boolean;
+	2: boolean;
+	3: boolean;
+	4: boolean;
+}
+
+interface MouseClicks {
+	0: boolean;
+	1: boolean;
+	2: boolean;
+	3: boolean;
+	4: boolean;
+}
+
+interface WheelDelta {
+	x: number;
+	y: number;
+}
+
+interface MouseState {
+	x: number;
+	y: number;
+	buttons: MouseButtons;
+	clicks: MouseClicks;
+	wheelDelta: WheelDelta;
+	update(delta: number): void;
+}
 
 // Mouse state object (matches keyboard pattern: simple key-value pairs)
-var mouse = {
+const mouse: MouseState = {
 	// Position
 	x: 0,
 	y: 0,
@@ -29,7 +59,7 @@ var mouse = {
 	wheelDelta: { x: 0, y: 0 },
 
 	// Update loop (called each frame)
-	update: function(delta) {
+	update(delta: number): void {
 		// Decay wheel delta
 		this.wheelDelta.x *= 0.7 * delta;
 		this.wheelDelta.y *= 0.7 * delta;
@@ -43,37 +73,42 @@ var mouse = {
 	}
 };
 
+// Get canvas element
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+
 // Mouse event listeners
-canvas.addEventListener('mousedown', function(e) {
+canvas.addEventListener('mousedown', (e: MouseEvent) => {
 	// Update position
 	mouse.x = e.x;
 	mouse.y = e.y;
 
 	// Update button state (e.button uses standard values 0-4)
-	if (mouse.buttons[e.button] === false) {
-		mouse.buttons[e.button] = true;
-		mouse.clicks[e.button] = true;
+	const button = e.button as 0 | 1 | 2 | 3 | 4;
+	if (mouse.buttons[button] === false) {
+		mouse.buttons[button] = true;
+		mouse.clicks[button] = true;
 	}
 });
 
-canvas.addEventListener('mouseup', function(e) {
+canvas.addEventListener('mouseup', (e: MouseEvent) => {
 	// Update position
 	mouse.x = e.x;
 	mouse.y = e.y;
 
 	// Update button state
-	if (mouse.buttons[e.button] === true) {
-		mouse.buttons[e.button] = false;
+	const button = e.button as 0 | 1 | 2 | 3 | 4;
+	if (mouse.buttons[button] === true) {
+		mouse.buttons[button] = false;
 	}
 });
 
-canvas.addEventListener('mousemove', function(e) {
+canvas.addEventListener('mousemove', (e: MouseEvent) => {
 	// Update position
 	mouse.x = e.x;
 	mouse.y = e.y;
 });
 
-canvas.addEventListener('wheel', function(e) {
+canvas.addEventListener('wheel', (e: WheelEvent) => {
 	// Update wheel delta
 	mouse.wheelDelta.x = e.deltaX;
 	mouse.wheelDelta.y = e.deltaY;
