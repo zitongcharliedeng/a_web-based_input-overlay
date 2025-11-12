@@ -112,9 +112,11 @@ LinearInputIndicator.prototype.update = function (delta) {
     // Get mouse wheel input (single-frame events like clicks)
     if (this.mouseWheel !== null && mouse.wheelEvents) {
         if (this.mouseWheel === "up" && mouse.wheelEvents.up) {
+            console.log('[LinearInputIndicator] Scroll UP detected! value += 1');
             value += 1;
         }
         else if (this.mouseWheel === "down" && mouse.wheelEvents.down) {
+            console.log('[LinearInputIndicator] Scroll DOWN detected! value += 1');
             value += 1;
         }
     }
