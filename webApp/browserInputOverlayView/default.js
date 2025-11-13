@@ -101,7 +101,7 @@ window.addEventListener("load", function () {
     window.addEventListener("resize", resizeCanvas);
 }, false);
 // LocalStorage persistence with versioning
-const CONFIG_VERSION = 6; // Increment when config structure changes
+const CONFIG_VERSION = 100; // Increment when config structure changes (bumped to 100 to force clear)
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 function saveSceneConfig(config) {
     try {
