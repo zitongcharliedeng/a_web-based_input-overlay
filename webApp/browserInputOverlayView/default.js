@@ -461,7 +461,7 @@ function createScene(canvas, ctx) {
     let clickedObject = null;
     const draggingOffset = new Vector(0, 0);
     const gridsize = 10;
-    const propertyEditor = new PropertyEdit(0, 0, 10, 10);
+    const propertyEditor = new PropertyEdit();
     let editingProperties = false;
     return {
         objects,
