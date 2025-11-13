@@ -5,7 +5,7 @@ import { LinearInputIndicator } from './_compiled/objects/LinearInputIndicator.j
 import { Text } from './_compiled/objects/Text.js';
 import { PropertyEdit } from './_compiled/actions/PropertyEdit.js';
 import { Vector } from './_compiled/_helpers/Vector.js';
-import { canvas_properties } from './_helpers/draw.js';
+import { canvas_properties } from './_compiled/_helpers/draw.js';
 
 // Global variables
 var canvas;
