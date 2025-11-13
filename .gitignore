@@ -12,8 +12,5 @@ node_modules/
 webApp/**/*.js
 webApp/**/*.js.map
 
-# Auto-generated version file (build artifact)
-webApp/browserInputOverlayView/_helpers/version.ts
-
 # Exception: Keep Electron wrapper JS (different build context)
 !wrapWebAppAsStandaloneProgram/**/*.js
