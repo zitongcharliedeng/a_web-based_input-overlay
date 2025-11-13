@@ -25,7 +25,7 @@ const defaultLinearInputIndicatorProperties = {
         linkedAxis: -1,
         multiplier: 1,
         antiDeadzone: 0.0,
-        fadeOutDuration: 0.0,
+        fadeOutDuration: 0.5,
     },
     display: {
         text: "SampleText",
@@ -221,12 +221,6 @@ class LinearInputIndicator extends CanvasObject {
         // Fill background
         ctx.beginPath();
         canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx, { fillStyle: this.fillStyleBackground });
-        // Fill value (vertical fill from bottom or top)
-        ctx.beginPath();
-        if (this.reverseFillDirection == true)
-            canvas_fill_rec(ctx, 0, this.hitboxSize.lengthInPx, this.hitboxSize.widthInPx, -this.hitboxSize.lengthInPx * this.value, { fillStyle: this.fillStyle });
-        else
-            canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx * this.value, { fillStyle: this.fillStyle });
         // Draw background image scaled to dimensions
         try {
             ctx.drawImage(this.backgroundImage, 0, 0, this.backgroundImage.width, this.backgroundImage.height, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx);
@@ -235,6 +229,12 @@ class LinearInputIndicator extends CanvasObject {
             // Image not loaded yet or failed to load - skip silently
             // Will retry next frame when image loads
         }
+        // Fill value (vertical fill from bottom or top) - drawn on top of image
+        ctx.beginPath();
+        if (this.reverseFillDirection == true)
+            canvas_fill_rec(ctx, 0, this.hitboxSize.lengthInPx, this.hitboxSize.widthInPx, -this.hitboxSize.lengthInPx * this.value, { fillStyle: this.fillStyle });
+        else
+            canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx * this.value, { fillStyle: this.fillStyle });
         // Print key text centered with white outline
         const textX = this.hitboxSize.widthInPx * 0.5;
         const textY = this.hitboxSize.lengthInPx * 0.5;

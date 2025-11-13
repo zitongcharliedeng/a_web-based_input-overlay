@@ -116,7 +116,7 @@ export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorConfig
 		linkedAxis: -1,
 		multiplier: 1,
 		antiDeadzone: 0,
-		fadeOutDuration: 0
+		fadeOutDuration: 0.5
 	},
 	display: {
 		text: "",
