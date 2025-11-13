@@ -70,11 +70,41 @@ interface LinearInputIndicatorProperties {
 	display?: DisplayConfig;
 }
 
+interface InputConfigDefaults {
+	keyboard: KeyboardInput;
+	mouse: MouseInput;
+	gamepad: {
+		stick: GamepadStickInput;
+		button: GamepadButtonInput;
+	};
+}
+
+interface ProcessingConfigDefaults {
+	linkedAxis: number;
+	multiplier: number;
+	antiDeadzone: number;
+	fadeOutDuration: number;
+}
+
+interface DisplayConfigDefaults {
+	text: string;
+	reverseFillDirection: boolean;
+	fillStyle: string;
+	fillStyleBackground: string;
+	fontStyle: FontStyle;
+}
+
+interface LinearInputIndicatorDefaults {
+	input: InputConfigDefaults;
+	processing: ProcessingConfigDefaults;
+	display: DisplayConfigDefaults;
+}
+
 // TODO: Move antiDeadzone/deadzone to global per-controller configuration (hardware-specific).
 // Commercial joysticks have 0.5-2% center drift: Xbox/PS ~0.01, Switch ~0.015, cheap ~0.03.
 // antiDeadzone compensates for analog stick resting position drift due to manufacturing tolerances.
 
-const defaultLinearInputIndicatorProperties: LinearInputIndicatorProperties = {
+const defaultLinearInputIndicatorProperties: LinearInputIndicatorDefaults = {
 	input: {
 		keyboard: {
 			keyCode: null
@@ -158,9 +188,9 @@ class LinearInputIndicator extends CanvasObject {
 	opacity: number = 1.0; // Fade opacity instead of value
 
 	// Config properties (before flattening)
-	input: InputConfig = defaultLinearInputIndicatorProperties.input;
-	processing: ProcessingConfig = defaultLinearInputIndicatorProperties.processing;
-	display: DisplayConfig = defaultLinearInputIndicatorProperties.display;
+	input: InputConfigDefaults = defaultLinearInputIndicatorProperties.input;
+	processing: ProcessingConfigDefaults = defaultLinearInputIndicatorProperties.processing;
+	display: DisplayConfigDefaults = defaultLinearInputIndicatorProperties.display;
 
 	constructor(x: number, y: number, width: number, height: number, properties?: LinearInputIndicatorProperties, layerLevel?: number) {
 		super(
@@ -270,7 +300,7 @@ class LinearInputIndicator extends CanvasObject {
 
 		// Get keyboard input
 		const keyboard = (window as any).keyboard;
-		value += keyboard[this.keyCode] ? 1 : 0;
+		value += (this.keyCode && keyboard[this.keyCode]) ? 1 : 0;
 
 		// Get mouse input
 		const mouse = (window as any).mouse;

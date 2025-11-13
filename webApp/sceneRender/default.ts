@@ -44,10 +44,11 @@ window.addEventListener("load", function (): void {
 		throw new Error("Canvas element not found");
 	}
 
-	const ctx = canvas.getContext("2d");
-	if (!ctx) {
+	const ctxOrNull = canvas.getContext("2d");
+	if (!ctxOrNull) {
 		throw new Error("Could not get 2D context");
 	}
+	const ctx: CanvasRenderingContext2D = ctxOrNull;
 
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
@@ -317,6 +318,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 					invertY: false
 				},
 				display: {
+					radius: 100,
 					backgroundStyle: {lineWidth:2, strokeStyle:"#B4B4B4", fillStyle:"rgba(0, 0, 0, 0)"},
 					xLineStyle: {strokeStyle:"#FF0000", lineWidth:2},
 					yLineStyle: {strokeStyle:"#00FF00", lineWidth:2},

@@ -40,8 +40,35 @@ interface PlanarInputIndicator_RadialProperties {
 	display?: PlanarDisplayConfig;
 }
 
-// Pure defaults - minimal assumptions
-const defaultPlanarInputIndicator_RadialProperties: PlanarInputIndicator_RadialProperties = {
+interface PlanarInputConfigDefaults {
+	xAxes: AxisMapping;
+	yAxes: AxisMapping;
+	invertX: boolean;
+	invertY: boolean;
+}
+
+interface PlanarProcessingConfigDefaults {
+	deadzone: number;
+	antiDeadzone: number;
+}
+
+interface PlanarDisplayConfigDefaults {
+	radius: number;
+	backgroundStyle: StyleProperties;
+	xLineStyle: StyleProperties;
+	yLineStyle: StyleProperties;
+	deadzoneStyle: StyleProperties;
+	inputVectorStyle: StyleProperties;
+	unitVectorStyle: StyleProperties;
+}
+
+interface PlanarInputIndicatorDefaults {
+	input: PlanarInputConfigDefaults;
+	processing: PlanarProcessingConfigDefaults;
+	display: PlanarDisplayConfigDefaults;
+}
+
+const defaultPlanarInputIndicator_RadialProperties: PlanarInputIndicatorDefaults = {
 	input: {
 		xAxes: { 0: true },  // Left stick X axis
 		yAxes: { 1: true },  // Left stick Y axis
@@ -67,13 +94,13 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 	defaultProperties: PlanarInputIndicator_RadialProperties = defaultPlanarInputIndicator_RadialProperties;
 	className: string = "PlanarInputIndicator_Radial";
 
-	inputVector: Vector;
-	previousX: number;
-	previousY: number;
+	inputVector!: Vector;
+	previousX!: number;
+	previousY!: number;
 
-	input: PlanarInputConfig;
-	processing: PlanarProcessingConfig;
-	display: PlanarDisplayConfig;
+	input!: PlanarInputConfigDefaults;
+	processing!: PlanarProcessingConfigDefaults;
+	display!: PlanarDisplayConfigDefaults;
 
 	constructor(x: number, y: number, width: number, height: number, properties?: PlanarInputIndicator_RadialProperties, layerLevel?: number) {
 		super(
@@ -143,39 +170,42 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 
 	draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
 		canvas_properties(ctx, { lineCap: "round" });
-		ctx.transform(1, 0, 0, 1, this.display.radius, this.display.radius);
+		const radius = this.display.radius;
+		ctx.transform(1, 0, 0, 1, radius, radius);
 
 		ctx.beginPath();
-		canvas_arc(ctx, 0, 0, this.display.radius, 0, 2 * Math.PI, this.display.backgroundStyle);
+		canvas_arc(ctx, 0, 0, radius, 0, 2 * Math.PI, this.display.backgroundStyle);
 		ctx.stroke();
 		ctx.fill();
 
-		if (this.processing.deadzone > 0) {
+		const deadzone = this.processing.deadzone;
+		if (deadzone > 0) {
 			ctx.beginPath();
-			canvas_arc(ctx, 0, 0, this.display.radius * this.processing.deadzone, 0, 2 * Math.PI, this.display.deadzoneStyle);
+			canvas_arc(ctx, 0, 0, radius * deadzone, 0, 2 * Math.PI, this.display.deadzoneStyle);
 			ctx.fill();
 		}
 
 		ctx.beginPath();
-		canvas_line(ctx, 0, 0, this.inputVector.x * this.display.radius, 0, this.display.xLineStyle);
+		canvas_line(ctx, 0, 0, this.inputVector.x * radius, 0, this.display.xLineStyle);
 		ctx.stroke();
 
 		ctx.beginPath();
-		canvas_line(ctx, 0, 0, 0, this.inputVector.y * this.display.radius, this.display.yLineStyle);
+		canvas_line(ctx, 0, 0, 0, this.inputVector.y * radius, this.display.yLineStyle);
 		ctx.stroke();
 
-		if (this.inputVector.length() > this.processing.deadzone) {
+		if (this.inputVector.length() > deadzone) {
 			const normalizedInput = this.inputVector.unit();
 			const currentAngles = this.inputVector.toAngles();
+			const antiDeadzone = this.processing.antiDeadzone;
 			const clampedInput = Vector.fromAngles(currentAngles.theta, currentAngles.phi)
-				.multiply((this.inputVector.length() - this.processing.antiDeadzone) / (1 - this.processing.antiDeadzone));
+				.multiply((this.inputVector.length() - antiDeadzone) / (1 - antiDeadzone));
 
 			ctx.beginPath();
-			canvas_arrow(ctx, 0, 0, normalizedInput.x * this.display.radius, normalizedInput.y * this.display.radius, this.display.unitVectorStyle);
+			canvas_arrow(ctx, 0, 0, normalizedInput.x * radius, normalizedInput.y * radius, this.display.unitVectorStyle);
 			ctx.stroke();
 
 			ctx.beginPath();
-			canvas_arrow(ctx, 0, 0, clampedInput.x * this.display.radius, clampedInput.y * this.display.radius, this.display.inputVectorStyle);
+			canvas_arrow(ctx, 0, 0, clampedInput.x * radius, clampedInput.y * radius, this.display.inputVectorStyle);
 			ctx.stroke();
 		}
 
