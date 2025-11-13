@@ -1,5 +1,5 @@
 import { CanvasObject } from './index.js';
-import { canvas_fill_rec, canvas_text } from '../_helpers/draw.js';
+import { canvas_fill_rec, canvas_text, canvas_properties } from '../_helpers/draw.js';
 // Default restorepoint properties
 const defaultLinearInputIndicatorProperties = {
     input: {
@@ -206,8 +206,14 @@ class LinearInputIndicator extends CanvasObject {
             // Image not loaded yet or failed to load - skip silently
             // Will retry next frame when image loads
         }
-        // Print key text centered
-        canvas_text(ctx, this.hitboxSize.widthInPx * 0.5, this.hitboxSize.lengthInPx * 0.5, this.keyText, this.fontStyle);
+        // Print key text centered with white outline
+        const textX = this.hitboxSize.widthInPx * 0.5;
+        const textY = this.hitboxSize.lengthInPx * 0.5;
+        canvas_properties(ctx, this.fontStyle);
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 3;
+        ctx.strokeText(this.keyText, textX, textY);
+        canvas_text(ctx, textX, textY, this.keyText, this.fontStyle);
     }
 }
 export { LinearInputIndicator };

@@ -53,6 +53,12 @@ class Text extends CanvasObject {
 
     draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
         ctx.beginPath();
+        if (this.shouldStroke) {
+            // White outline
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 3;
+            ctx.strokeText(this.text, 0, 0);
+        }
         canvas_text(ctx, 0, 0, this.text, this.textStyle);
     }
 }

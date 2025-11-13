@@ -123,7 +123,7 @@ export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorConfig
 		fillStyleBackground: "#222222",
 		fontStyle: {
 			textAlign: "center",
-			fillStyle: "white",
+			fillStyle: "black",
 			font: "30px Lucida Console"
 		},
 		reverseFillDirection: false

@@ -101,7 +101,7 @@ window.addEventListener("load", function () {
     window.addEventListener("resize", resizeCanvas);
 }, false);
 // LocalStorage persistence with versioning
-const CONFIG_VERSION = 1; // Increment when config structure changes
+const CONFIG_VERSION = 2; // Increment when config structure changes
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 function saveSceneConfig(config) {
     try {
@@ -227,7 +227,7 @@ function createScene(canvas, ctx) {
             },
             display: {
                 ...defaultTemplateFor_LinearInputIndicator.display,
-                text: "W\nWith\nCompensation"
+                text: "W"
             }
         }),
         new LinearInputIndicator(150, yOffset + 160, 100, 100, {
@@ -239,7 +239,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: 1 }, display: { text: "A\nWith\nCompensation", backgroundImage: KeyImage }
+            processing: { linkedAxis: 1 }, display: { text: "A", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(250, yOffset + 160, 100, 100, {
             input: {
@@ -250,7 +250,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: 0 }, display: { text: "S\nWith\nCompensation", backgroundImage: KeyImage }
+            processing: { linkedAxis: 0 }, display: { text: "S", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(350, yOffset + 160, 100, 100, {
             input: {
@@ -261,7 +261,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: 1 }, display: { text: "D\nWith\nCompensation", backgroundImage: KeyImage }
+            processing: { linkedAxis: 1 }, display: { text: "D", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(740, yOffset + 60, 100, 100, {
             input: {
@@ -272,7 +272,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: -1 }, display: { text: "W\nWithout\nCompensation", backgroundImage: KeyImage }
+            processing: { linkedAxis: -1 }, display: { text: "W", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(650, yOffset + 160, 100, 100, {
             input: {
@@ -283,7 +283,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: -1 }, display: { text: "A\nWithout\nCompensation", backgroundImage: KeyImage }
+            processing: { linkedAxis: -1 }, display: { text: "A", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(750, yOffset + 160, 100, 100, {
             input: {
@@ -294,7 +294,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: -1 }, display: { text: "S\nWithout\nCompensation", backgroundImage: KeyImage }
+            processing: { linkedAxis: -1 }, display: { text: "S", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(850, yOffset + 160, 100, 100, {
             input: {
@@ -305,7 +305,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: -1 }, display: { text: "D\nWithout\nCompensation", backgroundImage: KeyImage }
+            processing: { linkedAxis: -1 }, display: { text: "D", backgroundImage: KeyImage }
         }),
         createLabel(1050, yOffset, "TEST 1B: Right Gamepad Stick (IJKL)"),
         createLabel(1050, yOffset + 25, "Same as Test 1, but using right stick"),
@@ -317,7 +317,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: 2 }, display: { text: "I\nUp", backgroundImage: KeyImage }
+            processing: { linkedAxis: 2 }, display: { text: "I", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(1050, yOffset + 160, 100, 100, {
             input: {
@@ -327,7 +327,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: 3 }, display: { text: "J\nLeft", backgroundImage: KeyImage }
+            processing: { linkedAxis: 3 }, display: { text: "J", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(1150, yOffset + 160, 100, 100, {
             input: {
@@ -337,7 +337,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: 2 }, display: { text: "K\nDown", backgroundImage: KeyImage }
+            processing: { linkedAxis: 2 }, display: { text: "K", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(1250, yOffset + 160, 100, 100, {
             input: {
@@ -347,7 +347,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: 3 }, display: { text: "L\nRight", backgroundImage: KeyImage }
+            processing: { linkedAxis: 3 }, display: { text: "L", backgroundImage: KeyImage }
         }),
         (() => { yOffset += sectionSpacing; return createLabel(20, yOffset, "TEST 3: Gamepad Buttons (Digital)"); })(),
         createLabel(20, yOffset + 25, "Face buttons (A/B/X/Y) - digital on/off, no pressure sensitivity"),
@@ -360,7 +360,7 @@ function createScene(canvas, ctx) {
                     button: { index: 0 }
                 }
             },
-            display: { text: "A\nBtn 0", backgroundImage: KeyImage }
+            display: { text: "A", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(250, yOffset + 60, 100, 100, {
             input: {
@@ -371,7 +371,7 @@ function createScene(canvas, ctx) {
                     button: { index: 1 }
                 }
             },
-            display: { text: "B\nBtn 1", backgroundImage: KeyImage }
+            display: { text: "B", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(350, yOffset + 60, 100, 100, {
             input: {
@@ -382,7 +382,7 @@ function createScene(canvas, ctx) {
                     button: { index: 2 }
                 }
             },
-            display: { text: "X\nBtn 2", backgroundImage: KeyImage }
+            display: { text: "X", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(450, yOffset + 60, 100, 100, {
             input: {
@@ -393,11 +393,9 @@ function createScene(canvas, ctx) {
                     button: { index: 3 }
                 }
             },
-            display: { text: "Y\nBtn 3", backgroundImage: KeyImage }
+            display: { text: "Y", backgroundImage: KeyImage }
         }),
-        (() => { yOffset += sectionSpacing; return createLabel(20, yOffset, "TEST 3B: Gamepad Triggers (Analog Pressure)"); })(),
-        createLabel(20, yOffset + 25, "LT/RT triggers - should show gradual fill based on pressure (0-100%)"),
-        new LinearInputIndicator(150, yOffset + 60, 100, 100, {
+        new LinearInputIndicator(550, yOffset + 60, 100, 100, {
             input: {
                 keyboard: { keyCode: null },
                 gamepad: {
@@ -405,9 +403,9 @@ function createScene(canvas, ctx) {
                     button: { index: 6 }
                 }
             },
-            display: { text: "LT\nAnalog", backgroundImage: KeyImage }
+            display: { text: "LT", backgroundImage: KeyImage }
         }),
-        new LinearInputIndicator(250, yOffset + 60, 100, 100, {
+        new LinearInputIndicator(650, yOffset + 60, 100, 100, {
             input: {
                 keyboard: { keyCode: null },
                 gamepad: {
@@ -415,7 +413,7 @@ function createScene(canvas, ctx) {
                     button: { index: 7 }
                 }
             },
-            display: { text: "RT\nAnalog", backgroundImage: KeyImage }
+            display: { text: "RT", backgroundImage: KeyImage }
         }),
     ];
     let clickedObject = null;

@@ -20,6 +20,12 @@ class Text extends CanvasObject {
     }
     draw(canvas, ctx) {
         ctx.beginPath();
+        if (this.shouldStroke) {
+            // White outline
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 3;
+            ctx.strokeText(this.text, 0, 0);
+        }
         canvas_text(ctx, 0, 0, this.text, this.textStyle);
     }
 }

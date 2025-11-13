@@ -143,7 +143,7 @@ window.addEventListener("load", function (): void {
 }, false);
 
 // LocalStorage persistence with versioning
-const CONFIG_VERSION = 1;  // Increment when config structure changes
+const CONFIG_VERSION = 2;  // Increment when config structure changes
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 
 function saveSceneConfig(config: any): void {
@@ -306,7 +306,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 			},
 			display: {
 				...defaultTemplateFor_LinearInputIndicator.display,
-				text: "W\nWith\nCompensation"
+				text: "W"
 			}
 		}),
 		new LinearInputIndicator(
@@ -320,7 +320,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 1 }, display: { text: "A\nWith\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: 1 }, display: { text: "A", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -334,7 +334,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 0 }, display: { text: "S\nWith\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: 0 }, display: { text: "S", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -348,7 +348,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 1 }, display: { text: "D\nWith\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: 1 }, display: { text: "D", backgroundImage: KeyImage }
 			}
 		),
 
@@ -363,7 +363,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "W\nWithout\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "W", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -377,7 +377,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "A\nWithout\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "A", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -391,7 +391,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "S\nWithout\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "S", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -405,7 +405,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "D\nWithout\nCompensation", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "D", backgroundImage: KeyImage }
 			}
 		),
 
@@ -422,7 +422,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 2 }, display: { text: "I\nUp", backgroundImage: KeyImage }
+				processing: { linkedAxis: 2 }, display: { text: "I", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -435,7 +435,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 3 }, display: { text: "J\nLeft", backgroundImage: KeyImage }
+				processing: { linkedAxis: 3 }, display: { text: "J", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -448,7 +448,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 2 }, display: { text: "K\nDown", backgroundImage: KeyImage }
+				processing: { linkedAxis: 2 }, display: { text: "K", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -461,7 +461,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 3 }, display: { text: "L\nRight", backgroundImage: KeyImage }
+				processing: { linkedAxis: 3 }, display: { text: "L", backgroundImage: KeyImage }
 			}
 		),
 
@@ -479,7 +479,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: 0 }
 					}
 				},
-				display: { text: "A\nBtn 0", backgroundImage: KeyImage }
+				display: { text: "A", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -493,7 +493,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: 1 }
 					}
 				},
-				display: { text: "B\nBtn 1", backgroundImage: KeyImage }
+				display: { text: "B", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -507,7 +507,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: 2 }
 					}
 				},
-				display: { text: "X\nBtn 2", backgroundImage: KeyImage }
+				display: { text: "X", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -521,15 +521,12 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: 3 }
 					}
 				},
-				display: { text: "Y\nBtn 3", backgroundImage: KeyImage }
+				display: { text: "Y", backgroundImage: KeyImage }
 			}
 		),
 
-		(() => { yOffset += sectionSpacing; return createLabel(20, yOffset, "TEST 3B: Gamepad Triggers (Analog Pressure)"); })(),
-		createLabel(20, yOffset + 25, "LT/RT triggers - should show gradual fill based on pressure (0-100%)"),
-
 		new LinearInputIndicator(
-			150, yOffset + 60, 100, 100,
+			550, yOffset + 60, 100, 100,
 			{
 				input: {
 					keyboard: { keyCode: null },
@@ -538,11 +535,11 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: 6 }
 					}
 				},
-				display: { text: "LT\nAnalog", backgroundImage: KeyImage }
+				display: { text: "LT", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
-			250, yOffset + 60, 100, 100,
+			650, yOffset + 60, 100, 100,
 			{
 				input: {
 					keyboard: { keyCode: null },
@@ -551,7 +548,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: 7 }
 					}
 				},
-				display: { text: "RT\nAnalog", backgroundImage: KeyImage }
+				display: { text: "RT", backgroundImage: KeyImage }
 			}
 		),
 	];
