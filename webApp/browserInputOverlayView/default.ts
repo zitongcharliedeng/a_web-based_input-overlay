@@ -7,6 +7,7 @@ import { PropertyEdit } from './actions/PropertyEdit.js';
 import { Vector } from './_helpers/Vector.js';
 import { canvas_properties } from './_helpers/draw.js';
 import { sceneToConfig } from './_helpers/sceneSerializer.js';
+import { ConfigManager } from './_helpers/ConfigManager.js';
 
 declare global {
 	interface Window {
@@ -49,7 +50,19 @@ window.addEventListener("load", function (): void {
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
-	const activeScene = createScene(canvas, ctx);
+	// Initialize ConfigManager early (will be updated with actual scene config)
+	const configManager = new ConfigManager({
+		canvas: { width: canvas.width, height: canvas.height, backgroundColor: 'transparent' },
+		objects: []
+	});
+
+	// Set up auto-save callback
+	configManager.onSave((config) => {
+		console.log('[ConfigManager] Auto-saving config');
+		saveSceneConfig(config);
+	});
+
+	const activeScene = createScene(canvas, ctx, configManager);
 
 	// Try to load saved config from localStorage
 	const savedConfig = loadSceneConfig();
@@ -70,6 +83,10 @@ window.addEventListener("load", function (): void {
 			console.error('[Config] Failed to apply saved config, using defaults:', e);
 		}
 	}
+
+	// Update ConfigManager with actual scene config
+	const currentConfig = sceneToConfig(activeScene.objects, canvas);
+	configManager.setConfig(currentConfig);
 
 	function frameUpdate(): void {
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -265,7 +282,7 @@ function createLabel(x: number, y: number, text: string): Text {
 	});
 }
 
-function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Scene {
+function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager): Scene {
 	const KeyImage = new Image();
 	KeyImage.src = "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/browserInputOverlayView/_assets/images/KeyDefault.png";
 
@@ -594,9 +611,17 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 			}
 
 			if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && clickedObject !== null) {
-				console.log("Released mouse - saving position");
-				const config = sceneToConfig(objects, canvas);
-				saveSceneConfig(config);
+				console.log("Released mouse - saving position via ConfigManager");
+				// Find object index
+				const objectIndex = objects.indexOf(clickedObject);
+				if (objectIndex >= 0) {
+					// Update config immutably via ConfigManager (triggers auto-save)
+					configManager.moveObject(
+						objectIndex,
+						clickedObject.positionOnCanvas.pxFromCanvasLeft,
+						clickedObject.positionOnCanvas.pxFromCanvasTop
+					);
+				}
 				clickedObject = null;
 			}
 
