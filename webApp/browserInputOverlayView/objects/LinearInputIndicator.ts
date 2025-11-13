@@ -300,13 +300,18 @@ class LinearInputIndicator extends CanvasObject {
 			canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx * this.value, { fillStyle: this.fillStyle });
 
 		// Draw background image scaled to dimensions
-		ctx.drawImage(
-			this.backgroundImage,
-			0, 0,
-			this.backgroundImage.width, this.backgroundImage.height,
-			0, 0,
-			this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx
-		)
+		try {
+			ctx.drawImage(
+				this.backgroundImage,
+				0, 0,
+				this.backgroundImage.width, this.backgroundImage.height,
+				0, 0,
+				this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx
+			);
+		} catch (e) {
+			// Image not loaded yet or failed to load - skip silently
+			// Will retry next frame when image loads
+		}
 
 		// Print key text centered
 		canvas_text(ctx, this.hitboxSize.widthInPx * 0.5, this.hitboxSize.lengthInPx * 0.5, this.keyText, this.fontStyle);
