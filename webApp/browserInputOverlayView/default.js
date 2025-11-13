@@ -131,7 +131,7 @@ function scene_default(canvas, ctx) {
 
 	// Helper to create text labels
 	function createLabel(x, y, text) {
-		return new Text(x, y, 600, 30, {
+		return new Text(y, x, 600, 30, {
 			text: text,
 			textAlign: "left",
 			fillStyle: "#FFFFFF",

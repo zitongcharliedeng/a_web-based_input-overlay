@@ -27,6 +27,18 @@ abstract class CanvasObject {
         this.canvasObjectType = canvasObjectType;
     }
 
+    get x(): number { return this.pxFromCanvasLeft; }
+    set x(value: number) { this.pxFromCanvasLeft = value; }
+
+    get y(): number { return this.pxFromCanvasTop; }
+    set y(value: number) { this.pxFromCanvasTop = value; }
+
+    get width(): number { return this.widthInPx; }
+    set width(value: number) { this.widthInPx = value; }
+
+    get height(): number { return this.lengthInPx; }
+    set height(value: number) { this.lengthInPx = value; }
+
     abstract update(delta: number): void;
     abstract draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void;
 }
