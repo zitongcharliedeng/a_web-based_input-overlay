@@ -32,7 +32,7 @@ const defaultLinearInputIndicatorProperties = {
         backgroundImage: new Image(),
         fillStyle: "rgba(255, 255, 255, 0.5)",
         fillStyleBackground: "rgba(37, 37, 37, 0.43)",
-        fontStyle: { textAlign: "center", fillStyle: "white", font: "30px Lucida Console" },
+        fontStyle: { textAlign: "center", fillStyle: "black", font: "30px Lucida Console" },
     }
 };
 /**

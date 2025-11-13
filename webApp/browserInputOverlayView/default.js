@@ -101,7 +101,7 @@ window.addEventListener("load", function () {
     window.addEventListener("resize", resizeCanvas);
 }, false);
 // LocalStorage persistence with versioning
-const CONFIG_VERSION = 2; // Increment when config structure changes
+const CONFIG_VERSION = 3; // Increment when config structure changes
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 function saveSceneConfig(config) {
     try {
@@ -202,12 +202,12 @@ function createScene(canvas, ctx) {
                 invertY: false
             },
             display: {
-                backgroundStyle: { lineWidth: 4, strokeStyle: "#B4B4B4", fillStyle: "rgba(37, 37, 37, 0.43)" },
-                xLineStyle: { strokeStyle: "#B4B4B4", lineWidth: 4 },
-                yLineStyle: { strokeStyle: "#B4B4B4", lineWidth: 4 },
+                backgroundStyle: { lineWidth: 2, strokeStyle: "#B4B4B4", fillStyle: "rgba(37, 37, 37, 0.43)" },
+                xLineStyle: { strokeStyle: "#B4B4B4", lineWidth: 2 },
+                yLineStyle: { strokeStyle: "#B4B4B4", lineWidth: 2 },
                 deadzoneStyle: { fillStyle: "#524d4d" },
-                inputVectorStyle: { strokeStyle: "#B4B4B4", lineWidth: 4 },
-                unitVectorStyle: { strokeStyle: "#524d4d", lineWidth: 4 }
+                inputVectorStyle: { strokeStyle: "#B4B4B4", lineWidth: 2 },
+                unitVectorStyle: { strokeStyle: "#524d4d", lineWidth: 2 }
             }
         }),
         createLinearIndicatorFromConfig({
