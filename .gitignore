@@ -1,9 +1,11 @@
 # Claude AI assistant directory (local config only)
 .claude/
 
-# Node modules
+# Node modules (build artifacts)
 node_modules/
-package-lock.json
+
+# Note: package-lock.json IS tracked (dependency lockfile, not build artifact)
+# Ensures reproducible builds with exact dependency versions
 
 # TypeScript compiled output (build artifacts - compile locally)
 # Pure source-only approach: .ts files are source of truth
