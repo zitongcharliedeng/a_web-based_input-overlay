@@ -6,6 +6,7 @@ node_modules/
 package-lock.json
 
 # TypeScript compiled output (developers compile locally)
-browserInputOverlayView/_compiled/
-**/browserInputListeners/*.js
-**/browserInputListeners/*.js.map
+webApp/browserInputOverlayView/_compiled/
+webApp/browserInputListeners/mouse.js
+webApp/browserInputListeners/mouse.js.map
+webApp/browserInputListeners/_compiled/

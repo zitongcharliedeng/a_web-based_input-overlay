@@ -81,8 +81,8 @@ function createWindow() {
   // Enhanced always-on-top with screen-saver level
   win.setAlwaysOnTop(true, 'screen-saver', 1);
 
-  // Load the HTML file
-  win.loadFile('index.html');
+  // Load the HTML file from webApp directory
+  win.loadFile(path.join(__dirname, '..', 'webApp', 'index.html'));
 
   // Readonly mode: click-through for overlay use (can't edit config)
   // Interactive mode: can drag and edit objects

@@ -1,0 +1,17 @@
+{
+  "name": "web-based-input-overlay-electron",
+  "version": "1.0.0",
+  "description": "Electron wrapper for web-based input overlay",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --enable-logging --with-dev-console"
+  },
+  "devDependencies": {
+    "electron": "^34.3.4"
+  },
+  "dependencies": {
+    "uiohook-napi": "^1.5.4",
+    "@kmamal/sdl": "^0.11.13"
+  }
+}

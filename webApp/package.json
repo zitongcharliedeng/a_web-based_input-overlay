@@ -1,0 +1,14 @@
+{
+  "name": "web-based-input-overlay-webapp",
+  "version": "1.0.0",
+  "description": "Web application for input overlay visualization",
+  "scripts": {
+    "build": "tsc",
+    "serve": "http-server -p 8080 -c-1 -o",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "http-server": "^14.1.1"
+  }
+}
