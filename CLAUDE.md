@@ -1428,4 +1428,208 @@ processing: {
 
 ---
 
-*This document is a living roadmap. As the project evolves, sections will be updated to reflect current state, lessons learned, and community feedback.*
+## 📋 Current Session Progress (TypeScript Migration Sprint)
+
+### Branch: `claude/read-the-l-011CUyxYQP7k5L551y7LxcUT`
+**Latest Commit:** `edf938e` - fix(CL5): remove field initializations for flattened properties
+
+### Development Context
+- **Primary Development Machine:** Windows
+- **Testing Machine:** Linux (NixOS with COSMIC DE)
+- **Build Tool:** TypeScript compiler via `npm run build` (Windows) / `nix-shell -p nodejs --run "npx tsc"` (Linux)
+- **No Global npm:** Use `nix-shell -p nodejs --run "npx ..."` on Linux
+
+### Completed Changes (This Session)
+
+#### CL1: Create CanvasObject Base Class ✅
+**Commit:** `a1b749d`
+- Abstract base class for all canvas objects
+- Semantic grouped properties: `positionOnCanvas` and `hitboxSize` (not flat params)
+- Temporary getters/setters for `x`, `y`, `width`, `height` for incremental migration
+- CanvasObjectType union: linearInputIndicator, planarInputIndicator, text, image, webEmbed
+
+#### CL2: Migrate Text to CanvasObject ✅
+**Commit:** `f80e589`
+- Convert Text.js → Text.ts extending CanvasObject
+- Class syntax with proper TypeScript types
+- Single `applyProperties()` call (DRY fix)
+- Fixed multiple build errors (import paths, cross-platform prebuild)
+
+#### CL3: Migrate LinearInputIndicator to CanvasObject ✅
+**Commits:** `367281a`, `34d64ba`, `6b0b076`, `9ee2e1d`, `893c33a`
+- Convert function constructor to class extending CanvasObject
+- Initialize class fields to defaults (matches original state flow)
+- Fix operator precedence in gamepad stick condition
+- **Critical Fix:** Return type changed from `void` to `boolean` (update() must return true for redraw)
+- All input types working: keyboard, mouse buttons, mouse wheel, gamepad stick
+
+#### CL4: Refactor CanvasObject Constructor to Use Grouped Properties ✅
+**Commit:** `ab82323`
+- Changed CanvasObject constructor signature from flat params to grouped objects
+- All subclasses updated to pass grouped `positionOnCanvas` and `hitboxSize`
+- Cleaner semantic API
+
+#### CL5: Migrate PlanarInputIndicator_Radial to CanvasObject ✅
+**Commits:** `8d7ac0d`, `4bda554`, `3f8165e`, `de52288`, `edf938e`
+- Convert function constructor to class extending CanvasObject
+- Fixed input config structure in default.js (was using wrong format)
+- **Critical Fix:** Remove field initializations for flattened properties
+  - `xAxes`, `yAxes`, `radius`, styles should NOT be initialized at field level
+  - They override merged values from constructor
+  - Now only set in constructor after `deepMerge` and `applyProperties`
+
+### Key Lessons Learned
+
+#### Problem 1: Missing Return Statement in update()
+- **Symptom:** Canvas froze when joystick stopped moving
+- **Root Cause:** `update()` was returning `undefined` instead of `true`
+- **Solution:** Changed abstract method signature in CanvasObject from `void` to `boolean`
+- **Lesson:** Update methods must return `true` to trigger screen redraws
+
+#### Problem 2: TypeScript Class Field Initialization
+- **Symptom:** Flattened properties (xAxes, yAxes, etc.) stayed at defaults instead of using merged values
+- **Root Cause:** Class field initializers run BEFORE constructor code, overriding merged values
+- **Solution:** Remove initializations from field declarations, only set in constructor after property merging
+- **Lesson:** Don't initialize TypeScript class fields that will be set by constructor logic
+
+#### Problem 3: Operator Precedence in Boolean Logic
+- **Symptom:** Gamepad input behaved unexpectedly
+- **Root Cause:** Missing parentheses in complex boolean condition with mixed `&&` and `||` operators
+- **Solution:** Added explicit parentheses: `if (condition && (subA && subB || subC))`
+- **Lesson:** Always use explicit parentheses for clarity, never rely on operator precedence
+
+#### Problem 4: Config Property Structure Mismatch
+- **Symptom:** PlanarInputIndicator_Radial wasn't reading joystick input
+- **Root Cause:** Scene was passing LinearInputIndicator-format config instead of correct PlanarInputConfig format
+- **Solution:** Updated scene to pass correct `{ xAxes: {...}, yAxes: {...} }` structure
+- **Lesson:** Each object type has its own config interface; don't mix them
+
+### Architecture Principles Applied
+
+#### Semantic Grouped Properties
+```typescript
+// Instead of:
+constructor(pxFromCanvasTop, pxFromCanvasLeft, widthInPx, lengthInPx, type)
+
+// Now:
+constructor(
+    positionOnCanvas: { pxFromCanvasTop, pxFromCanvasLeft },
+    hitboxSize: { widthInPx, lengthInPx },
+    canvasObjectType
+)
+```
+
+#### Self-Documenting Code
+- Variable names clearly indicate purpose: `pxFromCanvasTop` not `y`, `lengthInPx` not `height`
+- NO comments - semantic naming tells the story
+- Type annotations provide clarity without need for docs
+
+#### DRY Property Flattening Pattern
+```typescript
+const mergedProperties = deepMerge(defaults, overrides);
+applyProperties(this, mergedProperties);
+
+if (this.input) {
+    this.xAxes = this.input.xAxes;
+    // ... flatten nested config to instance properties
+}
+```
+
+### Files Modified This Session
+
+**Objects:**
+- `webApp/browserInputOverlayView/objects/CanvasObject.ts` (new)
+- `webApp/browserInputOverlayView/objects/LinearInputIndicator.ts` (refactored)
+- `webApp/browserInputOverlayView/objects/PlanarInputIndicator_Radial.ts` (refactored)
+- `webApp/browserInputOverlayView/objects/Text.ts` (refactored)
+
+**Helpers:**
+- `webApp/browserInputOverlayView/_helpers/applyProperties.ts` (verified working)
+
+**Scene:**
+- `webApp/browserInputOverlayView/default.js` (updated imports and config)
+
+**Config:**
+- `webApp/package.json` (updated scripts)
+- `webApp/tsconfig.json` (verified correct)
+
+### Testing Status
+
+✅ **All Input Types Working:**
+- Keyboard (WASD, etc.)
+- Mouse buttons (all 5 buttons)
+- Mouse wheel (scroll up/down)
+- Gamepad stick (left stick X/Y axes)
+- Gamepad buttons
+
+✅ **Visual Feedback:**
+- LinearInputIndicator bars fill correctly
+- PlanarInputIndicator_Radial shows joystick input as radial display
+- Text elements render
+
+✅ **Build Status:**
+- TypeScript compilation succeeds
+- No type errors
+- Compiled JS loads in browser
+
+### Known Issues & TODOs
+
+**Immediate Next (CL6-7):**
+1. Migrate PropertyEdit.js to TypeScript
+2. Migrate keyboard.js and gamepad.js input listeners to TypeScript
+3. Remove temporary x/y/width/height getters from CanvasObject (after all objects migrated)
+
+**Future (Phase 2+):**
+1. Camera feed integration
+2. Microphone/audio visualization
+3. Chat embed system
+4. Scene management system
+5. Save/load configurations
+
+### Workflow Notes for Next Session
+
+**Build Process (Windows):**
+```powershell
+npm run build
+# Compiles TS, cleans _compiled dirs, runs tsc
+```
+
+**Build Process (Linux):**
+```bash
+nix-shell -p nodejs --run "node -e \"require('fs').rmSync(...); ...\" && npx tsc"
+```
+
+**Testing Cycle:**
+1. Make changes to .ts file
+2. Run build (compiles to _compiled/)
+3. Pull changes on Windows machine
+4. Test in browser
+5. Report any input behavior changes
+6. If working: good to commit; if broken: identify root cause
+
+**Critical Pattern for Class Migration:**
+1. Extend CanvasObject
+2. Declare properties WITHOUT initializing (except descriptive ones like className)
+3. In constructor: call super() with grouped objects
+4. In constructor: merge and flatten properties from defaults
+5. Return `true` from update() method
+6. Call parent draw() signature exactly: `(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D)`
+
+**Commit Message Convention:**
+- CL# prefix for change list number
+- Describe the architectural change, not just what files changed
+- Include any critical fixes discovered during migration
+
+### User Preferences (Code Style)
+- No emojis in code or commit messages
+- No comments - semantic names tell the story
+- DRY principles: extract shared logic
+- Small testable CLs for regression checking
+- Windows as primary dev machine; Linux for validation
+- Test manually in browser (no automated tests yet)
+
+---
+
+*Last Updated: Current Session*
+*Model at Session Start: Claude Haiku 4.5*
+*Switching to: Claude Sonnet 4.5 for next session*
