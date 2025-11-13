@@ -12,5 +12,5 @@ node_modules/
 webApp/**/*.js
 webApp/**/*.js.map
 
-# Exception: Keep Electron wrapper JS (different build context)
+# Exceptions
 !wrapWebAppAsStandaloneProgram/**/*.js
