@@ -12,5 +12,8 @@ node_modules/
 webApp/**/*.js
 webApp/**/*.js.map
 
+# esbuild bundled output
+webApp/dist/
+
 # Exceptions
 !wrapWebAppAsStandaloneProgram/**/*.js

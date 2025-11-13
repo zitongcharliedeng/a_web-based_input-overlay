@@ -4,13 +4,15 @@
   "type": "module",
   "description": "Web application for input overlay visualization",
   "scripts": {
-    "prebuild": "tsx _helpers/generateVersionGitCommitHash.ts && rimraf sceneRender/_compiled inputListeners/_compiled",
-    "build": "tsc && tsc inputListeners/mouse.ts --outDir inputListeners/_compiled --target ES2020 --module ES2020 --lib ES2020,DOM --skipLibCheck",
+    "prebuild": "tsx _helpers/generateVersionGitCommitHash.ts && rimraf dist",
+    "build": "npm run prebuild && node esbuild.config.js",
+    "dev": "npm run prebuild && node esbuild.config.js --watch",
     "serve": "http-server -p 8080 -c-1 -o",
     "check": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "esbuild": "^0.27.0",
     "http-server": "^14.1.1",
     "rimraf": "^6.1.0",
     "tsx": "^4.20.6",
