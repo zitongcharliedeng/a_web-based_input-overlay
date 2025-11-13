@@ -202,10 +202,6 @@ function deserializeImage(src: string): HTMLImageElement {
 function deserializeObject(objData: any): CanvasObject {
 	const { type, x, y, width, height, ...props } = objData;
 
-	if (props.display && props.display.backgroundImage && typeof props.display.backgroundImage === 'string') {
-		props.display.backgroundImage = deserializeImage(props.display.backgroundImage);
-	}
-
 	switch (type) {
 		case 'LinearInputIndicator':
 		case 'linearInputIndicator':
@@ -283,9 +279,6 @@ function createLabel(x: number, y: number, text: string): Text {
 }
 
 function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager): Scene {
-	const KeyImage = new Image();
-	KeyImage.src = "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/browserInputOverlayView/_assets/images/KeyDefault.png";
-
 	let yOffset = 20;
 	const sectionSpacing = 280;
 
@@ -325,7 +318,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 					}
 				},
 				processing: { linkedAxis: 0 },
-				display: { text: "W", backgroundImage: KeyImage }
+				display: { text: "W" }
 			}
 		),
 		new LinearInputIndicator(
@@ -339,7 +332,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 1 }, display: { text: "A", backgroundImage: KeyImage }
+				processing: { linkedAxis: 1 }, display: { text: "A" }
 			}
 		),
 		new LinearInputIndicator(
@@ -353,7 +346,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 0 }, display: { text: "S", backgroundImage: KeyImage }
+				processing: { linkedAxis: 0 }, display: { text: "S" }
 			}
 		),
 		new LinearInputIndicator(
@@ -367,7 +360,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 1 }, display: { text: "D", backgroundImage: KeyImage }
+				processing: { linkedAxis: 1 }, display: { text: "D" }
 			}
 		),
 
@@ -382,7 +375,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "W", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "W" }
 			}
 		),
 		new LinearInputIndicator(
@@ -396,7 +389,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "A", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "A" }
 			}
 		),
 		new LinearInputIndicator(
@@ -410,7 +403,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "S", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "S" }
 			}
 		),
 		new LinearInputIndicator(
@@ -424,7 +417,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "D", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "D" }
 			}
 		),
 
@@ -441,7 +434,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 2 }, display: { text: "I", backgroundImage: KeyImage }
+				processing: { linkedAxis: 2 }, display: { text: "I" }
 			}
 		),
 		new LinearInputIndicator(
@@ -454,7 +447,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 3 }, display: { text: "J", backgroundImage: KeyImage }
+				processing: { linkedAxis: 3 }, display: { text: "J" }
 			}
 		),
 		new LinearInputIndicator(
@@ -467,7 +460,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 2 }, display: { text: "K", backgroundImage: KeyImage }
+				processing: { linkedAxis: 2 }, display: { text: "K" }
 			}
 		),
 		new LinearInputIndicator(
@@ -480,7 +473,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 3 }, display: { text: "L", backgroundImage: KeyImage }
+				processing: { linkedAxis: 3 }, display: { text: "L" }
 			}
 		),
 
@@ -498,7 +491,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: 0 }
 					}
 				},
-				display: { text: "A", backgroundImage: KeyImage }
+				display: { text: "A" }
 			}
 		),
 		new LinearInputIndicator(
@@ -512,7 +505,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: 1 }
 					}
 				},
-				display: { text: "B", backgroundImage: KeyImage }
+				display: { text: "B" }
 			}
 		),
 		new LinearInputIndicator(
@@ -526,7 +519,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: 2 }
 					}
 				},
-				display: { text: "X", backgroundImage: KeyImage }
+				display: { text: "X" }
 			}
 		),
 		new LinearInputIndicator(
@@ -540,7 +533,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: 3 }
 					}
 				},
-				display: { text: "Y", backgroundImage: KeyImage }
+				display: { text: "Y" }
 			}
 		),
 
@@ -554,7 +547,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: 6 }
 					}
 				},
-				display: { text: "LT", backgroundImage: KeyImage }
+				display: { text: "LT" }
 			}
 		),
 		new LinearInputIndicator(
@@ -567,7 +560,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: 7 }
 					}
 				},
-				display: { text: "RT", backgroundImage: KeyImage }
+				display: { text: "RT" }
 			}
 		),
 	];
