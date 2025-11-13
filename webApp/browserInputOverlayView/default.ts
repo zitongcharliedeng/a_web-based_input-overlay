@@ -137,10 +137,13 @@ function deserializeObject(objData: any): CanvasObject {
 
 	switch (type) {
 		case 'LinearInputIndicator':
+		case 'linearInputIndicator':
 			return new LinearInputIndicator(x, y, width, height, props);
 		case 'PlanarInputIndicator_Radial':
+		case 'planarInputIndicator':
 			return new PlanarInputIndicator_Radial(x, y, width, height, props);
 		case 'Text':
+		case 'text':
 			return new Text(y, x, width, height, props);
 		default:
 			throw new Error(`Unknown object type: ${type}`);

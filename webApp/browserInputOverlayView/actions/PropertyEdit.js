@@ -57,7 +57,7 @@ class PropertyEdit {
         if (sceneConfigText)
             sceneConfigText.hidden = true;
         propertyTable.hidden = false;
-        editorTitle.innerHTML = targetObject.className || "Object";
+        editorTitle.innerHTML = targetObject.className || targetObject.canvasObjectType || targetObject.constructor.name || "Object";
         while (propertyTable.firstChild !== null) {
             propertyTable.removeChild(propertyTable.firstChild);
         }
@@ -91,7 +91,7 @@ class PropertyEdit {
         };
         for (const obj of scene.objects) {
             const serialized = {
-                type: obj.className,
+                type: obj.className || obj.canvasObjectType || obj.constructor.name,
                 x: obj.positionOnCanvas.pxFromCanvasLeft,
                 y: obj.positionOnCanvas.pxFromCanvasTop,
                 width: obj.hitboxSize.widthInPx,
