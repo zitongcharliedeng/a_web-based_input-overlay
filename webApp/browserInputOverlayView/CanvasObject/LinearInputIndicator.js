@@ -1,4 +1,4 @@
-import { CanvasObject } from './CanvasObject.js';
+import { CanvasObject } from '.';
 import { canvas_fill_rec, canvas_text } from '../_helpers/draw.js';
 // Default restorepoint properties
 const defaultLinearInputIndicatorProperties = {

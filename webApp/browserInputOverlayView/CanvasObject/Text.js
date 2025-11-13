@@ -1,4 +1,4 @@
-import { CanvasObject } from './CanvasObject.js';
+import { CanvasObject } from '.';
 import { canvas_text } from '../_helpers/draw.js';
 const defaultTextProperties = {
     text: "Sample text",
