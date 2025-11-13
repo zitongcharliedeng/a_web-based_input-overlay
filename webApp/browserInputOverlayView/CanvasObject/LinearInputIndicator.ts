@@ -70,7 +70,10 @@ interface LinearInputIndicatorProperties {
 	display?: DisplayConfig;
 }
 
-// Default restorepoint properties
+// TODO: Move antiDeadzone/deadzone to global per-controller configuration (hardware-specific).
+// Commercial joysticks have 0.5-2% center drift: Xbox/PS ~0.01, Switch ~0.015, cheap ~0.03.
+// antiDeadzone compensates for analog stick resting position drift due to manufacturing tolerances.
+
 const defaultLinearInputIndicatorProperties: LinearInputIndicatorProperties = {
 	input: {
 		keyboard: {
@@ -95,7 +98,7 @@ const defaultLinearInputIndicatorProperties: LinearInputIndicatorProperties = {
 	processing: {
 		linkedAxis: -1,
 		multiplier: 1,
-		antiDeadzone: 0.0,
+		antiDeadzone: 0.01,
 		fadeOutDuration: 0.2,
 	},
 

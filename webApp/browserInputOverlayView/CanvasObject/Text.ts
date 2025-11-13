@@ -29,6 +29,7 @@ const defaultTextProperties: TextProperties = {
 
 class Text extends CanvasObject {
     defaultProperties: TextProperties = defaultTextProperties;
+    className: string = "Text";
 
     text: string;
     textStyle: TextStyle;
