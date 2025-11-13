@@ -1240,6 +1240,57 @@ When TypeScript complains about types and you reach for `any` or `as`, that's a 
 
 ## 🔮 Pending Features & Refactoring (DO NOT IMPLEMENT YET)
 
+### Priority -1: Foundation (Critical - Do First)
+
+**Analysis Date:** 2025-11-13
+**Status:** NOT STARTED - Requires user approval to begin
+
+These are architectural improvements that prevent bugs and improve maintainability. Do these before any feature work.
+
+#### 1. Enable TypeScript Strict Mode ⭐ HIGHEST PRIORITY
+- **Current:** `strict: false` in tsconfig.json
+- **Change to:** `strict: true`
+- **Benefits:**
+  - `strictNullChecks`: Prevents null/undefined crashes
+  - `noImplicitAny`: Forces explicit typing
+  - `strictFunctionTypes`: Better type safety
+  - `noImplicitThis`: Catches context bugs
+- **Cost:** 20-50 type errors to fix initially
+- **ROI:** Massive - prevents entire classes of runtime bugs
+- **Best done NOW** while codebase is small
+
+#### 2. Add Zod for Config Validation ⭐ HIGH PRIORITY
+- **Problem:** `JSON.parse(localStorage)` with no validation - silent corruption or crashes
+- **Solution:** Add `zod` dependency (45kb, tree-shakeable)
+- **Use cases:**
+  - Validate localStorage data before deserializing
+  - Type-safe config migrations when schema evolves
+  - Better error messages ("expected number at processing.fadeOutDuration, got string")
+  - Types derived from Zod schema (single source of truth)
+- **Where:** sceneSerializer.ts, ConfigManager.ts, config import/export
+- **This solves real problems** - not just dependency bloat
+
+#### 3. Memory Leak Audit 🔍 MEDIUM PRIORITY
+**Current risks to investigate:**
+- Event listeners in keyboard.ts, mouse.ts, gamepad.ts - do they clean up?
+- HTMLImageElement.onload in Image.ts - leaking references?
+- PropertyEdit DOM element creation - proper removal?
+- requestAnimationFrame loop - cancelled on cleanup?
+
+**Action items:**
+- Add explicit `cleanup()` / `destroy()` methods to all CanvasObjects
+- Document lifecycle: init → update/draw → cleanup
+- Test with Chrome DevTools Memory Profiler
+
+#### 4. State Management - NOT Recommended ❌
+**Conclusion:** Redux/Zustand NOT worth it for current project
+- Current pure functional approach is clean
+- No complex state coordination needed
+- No reactive UI requiring global state
+- **Only add if building full scene editor with undo/redo**
+
+---
+
 ### Priority 0: Code Refactoring (Must Do First)
 
 **Goal:** Clean up codebase before adding new features

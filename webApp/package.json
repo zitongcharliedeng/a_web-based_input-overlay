@@ -1,6 +1,7 @@
 {
   "name": "web-based-input-overlay-webapp",
   "version": "1.0.0",
+  "type": "module",
   "description": "Web application for input overlay visualization",
   "scripts": {
     "prebuild": "tsx _helpers/generateVersionGitCommitHash.ts && rimraf sceneRender/_compiled inputListeners/_compiled",
