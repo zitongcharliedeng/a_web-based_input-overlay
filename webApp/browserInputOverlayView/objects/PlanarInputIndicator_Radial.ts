@@ -103,27 +103,21 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 		const mergedProperties = deepMerge(defaultPlanarInputIndicator_RadialProperties, properties || {});
 		applyProperties(this, mergedProperties);
 
-		if (this.input) {
-			this.xAxes = this.input.xAxes;
-			this.yAxes = this.input.yAxes;
-			this.invertX = this.input.invertX;
-			this.invertY = this.input.invertY;
-		}
+		this.xAxes = mergedProperties.input.xAxes;
+		this.yAxes = mergedProperties.input.yAxes;
+		this.invertX = mergedProperties.input.invertX;
+		this.invertY = mergedProperties.input.invertY;
 
-		if (this.processing) {
-			this.deadzone = this.processing.deadzone;
-			this.antiDeadzone = this.processing.antiDeadzone;
-		}
+		this.deadzone = mergedProperties.processing.deadzone;
+		this.antiDeadzone = mergedProperties.processing.antiDeadzone;
 
-		if (this.display) {
-			this.radius = this.display.radius;
-			this.backgroundStyle = this.display.backgroundStyle;
-			this.xLineStyle = this.display.xLineStyle;
-			this.yLineStyle = this.display.yLineStyle;
-			this.deadzoneStyle = this.display.deadzoneStyle;
-			this.inputVectorStyle = this.display.inputVectorStyle;
-			this.unitVectorStyle = this.display.unitVectorStyle;
-		}
+		this.radius = mergedProperties.display.radius;
+		this.backgroundStyle = mergedProperties.display.backgroundStyle;
+		this.xLineStyle = mergedProperties.display.xLineStyle;
+		this.yLineStyle = mergedProperties.display.yLineStyle;
+		this.deadzoneStyle = mergedProperties.display.deadzoneStyle;
+		this.inputVectorStyle = mergedProperties.display.inputVectorStyle;
+		this.unitVectorStyle = mergedProperties.display.unitVectorStyle;
 
 		this.inputVector = new Vector(0, 0);
 		this.previousX = 0;
