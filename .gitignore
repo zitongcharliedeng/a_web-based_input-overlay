@@ -17,4 +17,3 @@ webApp/dist/
 
 # Exceptions
 !wrapWebAppAsStandaloneProgram/**/*.js
-!webApp/esbuild.config.js
