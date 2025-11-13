@@ -1,58 +1,35 @@
-const { contextBridge, ipcRenderer } = require('electron');
-
-/**
- * Preload script that creates a secure bridge between Electron main process
- * and the renderer process. Exposes global input hooks via contextBridge.
- *
- * Architecture:
- * - Main process captures OS-level input via uiohook-napi
- * - Events are sent via IPC to renderer
- * - This bridge translates IPC events to look like DOM events
- * - Browser code stays agnostic to input source
- */
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const electron_1 = require("electron");
 console.log('[Preload] Loading preload script...');
-
-contextBridge.exposeInMainWorld('electronAPI', {
-  // Keyboard events
-  onGlobalKeyDown: (callback) => {
-    ipcRenderer.on('global-keydown', (_event, data) => callback(data));
-  },
-  onGlobalKeyUp: (callback) => {
-    ipcRenderer.on('global-keyup', (_event, data) => callback(data));
-  },
-
-  // Mouse position and clicks
-  onGlobalMouseMove: (callback) => {
-    ipcRenderer.on('global-mousemove', (_event, data) => callback(data));
-  },
-  onGlobalMouseDown: (callback) => {
-    ipcRenderer.on('global-mousedown', (_event, data) => callback(data));
-  },
-  onGlobalMouseUp: (callback) => {
-    ipcRenderer.on('global-mouseup', (_event, data) => callback(data));
-  },
-
-  // Mouse wheel
-  onGlobalWheel: (callback) => {
-    ipcRenderer.on('global-wheel', (_event, data) => callback(data));
-  },
-
-  // Gamepad (native SDL2 polling - same as OBS input-overlay plugin)
-  onGlobalGamepadState: (callback) => {
-    ipcRenderer.on('global-gamepad-state', (_event, state) => callback(state));
-  },
-
-  // App state
-  isReadonly: () => {
-    return ipcRenderer.sendSync('get-readonly-state');
-  },
-
-  // Utility: Check if global input hooks are available
-  hasGlobalInput: () => {
-    return ipcRenderer.sendSync('has-global-input');
-  }
+electron_1.contextBridge.exposeInMainWorld('electronAPI', {
+    onGlobalKeyDown: (callback) => {
+        electron_1.ipcRenderer.on('global-keydown', (_event, data) => callback(data));
+    },
+    onGlobalKeyUp: (callback) => {
+        electron_1.ipcRenderer.on('global-keyup', (_event, data) => callback(data));
+    },
+    onGlobalMouseMove: (callback) => {
+        electron_1.ipcRenderer.on('global-mousemove', (_event, data) => callback(data));
+    },
+    onGlobalMouseDown: (callback) => {
+        electron_1.ipcRenderer.on('global-mousedown', (_event, data) => callback(data));
+    },
+    onGlobalMouseUp: (callback) => {
+        electron_1.ipcRenderer.on('global-mouseup', (_event, data) => callback(data));
+    },
+    onGlobalWheel: (callback) => {
+        electron_1.ipcRenderer.on('global-wheel', (_event, data) => callback(data));
+    },
+    onGlobalGamepadState: (callback) => {
+        electron_1.ipcRenderer.on('global-gamepad-state', (_event, state) => callback(state));
+    },
+    isReadonly: () => {
+        return electron_1.ipcRenderer.sendSync('get-readonly-state');
+    },
+    hasGlobalInput: () => {
+        return electron_1.ipcRenderer.sendSync('has-global-input');
+    }
 });
-
 console.log('[Preload] Preload script loaded successfully!');
 console.log('[Preload] electronAPI exposed to window object');
