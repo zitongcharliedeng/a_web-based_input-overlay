@@ -222,9 +222,8 @@ function deserializeObject(objData: any): CanvasObject {
 	}
 }
 
-// Factory helpers - create class instances from configs
 import type { LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from '../persistentData/OmniConfig.js';
-import { defaultTemplateFor_LinearInputIndicator, defaultTemplateFor_PlanarInputIndicator, defaultTemplateFor_Text } from '../persistentData/OmniConfig.js';
+import { defaultTemplateFor_Text } from './CanvasObjects/Text.js';
 
 function createLinearIndicatorFromConfig(config: LinearInputIndicatorConfig): LinearInputIndicator {
 	return new LinearInputIndicator(

@@ -383,3 +383,38 @@ class LinearInputIndicator extends CanvasObject {
 }
 
 export { LinearInputIndicator };
+
+import type { LinearInputIndicatorConfig } from '../../persistentData/OmniConfig.js';
+
+export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorConfig = {
+	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
+	hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+	layerLevel: 10,
+	input: {
+		keyboard: { keyCode: null },
+		mouse: { button: null, wheel: null },
+		gamepad: {
+			stick: { type: null, axis: null, direction: null },
+			button: { index: null }
+		}
+	},
+	processing: {
+		linkedAxis: -1,
+		multiplier: 1,
+		antiDeadzone: 0.01,
+		fadeOutDuration: 0.2
+	},
+	display: {
+		text: "",
+		fillStyle: "#00ff00",
+		fillStyleBackground: "#222222",
+		fontStyle: {
+			textAlign: "center",
+			fillStyle: "black",
+			font: "30px Lucida Console",
+			strokeStyle: "white",
+			strokeWidth: 3
+		},
+		reverseFillDirection: false
+	}
+} as const;

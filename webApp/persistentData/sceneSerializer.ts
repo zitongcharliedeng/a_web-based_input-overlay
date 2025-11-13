@@ -1,13 +1,8 @@
-// Pure serialization functions: CanvasObjects → OmniConfig
-// No side effects, no class dependencies, fully composable
-
 import type { OmniConfig, CanvasConfig, LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from './OmniConfig.js';
-import {
-	defaultTemplateFor_LinearInputIndicator,
-	defaultTemplateFor_PlanarInputIndicator,
-	defaultTemplateFor_Text,
-	defaultTemplateFor_Image
-} from './OmniConfig.js';
+import { defaultTemplateFor_LinearInputIndicator } from '../sceneRender/CanvasObjects/LinearInputIndicator.js';
+import { defaultTemplateFor_PlanarInputIndicator } from '../sceneRender/CanvasObjects/PlanarInputIndicator_Radial.js';
+import { defaultTemplateFor_Text } from '../sceneRender/CanvasObjects/Text.js';
+import { defaultTemplateFor_Image } from '../sceneRender/CanvasObjects/Image.js';
 
 // Type for objects we're serializing (avoid circular dependencies)
 interface SerializableObject {

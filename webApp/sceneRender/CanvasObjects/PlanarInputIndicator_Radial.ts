@@ -184,3 +184,28 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 }
 
 export { PlanarInputIndicator_Radial };
+
+import type { PlanarInputIndicatorConfig } from '../../persistentData/OmniConfig.js';
+
+export const defaultTemplateFor_PlanarInputIndicator: PlanarInputIndicatorConfig = {
+	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
+	hitboxSize: { widthInPx: 200, lengthInPx: 200 },
+	layerLevel: 10,
+	input: {
+		xAxes: {},
+		yAxes: {},
+		invertX: false,
+		invertY: false
+	},
+	processing: {
+		deadzone: 0.01,
+		antiDeadzone: 0
+	},
+	display: {
+		radius: 100,
+		stickRadius: 40,
+		fillStyle: "#00ff00",
+		fillStyleStick: "#ffffff",
+		fillStyleBackground: "rgba(0, 0, 0, 0.5)"
+	}
+} as const;
