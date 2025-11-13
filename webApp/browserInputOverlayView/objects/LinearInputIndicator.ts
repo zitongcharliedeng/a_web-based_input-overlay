@@ -265,6 +265,8 @@ class LinearInputIndicator extends CanvasObject {
 
 		// Update input
 		this.value = Math.max(Math.min((value - newAntiDeadzone) / (1 - newAntiDeadzone) * this.multiplier, 1), 0);
+
+		return true;
 	}
 
 	draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
