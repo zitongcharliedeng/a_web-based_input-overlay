@@ -192,16 +192,13 @@ class LinearInputIndicator extends CanvasObject {
             }
         }
         // Calculate raw input value (clamped 0-1)
+        // Guard against divide-by-zero
+        if (newAntiDeadzone >= 1.0)
+            newAntiDeadzone = 0.999;
         const rawValue = Math.max(Math.min((value - newAntiDeadzone) / (1 - newAntiDeadzone) * this.multiplier, 1), 0);
-        // Update value with fade: use rawValue to determine if fading should START
-        // but once fading, continue until complete regardless of rawValue
-        if (rawValue > 0) {
-            // Input active - instant response, cancel fade
-            this.value = rawValue;
-            this.fadeActive = false;
-        }
-        else if (this.fadeActive) {
-            // Currently fading - continue fade
+        // Update value with fade: CHECK FADE STATE FIRST (don't interrupt active fades)
+        if (this.fadeActive) {
+            // Currently fading - continue regardless of input (prevents interruption)
             this.fadeTimer += delta / 1000;
             const fadeProgress = this.fadeTimer / this.fadeOutDuration;
             if (fadeProgress >= 1.0) {
@@ -213,6 +210,15 @@ class LinearInputIndicator extends CanvasObject {
                 // Still fading
                 this.value = this.fadeStartValue * (1.0 - fadeProgress);
             }
+            // Check if new input should cancel fade
+            if (rawValue > 0) {
+                this.value = rawValue;
+                this.fadeActive = false;
+            }
+        }
+        else if (rawValue > 0) {
+            // Input active - instant response
+            this.value = rawValue;
         }
         else if (this.fadeOutDuration > 0 && this.value > 0) {
             // Input just became inactive - START fade IMMEDIATELY
