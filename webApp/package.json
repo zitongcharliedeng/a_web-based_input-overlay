@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Web application for input overlay visualization",
   "scripts": {
-    "prebuild": "rimraf browserInputOverlayView/_compiled browserInputListeners/_compiled",
+    "prebuild": "node scripts/generate-version.js && rimraf browserInputOverlayView/_compiled browserInputListeners/_compiled",
     "build": "tsc && tsc browserInputListeners/mouse.ts --outDir browserInputListeners/_compiled --target ES2020 --module ES2020 --lib ES2020,DOM --skipLibCheck",
     "serve": "http-server -p 8080 -c-1 -o",
     "check": "tsc --noEmit"

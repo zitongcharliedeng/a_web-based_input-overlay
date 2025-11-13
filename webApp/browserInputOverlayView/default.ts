@@ -56,9 +56,7 @@ window.addEventListener("load", function (): void {
 		objects: []
 	});
 
-	// Set up auto-save callback
 	configManager.onSave((config) => {
-		console.log('[ConfigManager] Auto-saving config');
 		saveSceneConfig(config);
 	});
 
@@ -68,7 +66,6 @@ window.addEventListener("load", function (): void {
 	const savedConfig = loadSceneConfig();
 	if (savedConfig) {
 		try {
-			console.log('[Config] Applying saved scene config');
 			if (savedConfig.canvas) {
 				canvas.width = savedConfig.canvas.width;
 				canvas.height = savedConfig.canvas.height;
@@ -160,17 +157,15 @@ window.addEventListener("load", function (): void {
 	window.addEventListener("resize", resizeCanvas);
 }, false);
 
-// LocalStorage persistence with versioning
-const CONFIG_VERSION = 104;  // Increment when config structure changes (added layerLevel, removed backgroundImage, new Image primitive)
+import { CONFIG_VERSION } from './_helpers/version.js';
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 
 function saveSceneConfig(config: any): void {
 	try {
 		const versionedConfig = { version: CONFIG_VERSION, ...config };
 		localStorage.setItem(SCENE_CONFIG_KEY, JSON.stringify(versionedConfig));
-		console.log('[Config] Saved scene config to localStorage (v' + CONFIG_VERSION + ')');
 	} catch (e) {
-		console.error('[Config] Failed to save scene config:', e);
+		console.error('[Config] Failed to save:', e);
 	}
 }
 
@@ -180,15 +175,13 @@ function loadSceneConfig(): any | null {
 		if (saved) {
 			const parsed = JSON.parse(saved);
 			if (parsed.version !== CONFIG_VERSION) {
-				console.log('[Config] Version mismatch (saved: ' + parsed.version + ', current: ' + CONFIG_VERSION + '), clearing localStorage');
 				localStorage.clear();
 				return null;
 			}
-			console.log('[Config] Loaded scene config from localStorage (v' + CONFIG_VERSION + ')');
 			return parsed;
 		}
 	} catch (e) {
-		console.error('[Config] Failed to load scene config:', e);
+		console.error('[Config] Failed to load:', e);
 	}
 	return null;
 }
