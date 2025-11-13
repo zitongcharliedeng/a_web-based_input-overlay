@@ -10,7 +10,7 @@ const defaultImageProperties: ImageProperties = {
     opacity: 1.0
 };
 
-class Image extends CanvasObject {
+class ImageObject extends CanvasObject {
     defaultProperties: ImageProperties = defaultImageProperties;
     className: string = "Image";
 
@@ -76,5 +76,5 @@ class Image extends CanvasObject {
     }
 }
 
-export { Image };
+export { ImageObject };
 export type { ImageProperties };

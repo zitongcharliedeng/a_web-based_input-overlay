@@ -3,6 +3,7 @@ import { keyboard } from '../browserInputListeners/keyboard.js';
 import { PlanarInputIndicator_Radial } from './CanvasObject/PlanarInputIndicator_Radial.js';
 import { LinearInputIndicator } from './CanvasObject/LinearInputIndicator.js';
 import { Text } from './CanvasObject/Text.js';
+import { ImageObject } from './CanvasObject/Image.js';
 import { PropertyEdit } from './actions/PropertyEdit.js';
 import { Vector } from './_helpers/Vector.js';
 import { canvas_properties } from './_helpers/draw.js';
@@ -276,9 +277,8 @@ function createTextFromConfig(config: TextConfig): Text {
 	);
 }
 
-function createImageFromConfig(config: import('./_helpers/OmniConfig.js').ImageConfig): import('./CanvasObject/Image.js').Image {
-	const ImageClass = require('./CanvasObject/Image.js').Image;
-	return new ImageClass(
+function createImageFromConfig(config: import('./_helpers/OmniConfig.js').ImageConfig): ImageObject {
+	return new ImageObject(
 		config.positionOnCanvas.pxFromCanvasTop,
 		config.positionOnCanvas.pxFromCanvasLeft,
 		config.hitboxSize.widthInPx,
