@@ -101,7 +101,7 @@ window.addEventListener("load", function () {
     window.addEventListener("resize", resizeCanvas);
 }, false);
 // LocalStorage persistence with versioning
-const CONFIG_VERSION = 5; // Increment when config structure changes
+const CONFIG_VERSION = 6; // Increment when config structure changes
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 function saveSceneConfig(config) {
     try {
@@ -174,7 +174,13 @@ function createPlanarIndicatorFromConfig(config) {
 function createTextFromConfig(config) {
     return new Text(config.positionOnCanvas.pxFromCanvasTop, config.positionOnCanvas.pxFromCanvasLeft, config.hitboxSize.widthInPx, config.hitboxSize.lengthInPx, {
         text: config.text,
-        textStyle: config.textStyle, // Temporary: old constructor has different TextStyle type
+        textStyle: {
+            textAlign: config.textStyle.textAlign,
+            fillStyle: config.textStyle.fillStyle,
+            font: config.textStyle.font,
+            strokeStyle: config.textStyle.strokeStyle,
+            strokeWidth: config.textStyle.strokeWidth
+        },
         shouldStroke: config.shouldStroke
     });
 }

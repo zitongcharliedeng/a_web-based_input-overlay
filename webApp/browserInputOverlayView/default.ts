@@ -143,7 +143,7 @@ window.addEventListener("load", function (): void {
 }, false);
 
 // LocalStorage persistence with versioning
-const CONFIG_VERSION = 5;  // Increment when config structure changes
+const CONFIG_VERSION = 6;  // Increment when config structure changes
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 
 function saveSceneConfig(config: any): void {
@@ -243,7 +243,13 @@ function createTextFromConfig(config: TextConfig): Text {
 		config.hitboxSize.lengthInPx,
 		{
 			text: config.text,
-			textStyle: config.textStyle as any,  // Temporary: old constructor has different TextStyle type
+			textStyle: {
+				textAlign: config.textStyle.textAlign as CanvasTextAlign,
+				fillStyle: config.textStyle.fillStyle,
+				font: config.textStyle.font,
+				strokeStyle: config.textStyle.strokeStyle,
+				strokeWidth: config.textStyle.strokeWidth
+			},
 			shouldStroke: config.shouldStroke
 		}
 	);

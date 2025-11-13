@@ -25,7 +25,7 @@ const defaultLinearInputIndicatorProperties = {
         linkedAxis: -1,
         multiplier: 1,
         antiDeadzone: 0.0,
-        fadeOutDuration: 0.5,
+        fadeOutDuration: 0.0,
     },
     display: {
         text: "SampleText",
@@ -193,30 +193,30 @@ class LinearInputIndicator extends CanvasObject {
         }
         // Calculate raw input value (clamped 0-1)
         const rawValue = Math.max(Math.min((value - newAntiDeadzone) / (1 - newAntiDeadzone) * this.multiplier, 1), 0);
-        // Fade logic: instant on, gradual off
+        // Simple fade logic: instant on, gradual off
         if (rawValue > 0) {
-            // Any input active - instant response, cancel any fade
+            // Input active - instant response
             this.value = rawValue;
             this.fadeActive = false;
+            this.fadeTimer = 0;
         }
-        else {
-            // No input - start or continue fade
+        else if (this.fadeOutDuration > 0 && this.value > 0) {
+            // Input inactive, fade enabled, and we have value to fade from
             if (!this.fadeActive) {
-                // Start new fade from current display value
+                // First frame of fade - capture starting value
                 this.fadeActive = true;
                 this.fadeStartValue = this.value;
                 this.fadeTimer = 0;
             }
-            if (this.fadeOutDuration > 0) {
-                // Fade from fadeStartValue to 0 over fadeOutDuration
-                this.fadeTimer += delta / 1000; // Convert ms to seconds
-                const fadeProgress = Math.min(this.fadeTimer / this.fadeOutDuration, 1.0);
-                this.value = this.fadeStartValue * (1.0 - fadeProgress);
-            }
-            else {
-                // No fade duration - instant off
-                this.value = 0;
-            }
+            // Continue fade
+            this.fadeTimer += delta / 1000; // Convert ms to seconds
+            const fadeProgress = Math.min(this.fadeTimer / this.fadeOutDuration, 1.0);
+            this.value = this.fadeStartValue * (1.0 - fadeProgress);
+        }
+        else {
+            // No fade or fade complete - instant off
+            this.value = 0;
+            this.fadeActive = false;
         }
         return true;
     }
