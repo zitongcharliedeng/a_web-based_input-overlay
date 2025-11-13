@@ -148,7 +148,7 @@ function deserializeObject(objData) {
             throw new Error(`Unknown object type: ${type}`);
     }
 }
-import { defaultTemplateFor_Text } from './_helpers/OmniConfig.js';
+import { defaultTemplateFor_LinearInputIndicator, defaultTemplateFor_Text } from './_helpers/OmniConfig.js';
 function createLinearIndicatorFromConfig(config) {
     return new LinearInputIndicator(config.positionOnCanvas.pxFromCanvasLeft, config.positionOnCanvas.pxFromCanvasTop, config.hitboxSize.widthInPx, config.hitboxSize.lengthInPx, {
         input: config.input,
@@ -202,7 +202,9 @@ function createScene(canvas, ctx) {
                 unitVectorStyle: { strokeStyle: "#524d4d", lineWidth: 4 }
             }
         }),
-        new LinearInputIndicator(240, yOffset + 60, 100, 100, {
+        createLinearIndicatorFromConfig({
+            ...defaultTemplateFor_LinearInputIndicator,
+            positionOnCanvas: { pxFromCanvasLeft: 240, pxFromCanvasTop: yOffset + 60 },
             input: {
                 keyboard: { keyCode: "KeyW" },
                 mouse: { button: 3, wheel: "up" },
@@ -211,7 +213,14 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: 0 }, display: { text: "W\nWith\nCompensation", backgroundImage: KeyImage }
+            processing: {
+                ...defaultTemplateFor_LinearInputIndicator.processing,
+                linkedAxis: 0
+            },
+            display: {
+                ...defaultTemplateFor_LinearInputIndicator.display,
+                text: "W\nWith\nCompensation"
+            }
         }),
         new LinearInputIndicator(150, yOffset + 160, 100, 100, {
             input: {

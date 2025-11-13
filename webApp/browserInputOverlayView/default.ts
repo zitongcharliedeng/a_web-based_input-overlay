@@ -281,20 +281,26 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 			}
 		),
 
-		new LinearInputIndicator(
-			240, yOffset + 60, 100, 100,
-			{
-				input: {
-					keyboard: { keyCode: "KeyW" },
-					mouse: { button: 3, wheel: "up" },
-					gamepad: {
-						stick: { type: "left", axis: "Y", direction: "negative" },
-						button: { index: null }
-					}
-				},
-				processing: { linkedAxis: 0 }, display: { text: "W\nWith\nCompensation", backgroundImage: KeyImage }
+		createLinearIndicatorFromConfig({
+			...defaultTemplateFor_LinearInputIndicator,
+			positionOnCanvas: { pxFromCanvasLeft: 240, pxFromCanvasTop: yOffset + 60 },
+			input: {
+				keyboard: { keyCode: "KeyW" },
+				mouse: { button: 3, wheel: "up" },
+				gamepad: {
+					stick: { type: "left", axis: "Y", direction: "negative" },
+					button: { index: null }
+				}
+			},
+			processing: {
+				...defaultTemplateFor_LinearInputIndicator.processing,
+				linkedAxis: 0
+			},
+			display: {
+				...defaultTemplateFor_LinearInputIndicator.display,
+				text: "W\nWith\nCompensation"
 			}
-		),
+		}),
 		new LinearInputIndicator(
 			150, yOffset + 160, 100, 100,
 			{
