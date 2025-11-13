@@ -58,9 +58,9 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 				positionOnCanvas,
 				hitboxSize,
 				layerLevel,
-				input: { ...defaultTemplateFor_LinearInputIndicator.input, ...(obj.input || {}) },
-				processing: { ...defaultTemplateFor_LinearInputIndicator.processing, ...(obj.processing || {}) },
-				display: { ...defaultTemplateFor_LinearInputIndicator.display, ...(obj.display || {}) }
+				input: { ...defaultTemplateFor_LinearInputIndicator.input, ...(obj.input && typeof obj.input === 'object' ? obj.input : {}) },
+				processing: { ...defaultTemplateFor_LinearInputIndicator.processing, ...(obj.processing && typeof obj.processing === 'object' ? obj.processing : {}) },
+				display: { ...defaultTemplateFor_LinearInputIndicator.display, ...(obj.display && typeof obj.display === 'object' ? obj.display : {}) }
 			};
 			return { linearInputIndicator: linearConfig };
 		} else if (type === 'PlanarInputIndicator_Radial') {
@@ -68,9 +68,9 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 				positionOnCanvas,
 				hitboxSize,
 				layerLevel,
-				input: { ...defaultTemplateFor_PlanarInputIndicator.input, ...(obj.input || {}) },
-				processing: { ...defaultTemplateFor_PlanarInputIndicator.processing, ...(obj.processing || {}) },
-				display: { ...defaultTemplateFor_PlanarInputIndicator.display, ...(obj.display || {}) }
+				input: { ...defaultTemplateFor_PlanarInputIndicator.input, ...(obj.input && typeof obj.input === 'object' ? obj.input : {}) },
+				processing: { ...defaultTemplateFor_PlanarInputIndicator.processing, ...(obj.processing && typeof obj.processing === 'object' ? obj.processing : {}) },
+				display: { ...defaultTemplateFor_PlanarInputIndicator.display, ...(obj.display && typeof obj.display === 'object' ? obj.display : {}) }
 			};
 			return { planarInputIndicator: planarConfig };
 		} else if (type === 'Text') {
@@ -79,7 +79,7 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 				hitboxSize,
 				layerLevel,
 				text: obj.text || "",
-				textStyle: { ...defaultTemplateFor_Text.textStyle, ...(obj.textStyle || {}) },
+				textStyle: { ...defaultTemplateFor_Text.textStyle, ...(obj.textStyle && typeof obj.textStyle === 'object' ? obj.textStyle : {}) },
 				shouldStroke: obj.shouldStroke ?? true
 			};
 			return { text: textConfig };
