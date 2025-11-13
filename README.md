@@ -21,43 +21,51 @@ Extract and run the executable. No installation required.
 ```powershell
 git clone https://github.com/zitongcharliedeng/a_web-based_input-overlay.git
 cd a_web-based_input-overlay
-npm install
 ```
 
 ### Development
 
-**Run the overlay (with auto-compile and DevTools):**
+**Launch Electron overlay (recommended):**
 
 ```powershell
-.\build-and-run-windows.ps1
+.\forDevelopment_buildAndLaunchWebapp.ps1
 ```
 
 This script will:
-1. Install dependencies (if needed)
+1. Install webApp dependencies
 2. Compile TypeScript
-3. Launch Electron with DevTools
+3. Install Electron wrapper dependencies
+4. Launch Electron with DevTools
 
-**Manual TypeScript compilation:**
-
-```powershell
-npx tsc
-```
-
-**Run without rebuild:**
+**Launch web version (browser-based testing):**
 
 ```powershell
-npm run dev:win
+.\forDevelopment_buildAndLaunchWebsite.ps1
 ```
+
+Opens http://localhost:8080 in your browser.
 
 ### Project Structure
 
 ```
-browserInputListeners/           # Pure input system (keyboard, mouse, gamepad)
-browserInputOverlayView/         # Main overlay application
-  ├── objects/                   # Visual components (LinearInputIndicator, etc.)
-  ├── actions/                   # Scene modifiers (PropertyEdit)
-  ├── _helpers/                  # Utilities (Vector, draw helpers)
-  └── _compiled/                 # TypeScript output (gitignored)
+webApp/                          # Web application code
+  ├── browserInputListeners/     # Pure input system (keyboard, mouse, gamepad)
+  ├── browserInputOverlayView/   # Main overlay application
+  │   ├── objects/               # Visual components (LinearInputIndicator, etc.)
+  │   ├── actions/               # Scene modifiers (PropertyEdit)
+  │   ├── _helpers/              # Utilities (Vector, draw helpers)
+  │   └── _compiled/             # TypeScript output (gitignored)
+  ├── index.html
+  ├── package.json               # Web dependencies (TypeScript, http-server)
+  └── tsconfig.json
+
+wrapWebAppAsStandaloneProgram/   # Electron wrapper
+  ├── main.js                    # Electron main process
+  ├── preload.js                 # Secure IPC bridge
+  └── package.json               # Electron dependencies
+
+forDevelopment_buildAndLaunchWebapp.ps1     # Build & launch Electron
+forDevelopment_buildAndLaunchWebsite.ps1    # Build & launch web version
 ```
 
 See [CLAUDE.md](CLAUDE.md) for full technical details and architecture.
