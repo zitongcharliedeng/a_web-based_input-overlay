@@ -33,7 +33,7 @@ const defaultLinearInputIndicatorProperties = {
         backgroundImage: new Image(),
         fillStyle: "rgba(255, 255, 255, 0.5)",
         fillStyleBackground: "rgba(37, 37, 37, 0.43)",
-        fontStyle: { textAlign: "center", fillStyle: "black", font: "30px Lucida Console" },
+        fontStyle: { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 },
     }
 };
 /**
@@ -77,7 +77,7 @@ class LinearInputIndicator extends CanvasObject {
         this.backgroundImage = new Image();
         this.fillStyle = "rgba(255, 255, 255, 0.5)";
         this.fillStyleBackground = "rgba(37, 37, 37, 0.43)";
-        this.fontStyle = { textAlign: "center", fillStyle: "white", font: "30px Lucida Console" };
+        this.fontStyle = { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
         // Runtime values
         this.value = 0;
         this._previousValue = 0;
@@ -139,7 +139,7 @@ class LinearInputIndicator extends CanvasObject {
             this.backgroundImage = this.display.backgroundImage ?? new Image();
             this.fillStyle = this.display.fillStyle ?? "rgba(255, 255, 255, 0.5)";
             this.fillStyleBackground = this.display.fillStyleBackground ?? "rgba(37, 37, 37, 0.43)";
-            this.fontStyle = this.display.fontStyle ?? { textAlign: "center", fillStyle: "white", font: "30px Lucida Console" };
+            this.fontStyle = this.display.fontStyle ?? { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
         }
     }
     update(delta) {
@@ -238,12 +238,12 @@ class LinearInputIndicator extends CanvasObject {
             canvas_fill_rec(ctx, 0, this.hitboxSize.lengthInPx, this.hitboxSize.widthInPx, -this.hitboxSize.lengthInPx * this.value, { fillStyle: this.fillStyle });
         else
             canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx * this.value, { fillStyle: this.fillStyle });
-        // Print key text centered with white outline
+        // Print key text centered with configurable stroke outline
         const textX = this.hitboxSize.widthInPx * 0.5;
         const textY = this.hitboxSize.lengthInPx * 0.5;
         canvas_properties(ctx, this.fontStyle);
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = this.fontStyle.strokeStyle ?? "white";
+        ctx.lineWidth = this.fontStyle.strokeWidth ?? 3;
         ctx.strokeText(this.keyText, textX, textY);
         canvas_text(ctx, textX, textY, this.keyText, this.fontStyle);
     }

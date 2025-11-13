@@ -41,6 +41,8 @@ export interface LinearInputIndicatorConfig extends BaseCanvasObjectConfig {
 			textAlign: string;
 			fillStyle: string;
 			font: string;
+			strokeStyle: string;
+			strokeWidth: number;
 		};
 		reverseFillDirection: boolean;
 	};
@@ -128,7 +130,9 @@ export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorConfig
 		fontStyle: {
 			textAlign: "center",
 			fillStyle: "black",
-			font: "30px Lucida Console"
+			font: "30px Lucida Console",
+			strokeStyle: "white",
+			strokeWidth: 3
 		},
 		reverseFillDirection: false
 	}

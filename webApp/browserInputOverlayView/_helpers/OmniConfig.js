@@ -34,7 +34,9 @@ export const defaultTemplateFor_LinearInputIndicator = {
         fontStyle: {
             textAlign: "center",
             fillStyle: "black",
-            font: "30px Lucida Console"
+            font: "30px Lucida Console",
+            strokeStyle: "white",
+            strokeWidth: 3
         },
         reverseFillDirection: false
     }
