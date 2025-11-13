@@ -45,7 +45,7 @@ abstract class CanvasObject {
     get height(): number { return this.hitboxSize.lengthInPx; }
     set height(value: number) { this.hitboxSize.lengthInPx = value; }
 
-    abstract update(delta: number): void;
+    abstract update(delta: number): boolean;
     abstract draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void;
 }
 

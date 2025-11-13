@@ -40,7 +40,8 @@ class Text extends CanvasObject {
         applyProperties(this, mergedProperties);
     }
 
-    update(delta: number): void {
+    update(delta: number): boolean {
+        return true;
     }
 
     draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {

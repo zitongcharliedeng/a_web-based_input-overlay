@@ -201,7 +201,7 @@ class LinearInputIndicator extends CanvasObject {
 		this._previousValue = 0;
 	}
 
-	update(delta: number): void {
+	update(delta: number): boolean {
 		var value = 0;
 		var linkedValue = 0;
 
