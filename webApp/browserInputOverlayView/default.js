@@ -2,7 +2,7 @@ import { mouse } from '../browserInputListeners/_compiled/mouse.js';
 import { keyboard } from '../browserInputListeners/keyboard.js';
 import { PlanarInputIndicator_Radial } from './_compiled/objects/PlanarInputIndicator_Radial.js';
 import { LinearInputIndicator } from './_compiled/objects/LinearInputIndicator.js';
-import { Text } from './objects/Text.js';
+import { Text } from './_compiled/objects/Text.js';
 import { PropertyEdit } from './actions/PropertyEdit.js';
 import { Vector } from './_compiled/_helpers/Vector.js';
 import { canvas_properties } from './_helpers/draw.js';

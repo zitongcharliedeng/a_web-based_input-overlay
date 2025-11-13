@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "description": "Web application for input overlay visualization",
   "scripts": {
-    "prebuild": "node -e \"require('fs').rmSync('browserInputOverlayView/_compiled', {recursive:true, force:true}); require('fs').rmSync('browserInputListeners/_compiled', {recursive:true, force:true})\"",
+    "prebuild": "rimraf browserInputOverlayView/_compiled browserInputListeners/_compiled",
     "build": "tsc && tsc browserInputListeners/mouse.ts --outDir browserInputListeners/_compiled --target ES2020 --module ES2020 --lib ES2020,DOM --skipLibCheck",
     "serve": "http-server -p 8080 -c-1 -o",
     "check": "tsc --noEmit"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "rimraf": "^6.1.0",
+    "typescript": "^5.3.3"
   }
 }
