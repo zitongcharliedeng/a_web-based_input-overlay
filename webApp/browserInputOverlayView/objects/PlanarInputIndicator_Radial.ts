@@ -100,6 +100,11 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 			"planarInputIndicator"
 		);
 
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+
 		const mergedProperties = deepMerge(defaultPlanarInputIndicator_RadialProperties, properties || {});
 		applyProperties(this, mergedProperties);
 
