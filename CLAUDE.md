@@ -1077,23 +1077,25 @@ Extend to VR gaming:
 
 ### TypeScript Migration Status
 
-**Completed:**
-1. ✅ `browserInputOverlayView/_helpers/Vector.ts` - 3D vector math utility
-2. ✅ `browserInputOverlayView/_helpers/applyProperties.ts` - Property merging with deepMerge
-3. ✅ `browserInputOverlayView/objects/LinearInputIndicator.ts` - Nested config (input, processing, display)
-4. ✅ **Directory Refactoring Complete** - Semantic structure with browserInputListeners and browserInputOverlayView
+**Completed (CL1-7):**
+1. ✅ `browserInputOverlayView/_helpers/Vector.ts` - 3D vector math utility (CL1)
+2. ✅ `browserInputOverlayView/_helpers/applyProperties.ts` - Property merging with deepMerge (CL2)
+3. ✅ `browserInputOverlayView/objects/LinearInputIndicator.ts` - Nested config (input, processing, display) (CL3)
+4. ✅ `browserInputOverlayView/objects/Text.ts` - Text rendering object (CL4)
+5. ✅ `browserInputOverlayView/objects/PlanarInputIndicator_Radial.ts` - Joystick visualization (CL5 - WORKING)
+6. ✅ `browserInputOverlayView/actions/PropertyEdit.ts` - Right-click edit menu (CL6)
+7. ✅ `browserInputListeners/keyboard.ts` and `browserInputListeners/gamepad.ts` - Input system (CL7)
 
 **Next in Queue:**
-1. ⏳ `browserInputOverlayView/objects/Text.ts` - Simplest object (pure text rendering)
-2. ⏳ `browserInputOverlayView/objects/Thumbstick.ts` - Apply nested config pattern like LinearInputIndicator
-3. ⏳ `browserInputOverlayView/actions/PropertyEdit.ts` - Right-click edit menu
-4. ⏳ `browserInputOverlayView/_helpers/draw.ts` - Canvas drawing helpers
-5. ⏳ `browserInputListeners/*.ts` - Input system (keyboard, mouse, gamepad)
+1. ⏳ `browserInputOverlayView/objects/Thumbstick.ts` - Apply nested config pattern like LinearInputIndicator
+2. ⏳ `browserInputOverlayView/_helpers/draw.ts` - Canvas drawing helpers
 
 ### Known Issues & TODOs
 
 **Active TODOs:**
-- [ ] Convert Text.js to TypeScript
+- [x] Convert Text.js to TypeScript (CL4 complete)
+- [x] Convert PropertyEdit.js to TypeScript (CL6 complete)
+- [x] Convert keyboard.js and gamepad.js to TypeScript (CL7 complete)
 - [ ] Convert Thumbstick.js to TypeScript (apply nested config pattern)
 - [ ] Rename `linkedAxis` to better mathematical term (radialCompensationAxis or perpendicularAxis)
 - [ ] Make KeyImage user-customizable property (currently hardcoded in default.js scene)
