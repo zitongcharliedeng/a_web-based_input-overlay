@@ -1,7 +1,13 @@
 // Pure serialization functions: CanvasObjects → OmniConfig
 // No side effects, no class dependencies, fully composable
 
-import type { OmniConfig, CanvasConfig } from './OmniConfig.js';
+import type { OmniConfig, CanvasConfig, LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from './OmniConfig.js';
+import {
+	defaultTemplateFor_LinearInputIndicator,
+	defaultTemplateFor_PlanarInputIndicator,
+	defaultTemplateFor_Text,
+	defaultTemplateFor_Image
+} from './OmniConfig.js';
 
 // Type for objects we're serializing (avoid circular dependencies)
 interface SerializableObject {
@@ -17,6 +23,7 @@ interface SerializableObject {
 	shouldStroke?: boolean;
 }
 
+
 /**
  * Pure function: Serialize scene objects to OmniConfig
  * @param objects - Array of canvas objects to serialize
@@ -31,58 +38,76 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 	};
 
 	const serializedObjects = objects.map(obj => {
-		const base = {
-			type: obj.className || obj.canvasObjectType || 'unknown',
-			x: obj.positionOnCanvas.pxFromCanvasLeft,
-			y: obj.positionOnCanvas.pxFromCanvasTop,
-			width: obj.hitboxSize.widthInPx,
-			height: obj.hitboxSize.lengthInPx
+		const type = obj.className || obj.canvasObjectType || 'unknown';
+		const positionOnCanvas = {
+			pxFromCanvasLeft: obj.positionOnCanvas.pxFromCanvasLeft,
+			pxFromCanvasTop: obj.positionOnCanvas.pxFromCanvasTop
+		};
+		const hitboxSize = {
+			widthInPx: obj.hitboxSize.widthInPx,
+			lengthInPx: obj.hitboxSize.lengthInPx
 		};
 
-		// Serialize type-specific properties (input, processing, display, text, etc.)
-		const props: Record<string, unknown> = {};
-		if (obj.input !== undefined) props.input = serializeValue(obj.input);
-		if (obj.processing !== undefined) props.processing = serializeValue(obj.processing);
-		if (obj.display !== undefined) props.display = serializeValue(obj.display);
-		if (obj.text !== undefined) props.text = obj.text;
-		if (obj.textStyle !== undefined) props.textStyle = obj.textStyle;
-		if (obj.shouldStroke !== undefined) props.shouldStroke = obj.shouldStroke;
+		// Get layerLevel (default to 10 if not present)
+		const layerLevel = (obj as { layerLevel?: number }).layerLevel ?? 10;
 
-		return { ...base, ...props };
+		// Create discriminated union based on type
+		// No complex serialization needed - just spread defaults and actual values
+		if (type === 'LinearInputIndicator') {
+			const linearConfig: LinearInputIndicatorConfig = {
+				positionOnCanvas,
+				hitboxSize,
+				layerLevel,
+				input: { ...defaultTemplateFor_LinearInputIndicator.input, ...(obj.input || {}) },
+				processing: { ...defaultTemplateFor_LinearInputIndicator.processing, ...(obj.processing || {}) },
+				display: { ...defaultTemplateFor_LinearInputIndicator.display, ...(obj.display || {}) }
+			};
+			return { linearInputIndicator: linearConfig };
+		} else if (type === 'PlanarInputIndicator_Radial') {
+			const planarConfig: PlanarInputIndicatorConfig = {
+				positionOnCanvas,
+				hitboxSize,
+				layerLevel,
+				input: { ...defaultTemplateFor_PlanarInputIndicator.input, ...(obj.input || {}) },
+				processing: { ...defaultTemplateFor_PlanarInputIndicator.processing, ...(obj.processing || {}) },
+				display: { ...defaultTemplateFor_PlanarInputIndicator.display, ...(obj.display || {}) }
+			};
+			return { planarInputIndicator: planarConfig };
+		} else if (type === 'Text') {
+			const textConfig: TextConfig = {
+				positionOnCanvas,
+				hitboxSize,
+				layerLevel,
+				text: obj.text || "",
+				textStyle: { ...defaultTemplateFor_Text.textStyle, ...(obj.textStyle || {}) },
+				shouldStroke: obj.shouldStroke ?? true
+			};
+			return { text: textConfig };
+		} else if (type === 'Image') {
+			const imageConfig: import('./OmniConfig.js').ImageConfig = {
+				positionOnCanvas,
+				hitboxSize,
+				layerLevel,
+				src: (obj as { src?: string }).src || defaultTemplateFor_Image.src,
+				opacity: (obj as { opacity?: number }).opacity ?? defaultTemplateFor_Image.opacity
+			};
+			return { image: imageConfig };
+		}
+
+		// Unknown type - shouldn't happen, but return Text as fallback
+		const fallbackConfig: TextConfig = {
+			...defaultTemplateFor_Text,
+			positionOnCanvas,
+			hitboxSize,
+			layerLevel,
+			text: "Unknown object"
+		};
+		return { text: fallbackConfig };
 	});
 
 	return {
 		canvas: canvasConfig,
-		objects: serializedObjects as any  // Type system doesn't understand discriminated union here
+		objects: serializedObjects
 	};
 }
 
-/**
- * Pure function: Deep serialize a value (handles Images, arrays, objects)
- * @param value - Value to serialize
- * @returns Serialized value (plain JS types + strings for Images)
- */
-export function serializeValue(value: unknown): unknown {
-	// Primitive types - return as-is
-	if (value === null || value === undefined) return value;
-	if (typeof value !== 'object') return value;
-
-	// HTMLImageElement - convert to src URL
-	if (value instanceof Image) {
-		return value.src || 'https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/browserInputOverlayView/_assets/images/KeyDefault.png';
-	}
-
-	// Array - recursively serialize elements
-	if (Array.isArray(value)) {
-		return value.map(item => serializeValue(item));
-	}
-
-	// Plain object - recursively serialize properties
-	const result: Record<string, unknown> = {};
-	for (const key in value) {
-		if (Object.prototype.hasOwnProperty.call(value, key)) {
-			result[key] = serializeValue((value as Record<string, unknown>)[key]);
-		}
-	}
-	return result;
-}

@@ -75,11 +75,12 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 	processing: PlanarProcessingConfig;
 	display: PlanarDisplayConfig;
 
-	constructor(x: number, y: number, width: number, height: number, properties?: PlanarInputIndicator_RadialProperties) {
+	constructor(x: number, y: number, width: number, height: number, properties?: PlanarInputIndicator_RadialProperties, layerLevel?: number) {
 		super(
 			{ pxFromCanvasTop: y, pxFromCanvasLeft: x },
 			{ widthInPx: width, lengthInPx: height },
-			"planarInputIndicator"
+			"planarInputIndicator",
+			layerLevel ?? 10
 		);
 
 		const props = properties ?? {};

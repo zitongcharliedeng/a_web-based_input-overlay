@@ -59,7 +59,6 @@ interface FontStyle {
 interface DisplayConfig {
 	text?: string;
 	reverseFillDirection?: boolean;
-	backgroundImage?: HTMLImageElement;
 	fillStyle?: string;
 	fillStyleBackground?: string;
 	fontStyle?: FontStyle;
@@ -103,7 +102,6 @@ const defaultLinearInputIndicatorProperties: LinearInputIndicatorProperties = {
 	display: {
 		text: "SampleText",
 		reverseFillDirection: false,
-		backgroundImage: new Image(),
 		fillStyle: "rgba(255, 255, 255, 0.5)",
 		fillStyleBackground: "rgba(37, 37, 37, 0.43)",
 		fontStyle: { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 },
@@ -147,7 +145,6 @@ class LinearInputIndicator extends CanvasObject {
 	// Internal properties from display config
 	keyText: string = "SampleText";
 	reverseFillDirection: boolean = false;
-	backgroundImage: HTMLImageElement = new Image();
 	fillStyle: string = "rgba(255, 255, 255, 0.5)";
 	fillStyleBackground: string = "rgba(37, 37, 37, 0.43)";
 	fontStyle: FontStyle = { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
@@ -162,11 +159,12 @@ class LinearInputIndicator extends CanvasObject {
 	processing: ProcessingConfig = defaultLinearInputIndicatorProperties.processing;
 	display: DisplayConfig = defaultLinearInputIndicatorProperties.display;
 
-	constructor(x: number, y: number, width: number, height: number, properties?: LinearInputIndicatorProperties) {
+	constructor(x: number, y: number, width: number, height: number, properties?: LinearInputIndicatorProperties, layerLevel?: number) {
 		super(
 			{ pxFromCanvasTop: y, pxFromCanvasLeft: x },
 			{ widthInPx: width, lengthInPx: height },
-			"linearInputIndicator"
+			"linearInputIndicator",
+			layerLevel ?? 10
 		);
 
 		const props = properties ?? {};
@@ -227,7 +225,6 @@ class LinearInputIndicator extends CanvasObject {
 		if (this.display) {
 			this.keyText = this.display.text ?? "SampleText";
 			this.reverseFillDirection = this.display.reverseFillDirection ?? false;
-			this.backgroundImage = this.display.backgroundImage ?? new Image();
 			this.fillStyle = this.display.fillStyle ?? "rgba(255, 255, 255, 0.5)";
 			this.fillStyleBackground = this.display.fillStyleBackground ?? "rgba(37, 37, 37, 0.43)";
 			this.fontStyle = this.display.fontStyle ?? { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
@@ -361,21 +358,7 @@ class LinearInputIndicator extends CanvasObject {
 		ctx.beginPath();
 		canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx, {fillStyle:this.fillStyleBackground});
 
-		// Draw background image scaled to dimensions
-		try {
-			ctx.drawImage(
-				this.backgroundImage,
-				0, 0,
-				this.backgroundImage.width, this.backgroundImage.height,
-				0, 0,
-				this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx
-			);
-		} catch (e) {
-			// Image not loaded yet or failed to load - skip silently
-			// Will retry next frame when image loads
-		}
-
-		// Fill value (vertical fill from bottom or top) - drawn on top of image
+		// Fill value (vertical fill from bottom or top)
 		// Apply opacity to fillStyle for fade effect
 		const fillStyleWithOpacity = this.applyOpacityToColor(this.fillStyle, this.opacity);
 

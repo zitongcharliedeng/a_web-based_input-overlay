@@ -18,16 +18,19 @@ interface CanvasObjectHitbox {
 abstract class CanvasObject {
     positionOnCanvas: CanvasObjectPosition;
     hitboxSize: CanvasObjectHitbox;
+    layerLevel: number;  // Z-index for rendering order (lower = behind, higher = front)
     canvasObjectType: CanvasObjectType;
     abstract defaultProperties: any;
 
     constructor(
         positionOnCanvas: CanvasObjectPosition,
         hitboxSize: CanvasObjectHitbox,
-        canvasObjectType: CanvasObjectType
+        canvasObjectType: CanvasObjectType,
+        layerLevel: number = 10
     ) {
         this.positionOnCanvas = positionOnCanvas;
         this.hitboxSize = hitboxSize;
+        this.layerLevel = layerLevel;
         this.canvasObjectType = canvasObjectType;
     }
 

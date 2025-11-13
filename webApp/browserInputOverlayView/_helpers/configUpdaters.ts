@@ -27,7 +27,7 @@ export function updateObjectPosition(
 	const newObjects = [...config.objects];
 	const targetObject = newObjects[objectIndex];
 
-	// Update position based on object type (discriminated union)
+	// Update position based on discriminated union type
 	if ('linearInputIndicator' in targetObject) {
 		newObjects[objectIndex] = {
 			linearInputIndicator: {
@@ -46,6 +46,13 @@ export function updateObjectPosition(
 		newObjects[objectIndex] = {
 			text: {
 				...targetObject.text,
+				positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y }
+			}
+		};
+	} else if ('image' in targetObject) {
+		newObjects[objectIndex] = {
+			image: {
+				...targetObject.image,
 				positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y }
 			}
 		};

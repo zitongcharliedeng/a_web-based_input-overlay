@@ -39,12 +39,14 @@ class Text extends CanvasObject {
         pxFromCanvasLeft: number,
         widthInPx: number,
         lengthInPx: number,
-        properties?: TextProperties
+        properties?: TextProperties,
+        layerLevel?: number
     ) {
         super(
             { pxFromCanvasTop, pxFromCanvasLeft },
             { widthInPx, lengthInPx },
-            "text"
+            "text",
+            layerLevel ?? 20
         );
 
         const props = properties ?? {};
