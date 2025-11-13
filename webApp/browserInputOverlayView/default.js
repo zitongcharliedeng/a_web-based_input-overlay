@@ -148,21 +148,41 @@ function deserializeObject(objData) {
             throw new Error(`Unknown object type: ${type}`);
     }
 }
+import { defaultTemplateFor_Text } from './_helpers/OmniConfig.js';
+function createLinearIndicatorFromConfig(config) {
+    return new LinearInputIndicator(config.positionOnCanvas.pxFromCanvasLeft, config.positionOnCanvas.pxFromCanvasTop, config.hitboxSize.widthInPx, config.hitboxSize.lengthInPx, {
+        input: config.input,
+        processing: config.processing,
+        display: config.display // Temporary: old constructor has different DisplayConfig type
+    });
+}
+function createPlanarIndicatorFromConfig(config) {
+    return new PlanarInputIndicator_Radial(config.positionOnCanvas.pxFromCanvasLeft, config.positionOnCanvas.pxFromCanvasTop, config.hitboxSize.widthInPx, config.hitboxSize.lengthInPx, {
+        input: config.input,
+        processing: config.processing,
+        display: config.display
+    });
+}
+function createTextFromConfig(config) {
+    return new Text(config.positionOnCanvas.pxFromCanvasTop, config.positionOnCanvas.pxFromCanvasLeft, config.hitboxSize.widthInPx, config.hitboxSize.lengthInPx, {
+        text: config.text,
+        textStyle: config.textStyle, // Temporary: old constructor has different TextStyle type
+        shouldStroke: config.shouldStroke
+    });
+}
+// Helper to create text labels using default template
+function createLabel(x, y, text) {
+    return createTextFromConfig({
+        ...defaultTemplateFor_Text,
+        positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
+        text
+    });
+}
 function createScene(canvas, ctx) {
     const KeyImage = new Image();
     KeyImage.src = "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/browserInputOverlayView/_assets/images/KeyDefault.png";
     let yOffset = 20;
     const sectionSpacing = 280;
-    function createLabel(x, y, text) {
-        return new Text(y, x, 600, 30, {
-            text: text,
-            textStyle: {
-                textAlign: "left",
-                fillStyle: "#FFFFFF",
-                font: "20px Lucida Console"
-            }
-        });
-    }
     const objects = [
         createLabel(20, yOffset, "TEST 1: Left Stick + WASD + Mouse - WITH radial compensation vs WITHOUT"),
         createLabel(20, yOffset + 25, "Move diagonally: LEFT shows ~100% (compensated), RIGHT shows ~70% (raw circular)"),
