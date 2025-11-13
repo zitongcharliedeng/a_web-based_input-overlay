@@ -1751,5 +1751,80 @@ Genuine next priorities:
 
 ---
 
+### Latest Session Progress (2025-11-13 - Fade-Out Implementation)
+
+**Branch:** `claude/read-the-l-011CUyxYQP7k5L551y7LxcUT`
+**Latest Commit:** `9b7c622` - fix: invert uiohook scroll wheel to match DOM convention, bump CONFIG_VERSION to 101
+
+**Completed This Session:**
+- ✅ **Opacity-Based Fade-Out:** Implemented exponential decay fade for digital inputs
+- ✅ **Signal Processing Approach:** Replaced state machine with continuous decay (audio reverb-style)
+- ✅ **Default Fade Duration:** Set to 0.2 seconds (was 0) for better visibility of fast inputs
+- ✅ **Color Opacity Helper:** Added `applyOpacityToColor()` method to parse and modify RGBA/RGB/hex colors
+- ✅ **Scroll Wheel Direction Fix:** Corrected uiohook rotation → DOM deltaY convention mismatch
+- ✅ **Config Version Bump:** v101 to force localStorage clear for new defaults
+
+**Technical Implementation:**
+
+**1. Fade Logic (Signal Processing, Not State Machine):**
+```typescript
+if (rawValue > 0) {
+    // Input active - instant response, full opacity
+    this.value = rawValue;
+    this.opacity = 1.0;
+} else if (this.fadeOutDuration > 0 && this.value > 0) {
+    // Input inactive - keep fill at current value, fade opacity to 0
+    const decayRate = 1.0 / this.fadeOutDuration;
+    this.opacity = this.opacity * Math.exp(-decayRate * delta);
+
+    if (this.opacity < 0.001) {
+        this.opacity = 0;
+        this.value = 0;
+    }
+} else {
+    // No fade - instant off
+    this.value = 0;
+    this.opacity = 1.0;
+}
+```
+
+**Key Insight:** Fade is continuous signal decay (like audio reverb), not discrete state transitions. The exponential decay formula `value *= exp(-decayRate * delta)` provides smooth, natural-feeling fade.
+
+**2. Opacity vs Fill Behavior:**
+- **Digital inputs (keyboard, mouse):** Fill stays at 100%, opacity fades 1.0 → 0.0
+- **Analog inputs (gamepad stick):** Fill height varies continuously with input value
+- This visual distinction helps users differentiate input types at a glance
+
+**3. Scroll Wheel Direction Bug:**
+- **Problem:** uiohook and DOM use opposite sign conventions
+  - DOM: `deltaY < 0` = scroll up, `deltaY > 0` = scroll down
+  - uiohook: `rotation > 0` = scroll down, `rotation < 0` = scroll up
+- **Fix:** Inverted comparison signs in index.html global wheel handler
+- **Result:** Scroll wheel now works correctly in both web and Electron versions
+
+**4. The Units Bug (Most Embarrassing):**
+- Delta from `requestAnimationFrame` is already in seconds: `delta = (currentTime - previousTime) / 1000`
+- Was dividing by 1000 again in exponential decay, making fade 1000x slower than intended
+- Fix: removed the extra `/ 1000` - now fade works at correct speed
+
+**Debug Journey (Commit History):**
+- `ab34483` - Bumped CONFIG_VERSION to 100 (localStorage wasn't clearing)
+- `b52970e` - FUNDAMENTAL FIX: Replaced state machine with exponential decay
+- `d571078` - UNITS BUG: Delta already in seconds, don't divide by 1000 again
+- `ed75a61` - feat: Replace fill fade with opacity fade
+- `9b7c622` - fix: Invert uiohook scroll wheel direction
+
+**Lessons Learned:**
+1. **Treat the cause, not the symptom:** Multiple state machine fixes failed because the state machine itself was the wrong model
+2. **Signal processing > state machines** for continuous effects like fades
+3. **Unit conversions are dangerous:** Always verify what units your inputs are in
+4. **Simple is better:** Final solution is 15 lines vs 50+ lines of state machine logic
+
+**CONFIG_VERSION History:**
+- v100: Forced clear for fadeOutDuration addition
+- v101: Forced clear for new fadeOutDuration default (0.2s)
+
+---
+
 *Last Updated: 2025-11-13*
 *Model: Claude Sonnet 4.5*
