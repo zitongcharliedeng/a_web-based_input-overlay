@@ -150,7 +150,11 @@ class LinearInputIndicator extends CanvasObject {
 	display: DisplayConfig = defaultLinearInputIndicatorProperties.display;
 
 	constructor(x: number, y: number, width: number, height: number, properties?: Partial<LinearInputIndicatorProperties>) {
-		super(y, x, width, height, "linearInputIndicator");
+		super(
+			{ pxFromCanvasTop: y, pxFromCanvasLeft: x },
+			{ widthInPx: width, lengthInPx: height },
+			"linearInputIndicator"
+		);
 
 		// Merge properties using deep merge for nested objects
 		const mergedProperties = deepMerge(defaultLinearInputIndicatorProperties, properties || {});

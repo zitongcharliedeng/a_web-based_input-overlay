@@ -22,14 +22,12 @@ abstract class CanvasObject {
     abstract defaultProperties: any;
 
     constructor(
-        pxFromCanvasTop: number,
-        pxFromCanvasLeft: number,
-        widthInPx: number,
-        lengthInPx: number,
+        positionOnCanvas: CanvasObjectPosition,
+        hitboxSize: CanvasObjectHitbox,
         canvasObjectType: CanvasObjectType
     ) {
-        this.positionOnCanvas = { pxFromCanvasTop, pxFromCanvasLeft };
-        this.hitboxSize = { widthInPx, lengthInPx };
+        this.positionOnCanvas = positionOnCanvas;
+        this.hitboxSize = hitboxSize;
         this.canvasObjectType = canvasObjectType;
     }
 

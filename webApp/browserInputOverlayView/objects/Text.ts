@@ -34,7 +34,11 @@ class Text extends CanvasObject {
         lengthInPx: number,
         properties?: Partial<TextProperties>
     ) {
-        super(pxFromCanvasTop, pxFromCanvasLeft, widthInPx, lengthInPx, "text");
+        super(
+            { pxFromCanvasTop, pxFromCanvasLeft },
+            { widthInPx, lengthInPx },
+            "text"
+        );
 
         const mergedProperties = { ...defaultTextProperties, ...properties };
         applyProperties(this, mergedProperties);
