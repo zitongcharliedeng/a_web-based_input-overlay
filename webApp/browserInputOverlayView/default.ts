@@ -200,18 +200,29 @@ function deserializeImage(src: string): HTMLImageElement {
 }
 
 function deserializeObject(objData: any): CanvasObject {
-	const { type, x, y, width, height, ...props } = objData;
+	// Handle OmniConfig discriminated union format
+	if ('linearInputIndicator' in objData) {
+		return createLinearIndicatorFromConfig(objData.linearInputIndicator);
+	} else if ('planarInputIndicator' in objData) {
+		return createPlanarIndicatorFromConfig(objData.planarInputIndicator);
+	} else if ('text' in objData) {
+		return createTextFromConfig(objData.text);
+	} else if ('image' in objData) {
+		return createImageFromConfig(objData.image);
+	}
 
+	// Fallback: handle old flat format (legacy)
+	const { type, x, y, width, height, ...props } = objData;
 	switch (type) {
 		case 'LinearInputIndicator':
 		case 'linearInputIndicator':
-			return new LinearInputIndicator(x, y, width, height, props);
+			return new LinearInputIndicator(x, y, width, height, props, props.layerLevel);
 		case 'PlanarInputIndicator_Radial':
 		case 'planarInputIndicator':
-			return new PlanarInputIndicator_Radial(x, y, width, height, props);
+			return new PlanarInputIndicator_Radial(x, y, width, height, props, props.layerLevel);
 		case 'Text':
 		case 'text':
-			return new Text(y, x, width, height, props);
+			return new Text(y, x, width, height, props, props.layerLevel);
 		default:
 			throw new Error(`Unknown object type: ${type}`);
 	}
@@ -231,7 +242,8 @@ function createLinearIndicatorFromConfig(config: LinearInputIndicatorConfig): Li
 			input: config.input,
 			processing: config.processing,
 			display: config.display as any  // Temporary: old constructor has different DisplayConfig type
-		}
+		},
+		config.layerLevel
 	);
 }
 
@@ -245,7 +257,8 @@ function createPlanarIndicatorFromConfig(config: PlanarInputIndicatorConfig): Pl
 			input: config.input,
 			processing: config.processing,
 			display: config.display
-		}
+		},
+		config.layerLevel
 	);
 }
 
@@ -265,7 +278,23 @@ function createTextFromConfig(config: TextConfig): Text {
 				strokeWidth: config.textStyle.strokeWidth
 			},
 			shouldStroke: config.shouldStroke
-		}
+		},
+		config.layerLevel
+	);
+}
+
+function createImageFromConfig(config: import('./_helpers/OmniConfig.js').ImageConfig): import('./CanvasObject/Image.js').Image {
+	const ImageClass = require('./CanvasObject/Image.js').Image;
+	return new ImageClass(
+		config.positionOnCanvas.pxFromCanvasTop,
+		config.positionOnCanvas.pxFromCanvasLeft,
+		config.hitboxSize.widthInPx,
+		config.hitboxSize.lengthInPx,
+		{
+			src: config.src,
+			opacity: config.opacity
+		},
+		config.layerLevel
 	);
 }
 
