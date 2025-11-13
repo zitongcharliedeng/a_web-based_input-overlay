@@ -232,29 +232,29 @@ class LinearInputIndicator extends CanvasObject {
 		const gamepads = (window as any).gamepads;
 		for (var id in gamepads) {
 			var gamepad = gamepads[id];
-			if (gamepad !== null && gamepad.axes && this.hasStickInput) {
+			if (gamepad !== null && gamepad.axes && this.hasStickInput && this.axis !== null) {
 
 				if (gamepad.axes[this.axis] !== null && gamepad.axes[this.axis] !== undefined
 				&& ((this.revertedAxis === true && gamepad.axes[this.axis] < 0)
 				|| (this.revertedAxis === false && gamepad.axes[this.axis] > 0))) {
-					if (gamepad.axes[this.linkedAxis]) {
+					if (this.linkedAxis >= 0 && gamepad.axes[this.linkedAxis]) {
 
 						//Converts circular back to square coordinates
 						value += Math.abs(gamepad.axes[this.axis]) * Math.sqrt(1 + 2 * Math.pow(Math.abs(gamepad.axes[this.linkedAxis]), 2))
 
-					} else {
+					} else if (this.linkedAxis < 0) {
 
 						value += (Math.abs(gamepad.axes[this.axis]) - newAntiDeadzone) / (1 - newAntiDeadzone)
 					}
 				}
 
 
-				if (gamepad.axes[this.linkedAxis]) {
+				if (this.linkedAxis >= 0 && gamepad.axes[this.linkedAxis]) {
 
 					linkedValue += Math.abs(gamepad.axes[this.linkedAxis])
 				}
 			}
-			if (gamepad !== null && gamepad.buttons && this.hasButtonInput) {
+			if (gamepad !== null && gamepad.buttons && this.hasButtonInput && this.button !== null) {
 
 				if (gamepad.buttons[this.button]) {
 
