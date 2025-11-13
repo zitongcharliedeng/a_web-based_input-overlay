@@ -225,7 +225,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: 0, fadeOutDuration: 0.2 },
+            processing: { linkedAxis: 0 },
             display: { text: "W", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(150, yOffset + 160, 100, 100, {
@@ -248,7 +248,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: 0, fadeOutDuration: 0.2 }, display: { text: "S", backgroundImage: KeyImage }
+            processing: { linkedAxis: 0 }, display: { text: "S", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(350, yOffset + 160, 100, 100, {
             input: {
@@ -270,7 +270,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: -1, fadeOutDuration: 0.2 }, display: { text: "W", backgroundImage: KeyImage }
+            processing: { linkedAxis: -1 }, display: { text: "W", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(650, yOffset + 160, 100, 100, {
             input: {
@@ -292,7 +292,7 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: { linkedAxis: -1, fadeOutDuration: 0.2 }, display: { text: "S", backgroundImage: KeyImage }
+            processing: { linkedAxis: -1 }, display: { text: "S", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(850, yOffset + 160, 100, 100, {
             input: {

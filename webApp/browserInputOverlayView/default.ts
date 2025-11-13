@@ -306,7 +306,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 0, fadeOutDuration: 0.2 },
+				processing: { linkedAxis: 0 },
 				display: { text: "W", backgroundImage: KeyImage }
 			}
 		),
@@ -335,7 +335,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 0, fadeOutDuration: 0.2 }, display: { text: "S", backgroundImage: KeyImage }
+				processing: { linkedAxis: 0 }, display: { text: "S", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -364,7 +364,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1, fadeOutDuration: 0.2 }, display: { text: "W", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "W", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(
@@ -392,7 +392,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1, fadeOutDuration: 0.2 }, display: { text: "S", backgroundImage: KeyImage }
+				processing: { linkedAxis: -1 }, display: { text: "S", backgroundImage: KeyImage }
 			}
 		),
 		new LinearInputIndicator(

@@ -193,28 +193,36 @@ class LinearInputIndicator extends CanvasObject {
         }
         // Calculate raw input value (clamped 0-1)
         const rawValue = Math.max(Math.min((value - newAntiDeadzone) / (1 - newAntiDeadzone) * this.multiplier, 1), 0);
-        // Simple fade logic: instant on, gradual off
+        // Update value with optional fade
         if (rawValue > 0) {
             // Input active - instant response
             this.value = rawValue;
             this.fadeActive = false;
             this.fadeTimer = 0;
         }
-        else if (this.fadeOutDuration > 0 && this.value > 0) {
-            // Input inactive, fade enabled, and we have value to fade from
+        else if (this.fadeOutDuration > 0) {
+            // Input inactive with fade enabled
             if (!this.fadeActive) {
-                // First frame of fade - capture starting value
+                // Start fade from current value
                 this.fadeActive = true;
                 this.fadeStartValue = this.value;
                 this.fadeTimer = 0;
             }
-            // Continue fade
-            this.fadeTimer += delta / 1000; // Convert ms to seconds
-            const fadeProgress = Math.min(this.fadeTimer / this.fadeOutDuration, 1.0);
-            this.value = this.fadeStartValue * (1.0 - fadeProgress);
+            // Increment timer and calculate fade
+            this.fadeTimer += delta / 1000;
+            const fadeProgress = this.fadeTimer / this.fadeOutDuration;
+            if (fadeProgress >= 1.0) {
+                // Fade complete
+                this.value = 0;
+                this.fadeActive = false;
+            }
+            else {
+                // Still fading
+                this.value = this.fadeStartValue * (1.0 - fadeProgress);
+            }
         }
         else {
-            // No fade or fade complete - instant off
+            // No fade - instant off
             this.value = 0;
             this.fadeActive = false;
         }
