@@ -3,7 +3,7 @@
     "target": "ES2020",
     "module": "ES2020",
     "lib": ["ES2020", "DOM"],
-    "allowJs": false,
+    "allowJs": true,
     "checkJs": false,
     "noEmit": false,
     "outDir": "./browserInputOverlayView/_compiled",
@@ -15,7 +15,8 @@
     "esModuleInterop": true
   },
   "include": [
-    "browserInputOverlayView/**/*.ts"
+    "browserInputOverlayView/**/*.ts",
+    "browserInputOverlayView/_helpers/draw.js"
   ],
   "exclude": [
     "node_modules",
