@@ -118,31 +118,31 @@ class LinearInputIndicator extends CanvasObject {
 	className: string = "LinearInputIndicator";
 
 	// Internal properties from input config
-	keyCode: string | null;
-	mouseButton: number | null;
-	mouseWheel: "up" | "down" | null;
-	hasStickInput: boolean;
-	axis: number | null;
-	revertedAxis: boolean;
-	hasButtonInput: boolean;
-	button: number | null;
+	keyCode: string | null = null;
+	mouseButton: number | null = null;
+	mouseWheel: "up" | "down" | null = null;
+	hasStickInput: boolean = false;
+	axis: number | null = null;
+	revertedAxis: boolean = false;
+	hasButtonInput: boolean = false;
+	button: number | null = null;
 
 	// Internal properties from processing config
-	linkedAxis: number;
-	multiplier: number;
-	antiDeadzone: number;
+	linkedAxis: number = -1;
+	multiplier: number = 1;
+	antiDeadzone: number = 0.0;
 
 	// Internal properties from display config
-	keyText: string;
-	reverseFillDirection: boolean;
-	backgroundImage: HTMLImageElement;
-	fillStyle: string;
-	fillStyleBackground: string;
-	fontStyle: any;
+	keyText: string = "SampleText";
+	reverseFillDirection: boolean = false;
+	backgroundImage: HTMLImageElement = new Image();
+	fillStyle: string = "rgba(255, 255, 255, 0.5)";
+	fillStyleBackground: string = "rgba(37, 37, 37, 0.43)";
+	fontStyle: any = { textAlign: "center", fillStyle: "white", font: "30px Lucida Console" };
 
 	// Runtime values
-	value: number;
-	_previousValue: number;
+	value: number = 0;
+	_previousValue: number = 0;
 
 	// Config properties (before flattening)
 	input: InputConfig;
