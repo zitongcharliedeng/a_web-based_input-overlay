@@ -25,10 +25,17 @@ class PropertyEdit {
 		if (sceneConfigText && !sceneConfigText.hidden && this.applySceneConfig) {
 			try {
 				const config = JSON.parse(sceneConfigText.value);
-				this.applySceneConfig(config);
-			} catch (e) {
-				console.error('Invalid JSON in scene config:', e);
-				alert('Invalid JSON configuration. Changes not applied.');
+				try {
+					this.applySceneConfig(config);
+				} catch (applyError) {
+					console.error('Error applying scene config:', applyError);
+					alert(`Failed to apply configuration: ${applyError instanceof Error ? applyError.message : String(applyError)}`);
+					return; // Don't close editor if apply fails
+				}
+			} catch (parseError) {
+				console.error('Invalid JSON in scene config:', parseError);
+				alert('Invalid JSON syntax. Please fix the configuration.');
+				return; // Don't close editor if JSON is invalid
 			}
 		}
 
