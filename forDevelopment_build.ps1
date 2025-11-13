@@ -22,7 +22,12 @@ $totalSteps = if ($SkipElectron) { 2 } else { 3 }
 # Step 1: Install webApp dependencies
 if (-not $Silent) { Write-Host "[1/$totalSteps] Installing webApp dependencies..." -ForegroundColor Yellow }
 Set-Location webApp
-npm install | Out-Null
+
+if ($Silent) {
+    npm install 2>&1 | Out-Null
+} else {
+    npm install
+}
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
@@ -36,7 +41,12 @@ if (-not $Silent) { Write-Host "  webApp dependencies installed" -ForegroundColo
 
 # Step 2: Compile TypeScript
 if (-not $Silent) { Write-Host "[2/$totalSteps] Compiling TypeScript..." -ForegroundColor Yellow }
-npm run build | Out-Null
+
+if ($Silent) {
+    npm run build 2>&1 | Out-Null
+} else {
+    npm run build
+}
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
@@ -52,7 +62,12 @@ if (-not $Silent) { Write-Host "  TypeScript compiled" -ForegroundColor Green; W
 if (-not $SkipElectron) {
     if (-not $Silent) { Write-Host "[3/3] Installing Electron wrapper dependencies..." -ForegroundColor Yellow }
     Set-Location ../wrapWebAppAsStandaloneProgram
-    npm install | Out-Null
+
+    if ($Silent) {
+        npm install 2>&1 | Out-Null
+    } else {
+        npm install
+    }
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host ""
