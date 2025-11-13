@@ -649,9 +649,14 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 
 			if (mouse.clicks[2] === true || mouse.clicks[0] === true) {
 				if (clickedObject === null && editingProperties === true) {
-					console.log("clicked away from editor");
+					console.log("clicked away from editor - saving changes");
 					propertyEditor.hidePropertyEdit();
 					editingProperties = false;
+
+					// Save updated scene to localStorage
+					const updatedConfig = sceneToConfig(objects, canvas);
+					saveSceneConfig(updatedConfig);
+					configManager.setConfig(updatedConfig);
 				}
 			}
 
