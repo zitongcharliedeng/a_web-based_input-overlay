@@ -1149,6 +1149,62 @@ All core objects, helpers, and input listeners are now in TypeScript. The only r
 - Always-on-top works perfectly
 - Conclusion: COSMIC doesn't support click-through yet (very new DE)
 
+### Latest Session Progress (2025-11-13)
+
+**TypeScript Refactoring - The Idiomatic Way:**
+
+**Context:** User challenged me on using `any` and `as` type assertions - "TypeScript gods must approve"
+
+**Problem Identified:**
+- Used `deepMerge()` utility with `any` types
+- Required type assertions (`as`) to make it work
+- This is an anti-pattern in TypeScript - indicates wrong modeling
+
+**Root Cause Analysis:**
+- Q: Why do we even need deepMerge?
+- A: We're merging partial user configs with nested defaults
+- The pattern came from JavaScript, but TypeScript has better solutions
+
+**The Idiomatic Solution:**
+- Eliminated `deepMerge()` and `applyProperties()` entirely
+- Replaced with explicit object spreading at each nesting level
+- Example:
+  ```typescript
+  // Before (with deepMerge - requires any/as):
+  const merged = deepMerge(defaults, props || {}) as SomeType;
+
+  // After (explicit spreading - fully type-safe):
+  this.input = {
+    keyboard: { ...defaults.input.keyboard, ...props.input?.keyboard },
+    mouse: { ...defaults.input.mouse, ...props.input?.mouse },
+    gamepad: {
+      stick: { ...defaults.input.gamepad.stick, ...props.input?.gamepad?.stick },
+      button: { ...defaults.input.gamepad.button, ...props.input?.gamepad?.button }
+    }
+  };
+  ```
+
+**Results:**
+- ✅ Zero `any` types
+- ✅ Zero `as` assertions
+- ✅ Fully type-safe, verifiable by TypeScript
+- ✅ Optional chaining (`?.`) and nullish coalescing (`??`) for safety
+- ✅ Explicit, readable code
+- ✅ **TESTED AND WORKING** - Confirmed functional on Windows
+
+**Files Changed:**
+- `LinearInputIndicator.ts` - explicit nested spreading
+- `Text.ts` - simple spreading with nested textStyle
+- `PlanarInputIndicator_Radial.ts` - explicit spreading with style objects
+- `PropertyEdit.ts` - removed empty applyProperties, changed `any` to `unknown`
+- `default.ts` - fixed Text constructor to use nested textStyle
+- **DELETED:** `applyProperties.ts` - no longer needed
+
+**Lesson Learned:**
+When TypeScript complains about types and you reach for `any` or `as`, that's a code smell. The solution is almost always to refactor the code pattern, not to silence the compiler. Object spreading is idiomatic TypeScript for merging configs.
+
+**Commit:** `447dc39` - refactor!: eliminate deepMerge anti-pattern, use idiomatic TypeScript object spreading
+
 ### Latest Session Progress (2025-11-12)
 
 **Completed:**
