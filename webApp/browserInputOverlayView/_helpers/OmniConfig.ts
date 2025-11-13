@@ -1,7 +1,7 @@
 // Omniconfig - Single source of truth for entire overlay scene
 // NixOS-style: declarative, explicit (no hidden defaults), type-as-key, spawn templates
 
-import type { CanvasObjectPosition, CanvasObjectHitbox } from '../CanvasObject';
+import type { CanvasObjectPosition, CanvasObjectHitbox } from '../CanvasObject/index.js';
 
 // Canvas configuration
 export interface CanvasConfig {

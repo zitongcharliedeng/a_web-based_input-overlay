@@ -1,4 +1,4 @@
-import { CanvasObject } from '.';
+import { CanvasObject } from './index.js';
 import { Vector } from '../_helpers/Vector.js';
 import { canvas_properties, canvas_arc, canvas_line, canvas_arrow } from '../_helpers/draw.js';
 
