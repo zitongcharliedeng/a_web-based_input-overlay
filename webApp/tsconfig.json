@@ -6,8 +6,6 @@
     "allowJs": true,
     "checkJs": false,
     "noEmit": false,
-    "outDir": "./browserInputOverlayView/_compiled",
-    "rootDir": "./browserInputOverlayView",
     "strict": false,
     "noImplicitAny": false,
     "skipLibCheck": true,
@@ -16,7 +14,8 @@
   },
   "include": [
     "browserInputOverlayView/**/*.ts",
-    "browserInputOverlayView/_helpers/draw.js"
+    "browserInputOverlayView/_helpers/draw.js",
+    "browserInputListeners/**/*.ts"
   ],
   "exclude": [
     "node_modules",

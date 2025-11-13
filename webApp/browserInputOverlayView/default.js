@@ -1,5 +1,5 @@
 import { mouse } from '../browserInputListeners/_compiled/mouse.js';
-import { keyboard } from '../browserInputListeners/keyboard.js';
+import { keyboard } from '../browserInputListeners/_compiled/keyboard.js';
 import { PlanarInputIndicator_Radial } from './_compiled/objects/PlanarInputIndicator_Radial.js';
 import { LinearInputIndicator } from './_compiled/objects/LinearInputIndicator.js';
 import { Text } from './_compiled/objects/Text.js';
