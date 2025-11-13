@@ -234,9 +234,9 @@ class LinearInputIndicator extends CanvasObject {
 			var gamepad = gamepads[id];
 			if (gamepad !== null && gamepad.axes && this.hasStickInput) {
 
-				if (gamepad.axes[this.axis]
-				&& (this.revertedAxis === true && gamepad.axes[this.axis] < 0)
-				|| (this.revertedAxis === false && gamepad.axes[this.axis] > 0)) {
+				if (gamepad.axes[this.axis] !== null && gamepad.axes[this.axis] !== undefined
+				&& ((this.revertedAxis === true && gamepad.axes[this.axis] < 0)
+				|| (this.revertedAxis === false && gamepad.axes[this.axis] > 0))) {
 					if (gamepad.axes[this.linkedAxis]) {
 
 						//Converts circular back to square coordinates
