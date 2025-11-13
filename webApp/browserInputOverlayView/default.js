@@ -205,7 +205,7 @@ function createScene(canvas, ctx) {
         new LinearInputIndicator(240, yOffset + 60, 100, 100, {
             input: {
                 keyboard: { keyCode: "KeyW" },
-                mouse: { button: 3 },
+                mouse: { button: 3, wheel: "up" },
                 gamepad: {
                     stick: { type: "left", axis: "Y", direction: "negative" },
                     button: { index: null }
@@ -227,7 +227,7 @@ function createScene(canvas, ctx) {
         new LinearInputIndicator(250, yOffset + 160, 100, 100, {
             input: {
                 keyboard: { keyCode: "KeyS" },
-                mouse: { button: 4 },
+                mouse: { button: 4, wheel: "down" },
                 gamepad: {
                     stick: { type: "left", axis: "Y", direction: "positive" },
                     button: { index: null }
@@ -249,7 +249,7 @@ function createScene(canvas, ctx) {
         new LinearInputIndicator(740, yOffset + 60, 100, 100, {
             input: {
                 keyboard: { keyCode: "KeyW" },
-                mouse: { button: 3 },
+                mouse: { button: 3, wheel: "up" },
                 gamepad: {
                     stick: { type: "left", axis: "Y", direction: "negative" },
                     button: { index: null }
@@ -271,7 +271,7 @@ function createScene(canvas, ctx) {
         new LinearInputIndicator(750, yOffset + 160, 100, 100, {
             input: {
                 keyboard: { keyCode: "KeyS" },
-                mouse: { button: 4 },
+                mouse: { button: 4, wheel: "down" },
                 gamepad: {
                     stick: { type: "left", axis: "Y", direction: "positive" },
                     button: { index: null }
