@@ -307,8 +307,8 @@ class LinearInputIndicator extends CanvasObject {
 			this.value = rawValue;
 			this.fadeActive = false;
 			this.fadeTimer = 0;
-		} else if (this.fadeOutDuration > 0) {
-			// Input inactive with fade enabled
+		} else if (this.fadeOutDuration > 0 && this.value > 0) {
+			// Input inactive with fade enabled AND we have value to fade from
 			if (!this.fadeActive) {
 				// Start fade from current value
 				this.fadeActive = true;
@@ -329,7 +329,7 @@ class LinearInputIndicator extends CanvasObject {
 				this.value = this.fadeStartValue * (1.0 - fadeProgress);
 			}
 		} else {
-			// No fade - instant off
+			// No fade OR nothing to fade - instant off
 			this.value = 0;
 			this.fadeActive = false;
 		}
