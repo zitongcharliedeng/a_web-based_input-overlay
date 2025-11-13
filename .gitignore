@@ -9,11 +9,8 @@ node_modules/
 
 # TypeScript compiled output (build artifacts - compile locally)
 # Pure source-only approach: .ts files are source of truth
-webApp/**/*.js
-webApp/**/*.js.map
+**/*.js
+**/*.js.map
 
 # esbuild bundled output
 webApp/dist/
-
-# Exceptions
-!wrapWebAppAsStandaloneProgram/**/*.js

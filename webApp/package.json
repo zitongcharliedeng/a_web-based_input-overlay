@@ -4,9 +4,9 @@
   "type": "module",
   "description": "Web application for input overlay visualization",
   "scripts": {
-    "prebuild": "tsx _helpers/generateVersionGitCommitHash.ts && rimraf dist",
-    "build": "npm run prebuild && tsx esbuild.config.ts",
-    "dev": "npm run prebuild && tsx esbuild.config.ts --watch",
+    "prebuild": "node --loader tsx/esm _helpers/generateVersionGitCommitHash.ts && rimraf dist",
+    "build": "npm run prebuild && node --loader tsx/esm esbuild.config.ts",
+    "dev": "npm run prebuild && node --loader tsx/esm esbuild.config.ts --watch",
     "serve": "http-server -p 8080 -c-1 -o",
     "check": "tsc --noEmit"
   },
