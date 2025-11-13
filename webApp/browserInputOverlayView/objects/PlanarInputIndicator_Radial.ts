@@ -89,9 +89,9 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 	previousX: number = 0;
 	previousY: number = 0;
 
-	input: PlanarInputConfig = defaultPlanarInputIndicator_RadialProperties.input;
-	processing: PlanarProcessingConfig = defaultPlanarInputIndicator_RadialProperties.processing;
-	display: PlanarDisplayConfig = defaultPlanarInputIndicator_RadialProperties.display;
+	input: PlanarInputConfig;
+	processing: PlanarProcessingConfig;
+	display: PlanarDisplayConfig;
 
 	constructor(x: number, y: number, width: number, height: number, properties?: Partial<PlanarInputIndicator_RadialProperties>) {
 		super(
