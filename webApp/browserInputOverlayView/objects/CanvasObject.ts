@@ -5,11 +5,19 @@ type CanvasObjectType =
     | "image"
     | "webEmbed";
 
-abstract class CanvasObject {
+interface CanvasObjectPosition {
     pxFromCanvasTop: number;
     pxFromCanvasLeft: number;
+}
+
+interface CanvasObjectHitbox {
     widthInPx: number;
     lengthInPx: number;
+}
+
+abstract class CanvasObject {
+    positionOnCanvas: CanvasObjectPosition;
+    hitboxSize: CanvasObjectHitbox;
     canvasObjectType: CanvasObjectType;
     abstract defaultProperties: any;
 
@@ -20,28 +28,26 @@ abstract class CanvasObject {
         lengthInPx: number,
         canvasObjectType: CanvasObjectType
     ) {
-        this.pxFromCanvasTop = pxFromCanvasTop;
-        this.pxFromCanvasLeft = pxFromCanvasLeft;
-        this.widthInPx = widthInPx;
-        this.lengthInPx = lengthInPx;
+        this.positionOnCanvas = { pxFromCanvasTop, pxFromCanvasLeft };
+        this.hitboxSize = { widthInPx, lengthInPx };
         this.canvasObjectType = canvasObjectType;
     }
 
-    get x(): number { return this.pxFromCanvasLeft; }
-    set x(value: number) { this.pxFromCanvasLeft = value; }
+    get x(): number { return this.positionOnCanvas.pxFromCanvasLeft; }
+    set x(value: number) { this.positionOnCanvas.pxFromCanvasLeft = value; }
 
-    get y(): number { return this.pxFromCanvasTop; }
-    set y(value: number) { this.pxFromCanvasTop = value; }
+    get y(): number { return this.positionOnCanvas.pxFromCanvasTop; }
+    set y(value: number) { this.positionOnCanvas.pxFromCanvasTop = value; }
 
-    get width(): number { return this.widthInPx; }
-    set width(value: number) { this.widthInPx = value; }
+    get width(): number { return this.hitboxSize.widthInPx; }
+    set width(value: number) { this.hitboxSize.widthInPx = value; }
 
-    get height(): number { return this.lengthInPx; }
-    set height(value: number) { this.lengthInPx = value; }
+    get height(): number { return this.hitboxSize.lengthInPx; }
+    set height(value: number) { this.hitboxSize.lengthInPx = value; }
 
     abstract update(delta: number): void;
     abstract draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void;
 }
 
 export { CanvasObject };
-export type { CanvasObjectType };
+export type { CanvasObjectType, CanvasObjectPosition, CanvasObjectHitbox };

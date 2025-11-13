@@ -1,5 +1,5 @@
 import { CanvasObject } from './CanvasObject.js';
-import { applyProperties } from '../_compiled/_helpers/applyProperties.js';
+import { applyProperties } from '../_helpers/applyProperties.js';
 import { canvas_text } from '../_helpers/draw.js';
 
 interface TextStyle {
