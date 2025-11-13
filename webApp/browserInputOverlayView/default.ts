@@ -161,7 +161,7 @@ window.addEventListener("load", function (): void {
 }, false);
 
 // LocalStorage persistence with versioning
-const CONFIG_VERSION = 103;  // Increment when config structure changes (fixed updateObjectPosition format mismatch)
+const CONFIG_VERSION = 104;  // Increment when config structure changes (added layerLevel, removed backgroundImage, new Image primitive)
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 
 function saveSceneConfig(config: any): void {
