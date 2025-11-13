@@ -1,3 +1,4 @@
+import { sceneToConfig } from '../_helpers/sceneSerializer.js';
 const defaultPropertyEditProperties = {};
 class PropertyEdit {
     constructor() {
@@ -81,54 +82,8 @@ class PropertyEdit {
         editorWindow.hidden = false;
     }
     serializeScene(scene, canvas) {
-        const config = {
-            canvas: {
-                width: canvas.width,
-                height: canvas.height,
-                backgroundColor: 'transparent'
-            },
-            objects: []
-        };
-        for (const obj of scene.objects) {
-            const serialized = {
-                type: obj.className || obj.canvasObjectType || obj.constructor.name,
-                x: obj.positionOnCanvas.pxFromCanvasLeft,
-                y: obj.positionOnCanvas.pxFromCanvasTop,
-                width: obj.hitboxSize.widthInPx,
-                height: obj.hitboxSize.lengthInPx
-            };
-            if (obj.input)
-                serialized.input = this.serializeObject(obj.input);
-            if (obj.processing)
-                serialized.processing = this.serializeObject(obj.processing);
-            if (obj.display)
-                serialized.display = this.serializeObject(obj.display);
-            if (obj.text)
-                serialized.text = obj.text;
-            if (obj.textStyle)
-                serialized.textStyle = obj.textStyle;
-            if (obj.shouldStroke !== undefined)
-                serialized.shouldStroke = obj.shouldStroke;
-            config.objects.push(serialized);
-        }
-        return config;
-    }
-    serializeObject(obj) {
-        if (obj === null || obj === undefined)
-            return obj;
-        if (typeof obj !== 'object')
-            return obj;
-        if (obj instanceof Image) {
-            return obj.src || 'https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/browserInputOverlayView/_assets/images/KeyDefault.png';
-        }
-        if (Array.isArray(obj)) {
-            return obj.map(item => this.serializeObject(item));
-        }
-        const result = {};
-        for (const key in obj) {
-            result[key] = this.serializeObject(obj[key]);
-        }
-        return result;
+        // Delegate to pure function
+        return sceneToConfig(scene.objects, canvas);
     }
     renderProperties(container, path, schema, targetObj) {
         for (const key in schema) {

@@ -6,6 +6,7 @@ import { Text } from './CanvasObject/Text.js';
 import { PropertyEdit } from './actions/PropertyEdit.js';
 import { Vector } from './_helpers/Vector.js';
 import { canvas_properties } from './_helpers/draw.js';
+import { sceneToConfig } from './_helpers/sceneSerializer.js';
 
 declare global {
 	interface Window {
@@ -594,7 +595,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 
 			if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && clickedObject !== null) {
 				console.log("Released mouse - saving position");
-				const config = propertyEditor.serializeScene(this, canvas);
+				const config = sceneToConfig(objects, canvas);
 				saveSceneConfig(config);
 				clickedObject = null;
 			}
