@@ -105,7 +105,8 @@ const CanvasObjectConfigSchema = z.union([
 
 export const OmniConfigSchema = z.object({
 	canvas: CanvasConfigSchema,
-	objects: z.array(CanvasObjectConfigSchema)
+	objects: z.array(CanvasObjectConfigSchema),
+	version: z.string().optional()
 });
 
 export function validateOmniConfig(data: unknown): { success: true; data: z.infer<typeof OmniConfigSchema> } | { success: false; error: z.ZodError } {

@@ -7,7 +7,7 @@ import { ImageObject } from './CanvasObjects/Image.js';
 import { PropertyEdit } from './actions/PropertyEdit.js';
 import { Vector } from '../_helpers/Vector.js';
 import { canvas_properties } from '../_helpers/draw.js';
-import { sceneToConfig } from '../persistentData/sceneSerializer.js';
+import { sceneToConfig, loadConfigFromLocalStorage } from '../persistentData/sceneSerializer.js';
 import { ConfigManager } from '../persistentData/ConfigManager.js';
 import { CONFIG_VERSION } from '../_helpers/version.js';
 
@@ -173,19 +173,19 @@ function saveSceneConfig(config: any): void {
 
 function loadSceneConfig(): any | null {
 	try {
-		const saved = localStorage.getItem(SCENE_CONFIG_KEY);
-		if (saved) {
-			const parsed = JSON.parse(saved);
-			if (parsed.version !== CONFIG_VERSION) {
-				localStorage.clear();
+		const result = loadConfigFromLocalStorage(SCENE_CONFIG_KEY);
+		if (!result.success) {
+			if (result.error === 'not_found') {
 				return null;
 			}
-			return parsed;
+			console.error('[Config] Validation failed:', result.error);
+			return null;
 		}
+		return result.config;
 	} catch (e) {
 		console.error('[Config] Failed to load:', e);
+		return null;
 	}
-	return null;
 }
 
 function deserializeImage(src: string): HTMLImageElement {
