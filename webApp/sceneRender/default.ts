@@ -179,6 +179,9 @@ function loadSceneConfig(): any | null {
 				return null;
 			}
 			console.error('[Config] Validation failed:', result.error);
+			// Also log the raw localStorage data for debugging
+			const raw = localStorage.getItem(SCENE_CONFIG_KEY);
+			console.error('[Config] Raw data from localStorage:', raw);
 			return null;
 		}
 		return result.config;

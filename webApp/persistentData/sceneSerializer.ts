@@ -48,34 +48,55 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 		const layerLevel = (obj as { layerLevel?: number }).layerLevel ?? 10;
 
 		// Create discriminated union based on type
-		// No complex serialization needed - just spread defaults and actual values
+		// Deep merge defaults with actual values to ensure all nested fields present
 		if (type === 'LinearInputIndicator') {
+			const objInput = (obj.input && typeof obj.input === 'object' ? obj.input : {}) as Partial<LinearInputIndicatorConfig['input']>;
+			const objProcessing = (obj.processing && typeof obj.processing === 'object' ? obj.processing : {}) as Partial<LinearInputIndicatorConfig['processing']>;
+			const objDisplay = (obj.display && typeof obj.display === 'object' ? obj.display : {}) as Partial<LinearInputIndicatorConfig['display']>;
+
 			const linearConfig: LinearInputIndicatorConfig = {
 				positionOnCanvas,
 				hitboxSize,
 				layerLevel,
-				input: { ...defaultTemplateFor_LinearInputIndicator.input, ...(obj.input && typeof obj.input === 'object' ? obj.input : {}) },
-				processing: { ...defaultTemplateFor_LinearInputIndicator.processing, ...(obj.processing && typeof obj.processing === 'object' ? obj.processing : {}) },
-				display: { ...defaultTemplateFor_LinearInputIndicator.display, ...(obj.display && typeof obj.display === 'object' ? obj.display : {}) }
+				input: {
+					keyboard: { ...defaultTemplateFor_LinearInputIndicator.input.keyboard, ...objInput.keyboard },
+					mouse: { ...defaultTemplateFor_LinearInputIndicator.input.mouse, ...objInput.mouse },
+					gamepad: {
+						stick: { ...defaultTemplateFor_LinearInputIndicator.input.gamepad.stick, ...objInput.gamepad?.stick },
+						button: { ...defaultTemplateFor_LinearInputIndicator.input.gamepad.button, ...objInput.gamepad?.button }
+					}
+				},
+				processing: { ...defaultTemplateFor_LinearInputIndicator.processing, ...objProcessing },
+				display: {
+					...defaultTemplateFor_LinearInputIndicator.display,
+					...objDisplay,
+					fontStyle: { ...defaultTemplateFor_LinearInputIndicator.display.fontStyle, ...objDisplay.fontStyle }
+				}
 			};
 			return { linearInputIndicator: linearConfig };
 		} else if (type === 'PlanarInputIndicator_Radial') {
+			const objInput = (obj.input && typeof obj.input === 'object' ? obj.input : {}) as Partial<PlanarInputIndicatorConfig['input']>;
+			const objProcessing = (obj.processing && typeof obj.processing === 'object' ? obj.processing : {}) as Partial<PlanarInputIndicatorConfig['processing']>;
+			const objDisplay = (obj.display && typeof obj.display === 'object' ? obj.display : {}) as Partial<PlanarInputIndicatorConfig['display']>;
+
 			const planarConfig: PlanarInputIndicatorConfig = {
 				positionOnCanvas,
 				hitboxSize,
 				layerLevel,
-				input: { ...defaultTemplateFor_PlanarInputIndicator.input, ...(obj.input && typeof obj.input === 'object' ? obj.input : {}) },
-				processing: { ...defaultTemplateFor_PlanarInputIndicator.processing, ...(obj.processing && typeof obj.processing === 'object' ? obj.processing : {}) },
-				display: { ...defaultTemplateFor_PlanarInputIndicator.display, ...(obj.display && typeof obj.display === 'object' ? obj.display : {}) }
+				input: { ...defaultTemplateFor_PlanarInputIndicator.input, ...objInput },
+				processing: { ...defaultTemplateFor_PlanarInputIndicator.processing, ...objProcessing },
+				display: { ...defaultTemplateFor_PlanarInputIndicator.display, ...objDisplay }
 			};
 			return { planarInputIndicator: planarConfig };
 		} else if (type === 'Text') {
+			const objTextStyle = (obj.textStyle && typeof obj.textStyle === 'object' ? obj.textStyle : {}) as Partial<TextConfig['textStyle']>;
+
 			const textConfig: TextConfig = {
 				positionOnCanvas,
 				hitboxSize,
 				layerLevel,
 				text: obj.text || "",
-				textStyle: { ...defaultTemplateFor_Text.textStyle, ...(obj.textStyle && typeof obj.textStyle === 'object' ? obj.textStyle : {}) },
+				textStyle: { ...defaultTemplateFor_Text.textStyle, ...objTextStyle },
 				shouldStroke: obj.shouldStroke ?? true
 			};
 			return { text: textConfig };
