@@ -142,13 +142,15 @@ window.addEventListener("load", function (): void {
 	window.addEventListener("resize", resizeCanvas);
 }, false);
 
-// LocalStorage persistence
+// LocalStorage persistence with versioning
+const CONFIG_VERSION = 1;  // Increment when config structure changes
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 
 function saveSceneConfig(config: any): void {
 	try {
-		localStorage.setItem(SCENE_CONFIG_KEY, JSON.stringify(config));
-		console.log('[Config] Saved scene config to localStorage');
+		const versionedConfig = { version: CONFIG_VERSION, ...config };
+		localStorage.setItem(SCENE_CONFIG_KEY, JSON.stringify(versionedConfig));
+		console.log('[Config] Saved scene config to localStorage (v' + CONFIG_VERSION + ')');
 	} catch (e) {
 		console.error('[Config] Failed to save scene config:', e);
 	}
@@ -158,8 +160,14 @@ function loadSceneConfig(): any | null {
 	try {
 		const saved = localStorage.getItem(SCENE_CONFIG_KEY);
 		if (saved) {
-			console.log('[Config] Loaded scene config from localStorage');
-			return JSON.parse(saved);
+			const parsed = JSON.parse(saved);
+			if (parsed.version !== CONFIG_VERSION) {
+				console.log('[Config] Version mismatch (saved: ' + parsed.version + ', current: ' + CONFIG_VERSION + '), clearing localStorage');
+				localStorage.clear();
+				return null;
+			}
+			console.log('[Config] Loaded scene config from localStorage (v' + CONFIG_VERSION + ')');
+			return parsed;
 		}
 	} catch (e) {
 		console.error('[Config] Failed to load scene config:', e);
