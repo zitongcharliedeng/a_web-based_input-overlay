@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - master  # Deploy when pushing to master
+      - claude/read-the-l-011CUyxYQP7k5L551y7LxcUT  # Deploy when pushing to default branch
   workflow_dispatch:  # Allow manual trigger
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
