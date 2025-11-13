@@ -159,17 +159,18 @@
 
 			window.electronAPI.onGlobalWheel((data) => {
 				console.log('[Renderer] IPC received wheel, rotation:', data.rotation);
-				// Update wheel delta
+				// Update wheel delta (negate to match DOM WheelEvent.deltaY convention)
 				if (window.mouse && window.mouse.wheelDelta) {
-					// rotation: positive = up, negative = down
-					window.mouse.wheelDelta.y = data.rotation;
-					console.log('[Renderer] Updated mouse.wheelDelta.y =', data.rotation);
+					// DOM convention: negative = scroll up, positive = scroll down
+					// uiohook rotation: positive = scroll down, negative = scroll up (verified)
+					window.mouse.wheelDelta.y = -data.rotation;
+					console.log('[Renderer] Updated mouse.wheelDelta.y =', -data.rotation);
 				}
-				// Set single-frame wheel events
+				// Set single-frame wheel events (match DOM convention)
 				if (window.mouse && window.mouse.wheelEvents) {
-					if (data.rotation > 0) {
+					if (data.rotation < 0) {
 						window.mouse.wheelEvents.up = true;
-					} else if (data.rotation < 0) {
+					} else if (data.rotation > 0) {
 						window.mouse.wheelEvents.down = true;
 					}
 				}
