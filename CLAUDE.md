@@ -1701,6 +1701,55 @@ nix-shell -p nodejs --run "node -e \"require('fs').rmSync(...); ...\" && npx tsc
 
 ---
 
-*Last Updated: Current Session*
-*Model at Session Start: Claude Haiku 4.5*
-*Switching to: Claude Sonnet 4.5 for next session*
+### Latest Session Progress (2025-11-13 Continued - Omniconfig & Visual Polish)
+
+**Branch:** `claude/read-the-l-011CUyxYQP7k5L551y7LxcUT`
+**Latest Commit:** `5c23577` - fix: match W button background, apply mathematical RGB colors to radial
+
+**Completed This Session:**
+- ✅ **Folder Restructure:** `objects/` → `CanvasObject/`, `CanvasObject.ts` → `index.ts` for proper TypeScript folder imports
+- ✅ **Browser ES Module Fix:** Changed folder imports from `'.'` to `'./index.js'` (browsers require explicit file paths)
+- ✅ **Dead Code Cleanup:** Removed applyProperties.js, removed unnecessary test cases (ZXC, spacebar, mouse-only tests)
+- ✅ **Omniconfig Infrastructure:** Added OmniConfig.ts with types and default templates for all object types
+- ✅ **Config Versioning System:** Added `CONFIG_VERSION` constant - auto-clears localStorage on breaking changes
+- ✅ **Multi-Input Enhancement:** Added scroll wheel (up/down) to WASD keys alongside keyboard/mouse/gamepad
+- ✅ **Visual Polish:**
+  - Black text with white outline (3px stroke) for all labels
+  - Simplified labels to single letters/short names (W, A, S, D, LT, RT, etc.)
+  - Mathematical RGB convention for radial indicator (X=red, Y=green, magnitude=yellow, direction=blue)
+  - Consolidated triggers (LT/RT) to same row as gamepad buttons
+  - Transparent background for radial circle
+  - 2px line width for radial (down from 4px)
+
+**Architecture Achievements:**
+- **Omniconfig Complete:** Types, templates, and factory functions fully implemented
+- **localStorage Persistence:** Scene configs save/load with automatic version checking
+- **Config-Driven:** All objects use config pattern (ready for serialization)
+- **Scene Config Editor:** Right-click canvas → edit JSON config in real-time
+
+**Current Test Setup:**
+- TEST 1: WASD with/without radial compensation + PlanarInputIndicator + multi-input (keyboard + mouse + scroll + gamepad)
+- TEST 1B: Right joystick (IJKL)
+- TEST 3: Gamepad buttons (A/B/X/Y) + triggers (LT/RT) on same row
+- All inputs confirmed working across platforms
+
+**CONFIG_VERSION History:**
+- v1: Initial localStorage persistence
+- v2: Black text with white outline, simplified labels
+- v3: Fixed text fill color (black not white)
+- v4: Mathematical RGB colors, transparent radial background
+
+**What's Actually Next:**
+The omniconfig infrastructure is COMPLETE. The test scene uses direct constructors which is fine - they're already config-driven and work with serialization. Factory functions exist for deserialization (scene config editor uses them).
+
+Genuine next priorities:
+1. **Visual feedback enhancement:** Fade-out duration for fast inputs (scroll wheel visibility)
+2. **Config management UI:** Save/load preset configurations
+3. **Additional input indicators:** More gamepad mappings, keyboard layouts
+4. **Performance optimization:** Only redraw changed objects
+5. **Platform testing:** Verify click-through on other Linux compositors
+
+---
+
+*Last Updated: 2025-11-13*
+*Model: Claude Sonnet 4.5*

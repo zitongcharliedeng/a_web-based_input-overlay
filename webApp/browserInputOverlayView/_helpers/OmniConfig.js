@@ -23,7 +23,8 @@ export const defaultTemplateFor_LinearInputIndicator = {
     processing: {
         linkedAxis: -1,
         multiplier: 1,
-        antiDeadzone: 0
+        antiDeadzone: 0,
+        fadeOutDuration: 0
     },
     display: {
         text: "",

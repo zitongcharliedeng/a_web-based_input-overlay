@@ -30,6 +30,7 @@ export interface LinearInputIndicatorConfig extends BaseCanvasObjectConfig {
 		linkedAxis: number;
 		multiplier: number;
 		antiDeadzone: number;
+		fadeOutDuration: number;
 	};
 	display: {
 		text: string;
@@ -114,7 +115,8 @@ export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorConfig
 	processing: {
 		linkedAxis: -1,
 		multiplier: 1,
-		antiDeadzone: 0
+		antiDeadzone: 0,
+		fadeOutDuration: 0
 	},
 	display: {
 		text: "",

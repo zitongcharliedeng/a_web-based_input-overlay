@@ -45,6 +45,7 @@ interface ProcessingConfig {
 	linkedAxis?: number;
 	multiplier?: number;
 	antiDeadzone?: number;
+	fadeOutDuration?: number;
 }
 
 interface DisplayConfig {
@@ -88,6 +89,7 @@ const defaultLinearInputIndicatorProperties: LinearInputIndicatorProperties = {
 		linkedAxis: -1,
 		multiplier: 1,
 		antiDeadzone: 0.0,
+		fadeOutDuration: 0.0,
 	},
 
 	display: {
@@ -130,6 +132,11 @@ class LinearInputIndicator extends CanvasObject {
 	linkedAxis: number = -1;
 	multiplier: number = 1;
 	antiDeadzone: number = 0.0;
+	fadeOutDuration: number = 0.0;
+
+	// Fade tracking
+	fadeTimer: number = 0;
+	targetValue: number = 0;
 
 	// Internal properties from display config
 	keyText: string = "SampleText";
@@ -207,6 +214,7 @@ class LinearInputIndicator extends CanvasObject {
 			this.linkedAxis = this.processing.linkedAxis ?? -1;
 			this.multiplier = this.processing.multiplier ?? 1;
 			this.antiDeadzone = this.processing.antiDeadzone ?? 0.0;
+			this.fadeOutDuration = this.processing.fadeOutDuration ?? 0.0;
 		}
 
 		if (this.display) {
@@ -281,8 +289,31 @@ class LinearInputIndicator extends CanvasObject {
 			}
 		}
 
-		// Update input
-		this.value = Math.max(Math.min((value - newAntiDeadzone) / (1 - newAntiDeadzone) * this.multiplier, 1), 0);
+		// Calculate raw input value (clamped 0-1)
+		const rawValue = Math.max(Math.min((value - newAntiDeadzone) / (1 - newAntiDeadzone) * this.multiplier, 1), 0);
+
+		// Fade logic
+		if (rawValue > 0) {
+			// Input is active - instant response, no fade-in delay
+			this.value = rawValue;
+			this.fadeTimer = 0;
+		} else {
+			// Input is inactive
+			if (this.fadeTimer === 0) {
+				// First frame of inactivity - capture starting value for fade
+				this.targetValue = this.value;
+			}
+
+			if (this.fadeOutDuration > 0 && this.fadeTimer < this.fadeOutDuration) {
+				// Fading out over time
+				this.fadeTimer += delta / 1000; // Convert ms to seconds
+				const fadeProgress = Math.min(this.fadeTimer / this.fadeOutDuration, 1.0);
+				this.value = this.targetValue * (1 - fadeProgress);
+			} else {
+				// Fade complete or no fade duration - instant off
+				this.value = 0;
+			}
+		}
 
 		return true;
 	}
