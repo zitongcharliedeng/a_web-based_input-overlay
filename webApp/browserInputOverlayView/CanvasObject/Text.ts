@@ -42,9 +42,9 @@ class Text extends CanvasObject {
         const props = properties ?? {};
         const defaults = defaultTextProperties;
 
-        this.text = props.text ?? defaults.text ?? "";
+        this.text = props.text ?? defaults.text!;
         this.textStyle = { ...defaults.textStyle, ...props.textStyle };
-        this.shouldStroke = props.shouldStroke ?? defaults.shouldStroke ?? false;
+        this.shouldStroke = props.shouldStroke ?? defaults.shouldStroke!;
     }
 
     update(delta: number): boolean {

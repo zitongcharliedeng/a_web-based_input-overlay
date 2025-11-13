@@ -135,8 +135,9 @@ class LinearInputIndicator extends CanvasObject {
 	fadeOutDuration: number = 0.0;
 
 	// Fade tracking
+	fadeActive: boolean = false;
 	fadeTimer: number = 0;
-	targetValue: number = 0;
+	fadeStartValue: number = 0;
 
 	// Internal properties from display config
 	keyText: string = "SampleText";
@@ -292,25 +293,27 @@ class LinearInputIndicator extends CanvasObject {
 		// Calculate raw input value (clamped 0-1)
 		const rawValue = Math.max(Math.min((value - newAntiDeadzone) / (1 - newAntiDeadzone) * this.multiplier, 1), 0);
 
-		// Fade logic
+		// Fade logic: instant on, gradual off
 		if (rawValue > 0) {
-			// Input is active - instant response, no fade-in delay
+			// Any input active - instant response, cancel any fade
 			this.value = rawValue;
-			this.fadeTimer = 0;
+			this.fadeActive = false;
 		} else {
-			// Input is inactive
-			if (this.fadeTimer === 0) {
-				// First frame of inactivity - capture starting value for fade
-				this.targetValue = this.value;
+			// No input - start or continue fade
+			if (!this.fadeActive) {
+				// Start new fade from current display value
+				this.fadeActive = true;
+				this.fadeStartValue = this.value;
+				this.fadeTimer = 0;
 			}
 
-			if (this.fadeOutDuration > 0 && this.fadeTimer < this.fadeOutDuration) {
-				// Fading out over time
+			if (this.fadeOutDuration > 0) {
+				// Fade from fadeStartValue to 0 over fadeOutDuration
 				this.fadeTimer += delta / 1000; // Convert ms to seconds
 				const fadeProgress = Math.min(this.fadeTimer / this.fadeOutDuration, 1.0);
-				this.value = this.targetValue * (1 - fadeProgress);
+				this.value = this.fadeStartValue * (1.0 - fadeProgress);
 			} else {
-				// Fade complete or no fade duration - instant off
+				// No fade duration - instant off
 				this.value = 0;
 			}
 		}
