@@ -6,4 +6,5 @@ node_modules/
 package-lock.json
 
 # TypeScript compiled output (developers compile locally)
-webApp/_compiled/
+webApp/browserInputOverlayView/_compiled/
+webApp/browserInputListeners/_compiled/

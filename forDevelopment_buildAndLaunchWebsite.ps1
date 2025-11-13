@@ -27,3 +27,4 @@ Write-Host ""
 
 Set-Location webApp
 npm run serve
+Set-Location ..

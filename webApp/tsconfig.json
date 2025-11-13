@@ -6,8 +6,8 @@
     "allowJs": false,
     "checkJs": false,
     "noEmit": false,
-    "outDir": "./_compiled",
-    "rootDir": ".",
+    "outDir": "./browserInputOverlayView/_compiled",
+    "rootDir": "./browserInputOverlayView",
     "strict": false,
     "noImplicitAny": false,
     "skipLibCheck": true,
@@ -15,8 +15,7 @@
     "esModuleInterop": true
   },
   "include": [
-    "browserInputOverlayView/**/*.ts",
-    "browserInputListeners/**/*.ts"
+    "browserInputOverlayView/**/*.ts"
   ],
   "exclude": [
     "node_modules",
