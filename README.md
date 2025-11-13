@@ -45,6 +45,14 @@ This script will:
 
 Opens http://localhost:8080 in your browser.
 
+**Launch in readonly/overlay mode (streaming use):**
+
+```powershell
+.\forDevelopment_launchInReadonlyMode.ps1
+```
+
+Launches Electron with click-through enabled. Overlay stays on top, no editing UI. Close with Alt+F4.
+
 ### Project Structure
 
 ```
@@ -64,8 +72,10 @@ wrapWebAppAsStandaloneProgram/   # Electron wrapper
   ├── preload.js                 # Secure IPC bridge
   └── package.json               # Electron dependencies
 
-forDevelopment_buildAndLaunchWebapp.ps1     # Build & launch Electron
+forDevelopment_build.ps1                    # Shared build script (DRY)
+forDevelopment_buildAndLaunchWebapp.ps1     # Build & launch Electron (dev mode)
 forDevelopment_buildAndLaunchWebsite.ps1    # Build & launch web version
+forDevelopment_launchInReadonlyMode.ps1     # Build & launch overlay mode
 ```
 
 See [CLAUDE.md](CLAUDE.md) for full technical details and architecture.
