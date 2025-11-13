@@ -301,13 +301,17 @@ class LinearInputIndicator extends CanvasObject {
 		// Calculate raw input value (clamped 0-1)
 		const rawValue = Math.max(Math.min((value - newAntiDeadzone) / (1 - newAntiDeadzone) * this.multiplier, 1), 0);
 
+		// Threshold to treat tiny values (drift) as zero for fade purposes
+		const FADE_THRESHOLD = 0.05;
+		const isActive = rawValue >= FADE_THRESHOLD;
+
 		// Update value with optional fade
-		if (rawValue > 0) {
+		if (isActive) {
 			// Input active - instant response
 			this.value = rawValue;
 			this.fadeActive = false;
 			this.fadeTimer = 0;
-		} else if (this.fadeOutDuration > 0 && this.value > 0) {
+		} else if (this.fadeOutDuration > 0 && this.value > FADE_THRESHOLD) {
 			// Input inactive with fade enabled AND we have value to fade from
 			if (!this.fadeActive) {
 				// Start fade from current value
@@ -329,7 +333,7 @@ class LinearInputIndicator extends CanvasObject {
 				this.value = this.fadeStartValue * (1.0 - fadeProgress);
 			}
 		} else {
-			// No fade OR nothing to fade - instant off
+			// No fade OR nothing to fade OR below threshold - instant off
 			this.value = 0;
 			this.fadeActive = false;
 		}
