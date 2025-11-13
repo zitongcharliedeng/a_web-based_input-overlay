@@ -150,12 +150,10 @@ function scene_default(canvas, ctx) {
 			20, yOffset + 60, 200, 200,
 			{
 				input: {
-					keyboard: { keyCode: null },
-					mouse: { button: null },
-					gamepad: {
-						stick: { type: "left", axis: null, direction: null },
-						button: { index: null }
-					}
+					xAxes: { 0: true },
+					yAxes: { 1: true },
+					invertX: false,
+					invertY: false
 				},
 				display: {
 					backgroundStyle: {lineWidth:4, strokeStyle:"#B4B4B4", fillStyle:"rgba(37, 37, 37, 0.43)"},
