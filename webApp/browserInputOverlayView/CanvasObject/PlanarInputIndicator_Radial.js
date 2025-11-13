@@ -15,12 +15,12 @@ const defaultPlanarInputIndicator_RadialProperties = {
     },
     display: {
         radius: 100,
-        backgroundStyle: { strokeStyle: "#000000", lineWidth: 2, fillStyle: "rgba(255, 255, 255, 0.1)" },
-        xLineStyle: { strokeStyle: "#0000FF", lineWidth: 2 },
-        yLineStyle: { strokeStyle: "#FF0000", lineWidth: 2 },
-        deadzoneStyle: { fillStyle: "#FF0000" },
-        inputVectorStyle: { strokeStyle: "#AA0000", lineWidth: 3 },
-        unitVectorStyle: { strokeStyle: "#000000", lineWidth: 2 }
+        backgroundStyle: { strokeStyle: "#B4B4B4", lineWidth: 2, fillStyle: "rgba(0, 0, 0, 0)" },
+        xLineStyle: { strokeStyle: "#FF0000", lineWidth: 2 },
+        yLineStyle: { strokeStyle: "#00FF00", lineWidth: 2 },
+        deadzoneStyle: { fillStyle: "#524d4d" },
+        inputVectorStyle: { strokeStyle: "#FFFF00", lineWidth: 2 },
+        unitVectorStyle: { strokeStyle: "#0000FF", lineWidth: 2 }
     }
 };
 class PlanarInputIndicator_Radial extends CanvasObject {

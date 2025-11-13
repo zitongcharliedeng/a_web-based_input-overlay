@@ -143,7 +143,7 @@ window.addEventListener("load", function (): void {
 }, false);
 
 // LocalStorage persistence with versioning
-const CONFIG_VERSION = 3;  // Increment when config structure changes
+const CONFIG_VERSION = 4;  // Increment when config structure changes
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 
 function saveSceneConfig(config: any): void {
@@ -279,36 +279,31 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 					invertY: false
 				},
 				display: {
-					backgroundStyle: {lineWidth:2, strokeStyle:"#B4B4B4", fillStyle:"rgba(37, 37, 37, 0.43)"},
-					xLineStyle: {strokeStyle:"#B4B4B4", lineWidth:2},
-					yLineStyle: {strokeStyle:"#B4B4B4", lineWidth:2},
+					backgroundStyle: {lineWidth:2, strokeStyle:"#B4B4B4", fillStyle:"rgba(0, 0, 0, 0)"},
+					xLineStyle: {strokeStyle:"#FF0000", lineWidth:2},
+					yLineStyle: {strokeStyle:"#00FF00", lineWidth:2},
 					deadzoneStyle: {fillStyle:"#524d4d"},
-					inputVectorStyle: {strokeStyle:"#B4B4B4", lineWidth:2},
-					unitVectorStyle: {strokeStyle:"#524d4d", lineWidth:2}
+					inputVectorStyle: {strokeStyle:"#FFFF00", lineWidth:2},
+					unitVectorStyle: {strokeStyle:"#0000FF", lineWidth:2}
 				}
 			}
 		),
 
-		createLinearIndicatorFromConfig({
-			...defaultTemplateFor_LinearInputIndicator,
-			positionOnCanvas: { pxFromCanvasLeft: 240, pxFromCanvasTop: yOffset + 60 },
-			input: {
-				keyboard: { keyCode: "KeyW" },
-				mouse: { button: 3, wheel: "up" },
-				gamepad: {
-					stick: { type: "left", axis: "Y", direction: "negative" },
-					button: { index: null }
-				}
-			},
-			processing: {
-				...defaultTemplateFor_LinearInputIndicator.processing,
-				linkedAxis: 0
-			},
-			display: {
-				...defaultTemplateFor_LinearInputIndicator.display,
-				text: "W"
+		new LinearInputIndicator(
+			240, yOffset + 60, 100, 100,
+			{
+				input: {
+					keyboard: { keyCode: "KeyW" },
+					mouse: { button: 3, wheel: "up" },
+					gamepad: {
+						stick: { type: "left", axis: "Y", direction: "negative" },
+						button: { index: null }
+					}
+				},
+				processing: { linkedAxis: 0 },
+				display: { text: "W", backgroundImage: KeyImage }
 			}
-		}),
+		),
 		new LinearInputIndicator(
 			150, yOffset + 160, 100, 100,
 			{

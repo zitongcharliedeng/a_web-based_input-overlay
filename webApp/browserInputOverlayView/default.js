@@ -101,7 +101,7 @@ window.addEventListener("load", function () {
     window.addEventListener("resize", resizeCanvas);
 }, false);
 // LocalStorage persistence with versioning
-const CONFIG_VERSION = 3; // Increment when config structure changes
+const CONFIG_VERSION = 4; // Increment when config structure changes
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 function saveSceneConfig(config) {
     try {
@@ -156,7 +156,7 @@ function deserializeObject(objData) {
             throw new Error(`Unknown object type: ${type}`);
     }
 }
-import { defaultTemplateFor_LinearInputIndicator, defaultTemplateFor_Text } from './_helpers/OmniConfig.js';
+import { defaultTemplateFor_Text } from './_helpers/OmniConfig.js';
 function createLinearIndicatorFromConfig(config) {
     return new LinearInputIndicator(config.positionOnCanvas.pxFromCanvasLeft, config.positionOnCanvas.pxFromCanvasTop, config.hitboxSize.widthInPx, config.hitboxSize.lengthInPx, {
         input: config.input,
@@ -202,17 +202,15 @@ function createScene(canvas, ctx) {
                 invertY: false
             },
             display: {
-                backgroundStyle: { lineWidth: 2, strokeStyle: "#B4B4B4", fillStyle: "rgba(37, 37, 37, 0.43)" },
-                xLineStyle: { strokeStyle: "#B4B4B4", lineWidth: 2 },
-                yLineStyle: { strokeStyle: "#B4B4B4", lineWidth: 2 },
+                backgroundStyle: { lineWidth: 2, strokeStyle: "#B4B4B4", fillStyle: "rgba(0, 0, 0, 0)" },
+                xLineStyle: { strokeStyle: "#FF0000", lineWidth: 2 },
+                yLineStyle: { strokeStyle: "#00FF00", lineWidth: 2 },
                 deadzoneStyle: { fillStyle: "#524d4d" },
-                inputVectorStyle: { strokeStyle: "#B4B4B4", lineWidth: 2 },
-                unitVectorStyle: { strokeStyle: "#524d4d", lineWidth: 2 }
+                inputVectorStyle: { strokeStyle: "#FFFF00", lineWidth: 2 },
+                unitVectorStyle: { strokeStyle: "#0000FF", lineWidth: 2 }
             }
         }),
-        createLinearIndicatorFromConfig({
-            ...defaultTemplateFor_LinearInputIndicator,
-            positionOnCanvas: { pxFromCanvasLeft: 240, pxFromCanvasTop: yOffset + 60 },
+        new LinearInputIndicator(240, yOffset + 60, 100, 100, {
             input: {
                 keyboard: { keyCode: "KeyW" },
                 mouse: { button: 3, wheel: "up" },
@@ -221,14 +219,8 @@ function createScene(canvas, ctx) {
                     button: { index: null }
                 }
             },
-            processing: {
-                ...defaultTemplateFor_LinearInputIndicator.processing,
-                linkedAxis: 0
-            },
-            display: {
-                ...defaultTemplateFor_LinearInputIndicator.display,
-                text: "W"
-            }
+            processing: { linkedAxis: 0 },
+            display: { text: "W", backgroundImage: KeyImage }
         }),
         new LinearInputIndicator(150, yOffset + 160, 100, 100, {
             input: {
