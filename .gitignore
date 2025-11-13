@@ -5,6 +5,10 @@
 node_modules/
 package-lock.json
 
-# TypeScript compiled output (developers compile locally)
-webApp/browserInputOverlayView/_compiled/
-webApp/browserInputListeners/_compiled/
+# TypeScript compiled output (build artifacts - compile locally)
+# Pure source-only approach: .ts files are source of truth
+webApp/**/*.js
+webApp/**/*.js.map
+
+# Exception: Keep Electron wrapper JS (different build context)
+!wrapWebAppAsStandaloneProgram/**/*.js
