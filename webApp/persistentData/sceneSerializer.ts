@@ -3,6 +3,7 @@ import { defaultTemplateFor_LinearInputIndicator } from '../sceneRender/CanvasOb
 import { defaultTemplateFor_PlanarInputIndicator } from '../sceneRender/CanvasObjects/PlanarInputIndicator_Radial.js';
 import { defaultTemplateFor_Text } from '../sceneRender/CanvasObjects/Text.js';
 import { defaultTemplateFor_Image } from '../sceneRender/CanvasObjects/Image.js';
+import { validateOmniConfig } from './configSchema.js';
 
 // Type for objects we're serializing (avoid circular dependencies)
 interface SerializableObject {
@@ -104,5 +105,34 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 		canvas: canvasConfig,
 		objects: serializedObjects
 	};
+}
+
+export function loadConfigFromJSON(jsonString: string): { success: true; config: OmniConfig } | { success: false; error: string } {
+	try {
+		const parsed = JSON.parse(jsonString);
+		const validationResult = validateOmniConfig(parsed);
+
+		if (!validationResult.success) {
+			const errorMessages = validationResult.error.issues.map(issue =>
+				`${issue.path.join('.')}: ${issue.message}`
+			).join('; ');
+			return { success: false, error: `Config validation failed: ${errorMessages}` };
+		}
+
+		return { success: true, config: validationResult.data };
+	} catch (e) {
+		if (e instanceof SyntaxError) {
+			return { success: false, error: `Invalid JSON: ${e.message}` };
+		}
+		return { success: false, error: `Unknown error: ${String(e)}` };
+	}
+}
+
+export function loadConfigFromLocalStorage(key: string): { success: true; config: OmniConfig } | { success: false; error: string } | { success: false; error: 'not_found' } {
+	const stored = localStorage.getItem(key);
+	if (!stored) {
+		return { success: false, error: 'not_found' };
+	}
+	return loadConfigFromJSON(stored);
 }
 
