@@ -26,10 +26,11 @@ Write-Host "  - Axis motion: [Main] SDL axis leftx: 0.XXX" -ForegroundColor Whit
 Write-Host "  - Buttons: [Main] SDL button down: a (index 0)" -ForegroundColor White
 Write-Host ""
 
-Set-Location wrapWebAppAsStandaloneProgram
-npm run dev
-
-Write-Host ""
-Write-Host "Overlay closed." -ForegroundColor Yellow
-
-Set-Location ..
+try {
+    Set-Location wrapWebAppAsStandaloneProgram
+    npm run dev
+} finally {
+    Set-Location ..
+    Write-Host ""
+    Write-Host "Overlay closed." -ForegroundColor Yellow
+}

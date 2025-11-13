@@ -144,7 +144,7 @@ window.addEventListener("load", function (): void {
 }, false);
 
 // LocalStorage persistence with versioning
-const CONFIG_VERSION = 101;  // Increment when config structure changes (bumped to force clear for fadeOutDuration defaults)
+const CONFIG_VERSION = 102;  // Increment when config structure changes (bumped for serialization refactor)
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 
 function saveSceneConfig(config: any): void {
