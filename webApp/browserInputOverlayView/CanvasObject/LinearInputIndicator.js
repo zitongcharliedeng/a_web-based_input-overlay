@@ -67,10 +67,7 @@ class LinearInputIndicator extends CanvasObject {
         this.multiplier = 1;
         this.antiDeadzone = 0.0;
         this.fadeOutDuration = 0.0;
-        // Fade tracking
-        this.fadeActive = false;
-        this.fadeTimer = 0;
-        this.fadeStartValue = 0;
+        // No fade state needed - pure signal processing
         // Internal properties from display config
         this.keyText = "SampleText";
         this.reverseFillDirection = false;
@@ -196,40 +193,22 @@ class LinearInputIndicator extends CanvasObject {
         if (newAntiDeadzone >= 1.0)
             newAntiDeadzone = 0.999;
         const rawValue = Math.max(Math.min((value - newAntiDeadzone) / (1 - newAntiDeadzone) * this.multiplier, 1), 0);
-        // Update value with fade: CHECK FADE STATE FIRST (don't interrupt active fades)
-        if (this.fadeActive) {
-            // Currently fading - continue regardless of input (prevents interruption)
-            this.fadeTimer += delta / 1000;
-            const fadeProgress = this.fadeTimer / this.fadeOutDuration;
-            if (fadeProgress >= 1.0) {
-                // Fade complete
-                this.value = 0;
-                this.fadeActive = false;
-            }
-            else {
-                // Still fading
-                this.value = this.fadeStartValue * (1.0 - fadeProgress);
-            }
-            // Check if new input should cancel fade
-            if (rawValue > 0) {
-                this.value = rawValue;
-                this.fadeActive = false;
-            }
-        }
-        else if (rawValue > 0) {
+        // Signal processing approach: exponential decay (like audio reverb)
+        if (rawValue > 0) {
             // Input active - instant response
             this.value = rawValue;
         }
-        else if (this.fadeOutDuration > 0 && this.value > 0) {
-            // Input just became inactive - START fade IMMEDIATELY
-            this.fadeActive = true;
-            this.fadeStartValue = this.value;
-            this.fadeTimer = delta / 1000; // Start with first frame's delta
-            const fadeProgress = this.fadeTimer / this.fadeOutDuration;
-            this.value = this.fadeStartValue * (1.0 - fadeProgress);
+        else if (this.fadeOutDuration > 0) {
+            // Input inactive - exponential decay to 0
+            // Decay rate: higher fadeOutDuration = slower decay
+            const decayRate = 1.0 / this.fadeOutDuration;
+            this.value = this.value * Math.exp(-decayRate * (delta / 1000));
+            // Clamp to 0 when very small (prevent floating point drift)
+            if (this.value < 0.001)
+                this.value = 0;
         }
         else {
-            // No fade or instant off
+            // No fade - instant off
             this.value = 0;
         }
         return true;
