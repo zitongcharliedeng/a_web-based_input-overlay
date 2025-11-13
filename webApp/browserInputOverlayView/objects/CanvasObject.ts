@@ -31,6 +31,9 @@ abstract class CanvasObject {
         this.canvasObjectType = canvasObjectType;
     }
 
+    syncProperties(): void {
+    }
+
     abstract update(delta: number): boolean;
     abstract draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void;
 }

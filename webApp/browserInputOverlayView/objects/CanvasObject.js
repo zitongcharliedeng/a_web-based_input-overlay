@@ -4,5 +4,7 @@ class CanvasObject {
         this.hitboxSize = hitboxSize;
         this.canvasObjectType = canvasObjectType;
     }
+    syncProperties() {
+    }
 }
 export { CanvasObject };

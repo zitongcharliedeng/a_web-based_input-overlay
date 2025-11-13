@@ -108,6 +108,10 @@ class PropertyEdit {
 				const parsed = this.parseValue(input.value);
 				this.setNestedValue(targetObj, path, parsed);
 				input.style.borderColor = '';
+
+				if (typeof targetObj.syncProperties === 'function') {
+					targetObj.syncProperties();
+				}
 			} catch (e) {
 				input.style.borderColor = 'red';
 			}

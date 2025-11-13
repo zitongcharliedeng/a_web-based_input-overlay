@@ -170,40 +170,46 @@ class LinearInputIndicator extends CanvasObject {
 		this.processing = { ...defaults.processing, ...props.processing };
 		this.display = { ...defaults.display, ...props.display };
 
-		// Convert new API structures to internal properties for update() to use
-		if (this.input) {
-			// Keyboard
-			this.keyCode = this.input.keyboard?.keyCode ?? null;
+		this.value = 0;
+		this._previousValue = 0;
 
-			// Mouse
+		this.syncProperties();
+	}
+
+	syncProperties(): void {
+		if (this.input) {
+			this.keyCode = this.input.keyboard?.keyCode ?? null;
 			this.mouseButton = this.input.mouse?.button ?? null;
 			this.mouseWheel = this.input.mouse?.wheel ?? null;
 
-			// Gamepad stick
 			const stick = this.input.gamepad?.stick;
 			this.hasStickInput = stick ? (asConventionalGamepadAxisNumber(stick) !== null) : false;
 			if (this.hasStickInput && stick) {
 				this.axis = asConventionalGamepadAxisNumber(stick);
 				this.revertedAxis = (stick.direction === "negative");
+			} else {
+				this.hasStickInput = false;
+				this.axis = null;
+				this.revertedAxis = false;
 			}
 
-			// Gamepad button
 			const buttonIndex = this.input.gamepad?.button?.index;
 			this.hasButtonInput = (buttonIndex !== null && buttonIndex !== undefined);
 			if (this.hasButtonInput) {
 				this.button = buttonIndex ?? null;
+			} else {
+				this.hasButtonInput = false;
+				this.button = null;
 			}
 		}
 
 		if (this.processing) {
-			// Processing properties (already flat, just assign)
 			this.linkedAxis = this.processing.linkedAxis ?? -1;
 			this.multiplier = this.processing.multiplier ?? 1;
 			this.antiDeadzone = this.processing.antiDeadzone ?? 0.0;
 		}
 
 		if (this.display) {
-			// Display properties (flatten for internal use)
 			this.keyText = this.display.text ?? "SampleText";
 			this.reverseFillDirection = this.display.reverseFillDirection ?? false;
 			this.backgroundImage = this.display.backgroundImage ?? new Image();
@@ -211,10 +217,6 @@ class LinearInputIndicator extends CanvasObject {
 			this.fillStyleBackground = this.display.fillStyleBackground ?? "rgba(37, 37, 37, 0.43)";
 			this.fontStyle = this.display.fontStyle ?? { textAlign: "center", fillStyle: "white", font: "30px Lucida Console" };
 		}
-
-		// Object values
-		this.value = 0;
-		this._previousValue = 0;
 	}
 
 	update(delta: number): boolean {
