@@ -21,6 +21,26 @@ window.addEventListener("load", function () {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     const activeScene = createScene(canvas, ctx);
+    // Try to load saved config from localStorage
+    const savedConfig = loadSceneConfig();
+    if (savedConfig) {
+        try {
+            console.log('[Config] Applying saved scene config');
+            if (savedConfig.canvas) {
+                canvas.width = savedConfig.canvas.width;
+                canvas.height = savedConfig.canvas.height;
+            }
+            if (savedConfig.objects) {
+                activeScene.objects.length = 0;
+                for (const objData of savedConfig.objects) {
+                    activeScene.objects.push(deserializeObject(objData));
+                }
+            }
+        }
+        catch (e) {
+            console.error('[Config] Failed to apply saved config, using defaults:', e);
+        }
+    }
     function frameUpdate() {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -80,6 +100,30 @@ window.addEventListener("load", function () {
     }
     window.addEventListener("resize", resizeCanvas);
 }, false);
+// LocalStorage persistence
+const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
+function saveSceneConfig(config) {
+    try {
+        localStorage.setItem(SCENE_CONFIG_KEY, JSON.stringify(config));
+        console.log('[Config] Saved scene config to localStorage');
+    }
+    catch (e) {
+        console.error('[Config] Failed to save scene config:', e);
+    }
+}
+function loadSceneConfig() {
+    try {
+        const saved = localStorage.getItem(SCENE_CONFIG_KEY);
+        if (saved) {
+            console.log('[Config] Loaded scene config from localStorage');
+            return JSON.parse(saved);
+        }
+    }
+    catch (e) {
+        console.error('[Config] Failed to load scene config:', e);
+    }
+    return null;
+}
 function deserializeImage(src) {
     const img = new Image();
     img.src = src;
@@ -551,6 +595,8 @@ function createScene(canvas, ctx) {
                             objects.push(deserializeObject(objData));
                         }
                     }
+                    // Save to localStorage
+                    saveSceneConfig(config);
                 });
                 editingProperties = true;
             }
