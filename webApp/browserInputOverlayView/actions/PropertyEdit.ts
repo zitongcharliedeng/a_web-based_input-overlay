@@ -103,7 +103,7 @@ class PropertyEdit {
 		editorWindow.hidden = false;
 	}
 
-	private serializeScene(scene: any, canvas: HTMLCanvasElement): any {
+	public serializeScene(scene: any, canvas: HTMLCanvasElement): any {
 		const config: any = {
 			canvas: {
 				width: canvas.width,

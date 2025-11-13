@@ -593,7 +593,9 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 			}
 
 			if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && clickedObject !== null) {
-				console.log("Released mouse");
+				console.log("Released mouse - saving position");
+				const config = propertyEditor.serializeScene(this, canvas);
+				saveSceneConfig(config);
 				clickedObject = null;
 			}
 
