@@ -1077,7 +1077,7 @@ Extend to VR gaming:
 
 ### TypeScript Migration Status
 
-**Completed (CL1-7):**
+**Completed (CL1-8):**
 1. ✅ `browserInputOverlayView/_helpers/Vector.ts` - 3D vector math utility (CL1)
 2. ✅ `browserInputOverlayView/_helpers/applyProperties.ts` - Property merging with deepMerge (CL2)
 3. ✅ `browserInputOverlayView/objects/LinearInputIndicator.ts` - Nested config (input, processing, display) (CL3)
@@ -1085,10 +1085,10 @@ Extend to VR gaming:
 5. ✅ `browserInputOverlayView/objects/PlanarInputIndicator_Radial.ts` - Joystick visualization (CL5 - WORKING)
 6. ✅ `browserInputOverlayView/actions/PropertyEdit.ts` - Right-click edit menu (CL6)
 7. ✅ `browserInputListeners/keyboard.ts` and `browserInputListeners/gamepad.ts` - Input system (CL7)
+8. ✅ `browserInputOverlayView/_helpers/draw.ts` - Canvas drawing helpers with type-safe properties (CL8)
 
-**Next in Queue:**
-1. ⏳ `browserInputOverlayView/objects/Thumbstick.ts` - Apply nested config pattern like LinearInputIndicator
-2. ⏳ `browserInputOverlayView/_helpers/draw.ts` - Canvas drawing helpers
+**Migration Complete:**
+All core objects, helpers, and input listeners are now in TypeScript. The only remaining JavaScript file is `default.js` (main game loop/scene), which will be kept as JavaScript for flexibility during development.
 
 ### Known Issues & TODOs
 
@@ -1096,9 +1096,11 @@ Extend to VR gaming:
 - [x] Convert Text.js to TypeScript (CL4 complete)
 - [x] Convert PropertyEdit.js to TypeScript (CL6 complete)
 - [x] Convert keyboard.js and gamepad.js to TypeScript (CL7 complete)
-- [ ] Convert Thumbstick.js to TypeScript (apply nested config pattern)
+- [x] Convert draw.js helpers to TypeScript (CL8 complete)
+- [x] TypeScript migration complete (CL1-8)
 - [ ] Rename `linkedAxis` to better mathematical term (radialCompensationAxis or perpendicularAxis)
 - [ ] Make KeyImage user-customizable property (currently hardcoded in default.js scene)
+- [ ] Remove temporary x/y/width/height getters from CanvasObject (optimization)
 
 **Click-Through Investigation (COSMIC Limitation):**
 - ⚠️ `setIgnoreMouseEvents(true)` does NOT work on COSMIC compositor (both Wayland and X11/XWayland modes)
