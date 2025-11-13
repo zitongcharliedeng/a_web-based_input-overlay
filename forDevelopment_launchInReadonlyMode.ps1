@@ -1,8 +1,8 @@
-# Build and Launch Electron Wrapper (Standalone Application)
-# Compiles TypeScript and launches Electron with DevTools
+# Build and Launch Electron in Readonly/Click-Through Mode
+# For overlay use - window stays on top and clicks pass through
 
 Write-Host "================================" -ForegroundColor Cyan
-Write-Host "Build and Launch Electron App" -ForegroundColor Cyan
+Write-Host "Build and Launch Overlay (Readonly Mode)" -ForegroundColor Cyan
 Write-Host "================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -14,12 +14,16 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# Launch Electron with DevTools
-Write-Host "Launching Electron overlay..." -ForegroundColor Yellow
+# Launch Electron in readonly mode
+Write-Host "Launching overlay in readonly mode..." -ForegroundColor Yellow
 Write-Host ""
 Write-Host "================================" -ForegroundColor Green
-Write-Host "Starting Electron Overlay" -ForegroundColor Green
+Write-Host "Overlay Active (Click-Through)" -ForegroundColor Green
 Write-Host "================================" -ForegroundColor Green
+Write-Host ""
+Write-Host "  Mode: Click-through enabled" -ForegroundColor Cyan
+Write-Host "  Editing: Disabled (read-only)" -ForegroundColor Yellow
+Write-Host "  Close: Alt+F4 or Task Manager" -ForegroundColor White
 Write-Host ""
 Write-Host "Watch this terminal for SDL gamepad logs:" -ForegroundColor Cyan
 Write-Host "  - Axis motion: [Main] SDL axis leftx: 0.XXX" -ForegroundColor White
@@ -27,7 +31,7 @@ Write-Host "  - Buttons: [Main] SDL button down: a (index 0)" -ForegroundColor W
 Write-Host ""
 
 Set-Location wrapWebAppAsStandaloneProgram
-npm run dev
+npx electron . --in-clickthrough-readonly-mode
 
 Write-Host ""
 Write-Host "Overlay closed." -ForegroundColor Yellow
