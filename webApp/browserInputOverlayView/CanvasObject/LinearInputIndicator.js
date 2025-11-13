@@ -25,7 +25,7 @@ const defaultLinearInputIndicatorProperties = {
         linkedAxis: -1,
         multiplier: 1,
         antiDeadzone: 0.0,
-        fadeOutDuration: 0.0,
+        fadeOutDuration: 0.2,
     },
     display: {
         text: "SampleText",
@@ -78,6 +78,7 @@ class LinearInputIndicator extends CanvasObject {
         // Runtime values
         this.value = 0;
         this._previousValue = 0;
+        this.opacity = 1.0; // Fade opacity instead of value
         // Config properties (before flattening)
         this.input = defaultLinearInputIndicatorProperties.input;
         this.processing = defaultLinearInputIndicatorProperties.processing;
@@ -139,6 +140,33 @@ class LinearInputIndicator extends CanvasObject {
             this.fontStyle = this.display.fontStyle ?? { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
         }
     }
+    applyOpacityToColor(color, opacity) {
+        // Parse rgba(r, g, b, a) or rgb(r, g, b)
+        const rgbaMatch = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
+        if (rgbaMatch) {
+            const r = rgbaMatch[1];
+            const g = rgbaMatch[2];
+            const b = rgbaMatch[3];
+            const a = rgbaMatch[4] ? parseFloat(rgbaMatch[4]) : 1.0;
+            const newAlpha = a * opacity;
+            return `rgba(${r}, ${g}, ${b}, ${newAlpha})`;
+        }
+        // Parse hex colors (#RRGGBB or #RGB)
+        const hexMatch = color.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
+        if (hexMatch) {
+            let hex = hexMatch[1];
+            // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+            if (hex.length === 3) {
+                hex = hex.split('').map(char => char + char).join('');
+            }
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        }
+        // Fallback: return original color (shouldn't happen with our configs)
+        return color;
+    }
     update(delta) {
         var value = 0;
         var linkedValue = 0;
@@ -193,23 +221,27 @@ class LinearInputIndicator extends CanvasObject {
         if (newAntiDeadzone >= 1.0)
             newAntiDeadzone = 0.999;
         const rawValue = Math.max(Math.min((value - newAntiDeadzone) / (1 - newAntiDeadzone) * this.multiplier, 1), 0);
-        // Signal processing approach: exponential decay (like audio reverb)
+        // Signal processing approach: fade opacity, not fill amount
         if (rawValue > 0) {
-            // Input active - instant response
+            // Input active - instant response, full opacity
             this.value = rawValue;
+            this.opacity = 1.0;
         }
-        else if (this.fadeOutDuration > 0) {
-            // Input inactive - exponential decay to 0
+        else if (this.fadeOutDuration > 0 && this.value > 0) {
+            // Input inactive - keep fill at current value, fade opacity to 0
             // Decay rate: higher fadeOutDuration = slower decay
             const decayRate = 1.0 / this.fadeOutDuration;
-            this.value = this.value * Math.exp(-decayRate * delta);
+            this.opacity = this.opacity * Math.exp(-decayRate * delta);
             // Clamp to 0 when very small (prevent floating point drift)
-            if (this.value < 0.001)
-                this.value = 0;
+            if (this.opacity < 0.001) {
+                this.opacity = 0;
+                this.value = 0; // Clear value when fade complete
+            }
         }
         else {
             // No fade - instant off
             this.value = 0;
+            this.opacity = 1.0;
         }
         return true;
     }
@@ -226,11 +258,13 @@ class LinearInputIndicator extends CanvasObject {
             // Will retry next frame when image loads
         }
         // Fill value (vertical fill from bottom or top) - drawn on top of image
+        // Apply opacity to fillStyle for fade effect
+        const fillStyleWithOpacity = this.applyOpacityToColor(this.fillStyle, this.opacity);
         ctx.beginPath();
         if (this.reverseFillDirection == true)
-            canvas_fill_rec(ctx, 0, this.hitboxSize.lengthInPx, this.hitboxSize.widthInPx, -this.hitboxSize.lengthInPx * this.value, { fillStyle: this.fillStyle });
+            canvas_fill_rec(ctx, 0, this.hitboxSize.lengthInPx, this.hitboxSize.widthInPx, -this.hitboxSize.lengthInPx * this.value, { fillStyle: fillStyleWithOpacity });
         else
-            canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx * this.value, { fillStyle: this.fillStyle });
+            canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx * this.value, { fillStyle: fillStyleWithOpacity });
         // Print key text centered with configurable stroke outline
         const textX = this.hitboxSize.widthInPx * 0.5;
         const textY = this.hitboxSize.lengthInPx * 0.5;
