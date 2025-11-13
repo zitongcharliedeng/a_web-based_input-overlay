@@ -145,9 +145,9 @@ class LinearInputIndicator extends CanvasObject {
 	_previousValue: number = 0;
 
 	// Config properties (before flattening)
-	input: InputConfig;
-	processing: ProcessingConfig;
-	display: DisplayConfig;
+	input: InputConfig = defaultLinearInputIndicatorProperties.input;
+	processing: ProcessingConfig = defaultLinearInputIndicatorProperties.processing;
+	display: DisplayConfig = defaultLinearInputIndicatorProperties.display;
 
 	constructor(x: number, y: number, width: number, height: number, properties?: Partial<LinearInputIndicatorProperties>) {
 		super(y, x, width, height, "linearInputIndicator");
