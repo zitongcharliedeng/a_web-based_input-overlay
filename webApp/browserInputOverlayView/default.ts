@@ -8,6 +8,7 @@ import { Vector } from './_helpers/Vector.js';
 import { canvas_properties } from './_helpers/draw.js';
 import { sceneToConfig } from './_helpers/sceneSerializer.js';
 import { ConfigManager } from './_helpers/ConfigManager.js';
+import { CONFIG_VERSION } from './_helpers/version.js';
 
 declare global {
 	interface Window {
@@ -157,7 +158,6 @@ window.addEventListener("load", function (): void {
 	window.addEventListener("resize", resizeCanvas);
 }, false);
 
-import { CONFIG_VERSION } from './_helpers/version.js';
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 
 function saveSceneConfig(config: any): void {
