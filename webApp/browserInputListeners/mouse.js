@@ -27,13 +27,6 @@ const mouse = {
         up: false,
         down: false
     },
-    // Backward compatibility getters (old API - button1, button2, button3)
-    get button1() { return this.buttons[0]; },
-    get button2() { return this.buttons[1]; },
-    get button3() { return this.buttons[2]; },
-    get button1Click() { return this.clicks[0]; },
-    get button2Click() { return this.clicks[1]; },
-    get button3Click() { return this.clicks[2]; },
     // Update loop (called each frame)
     update(delta) {
         // Decay wheel delta

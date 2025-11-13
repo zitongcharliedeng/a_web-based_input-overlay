@@ -288,14 +288,14 @@ class LinearInputIndicator extends CanvasObject {
 	draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
 		// Fill background
 		ctx.beginPath();
-		canvas_fill_rec(ctx, 0, 0, this.width, this.height, {fillStyle:this.fillStyleBackground});
+		canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx, {fillStyle:this.fillStyleBackground});
 
 		// Fill value (vertical fill from bottom or top)
 		ctx.beginPath();
 		if (this.reverseFillDirection == true)
-			canvas_fill_rec(ctx, 0, this.height, this.width, -this.height * this.value, { fillStyle: this.fillStyle });
+			canvas_fill_rec(ctx, 0, this.hitboxSize.lengthInPx, this.hitboxSize.widthInPx, -this.hitboxSize.lengthInPx * this.value, { fillStyle: this.fillStyle });
 		else
-			canvas_fill_rec(ctx, 0, 0, this.width, this.height * this.value, { fillStyle: this.fillStyle });
+			canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx * this.value, { fillStyle: this.fillStyle });
 
 		// Draw background image scaled to dimensions
 		ctx.drawImage(
@@ -303,11 +303,11 @@ class LinearInputIndicator extends CanvasObject {
 			0, 0,
 			this.backgroundImage.width, this.backgroundImage.height,
 			0, 0,
-			this.width, this.height
+			this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx
 		)
 
 		// Print key text centered
-		canvas_text(ctx, this.width * 0.5, this.height * 0.5, this.keyText, this.fontStyle);
+		canvas_text(ctx, this.hitboxSize.widthInPx * 0.5, this.hitboxSize.lengthInPx * 0.5, this.keyText, this.fontStyle);
 	}
 }
 

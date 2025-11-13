@@ -34,14 +34,6 @@ interface MouseState {
 	wheelDelta: WheelDelta;
 	wheelEvents: WheelEvents;  // Single-frame wheel events
 	update(delta: number): void;
-
-	// Backward compatibility properties (old API)
-	button1: boolean;  // Left button
-	button2: boolean;  // Middle button
-	button3: boolean;  // Right button
-	button1Click: boolean;
-	button2Click: boolean;
-	button3Click: boolean;
 }
 
 // Mouse state object (matches keyboard pattern: simple key-value pairs)
@@ -77,14 +69,6 @@ const mouse: MouseState = {
 		up: false,
 		down: false
 	},
-
-	// Backward compatibility getters (old API - button1, button2, button3)
-	get button1(): boolean { return this.buttons[0]; },
-	get button2(): boolean { return this.buttons[1]; },
-	get button3(): boolean { return this.buttons[2]; },
-	get button1Click(): boolean { return this.clicks[0]; },
-	get button2Click(): boolean { return this.clicks[1]; },
-	get button3Click(): boolean { return this.clicks[2]; },
 
 	// Update loop (called each frame)
 	update(delta: number): void {

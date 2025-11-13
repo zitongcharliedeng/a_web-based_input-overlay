@@ -28,7 +28,7 @@ window.addEventListener("load", function () {
         ctx.closePath();
         for (let i = 0; i < activeScene.objects.length; i++) {
             const object = activeScene.objects[i];
-            ctx.setTransform(1, 0, 0, 1, object.x, object.y);
+            ctx.setTransform(1, 0, 0, 1, object.positionOnCanvas.pxFromCanvasLeft, object.positionOnCanvas.pxFromCanvasTop);
             object.draw(canvas, ctx);
             ctx.closePath();
         }
@@ -469,46 +469,46 @@ function createScene(canvas, ctx) {
             if (clickedObject !== null) {
                 for (let i = 0; i < objects.length; i++) {
                     const object = objects[i];
-                    ctx.setTransform(1, 0, 0, 1, object.x, object.y);
+                    ctx.setTransform(1, 0, 0, 1, object.positionOnCanvas.pxFromCanvasLeft, object.positionOnCanvas.pxFromCanvasTop);
                     ctx.beginPath();
                     canvas_properties(ctx, { strokeStyle: "#FF00FF", lineWidth: 1 });
-                    ctx.rect(0, 0, object.width, object.height);
+                    ctx.rect(0, 0, object.hitboxSize.widthInPx, object.hitboxSize.lengthInPx);
                     ctx.stroke();
                 }
             }
         },
         update(delta) {
-            if (mouse.button1Click === true || mouse.button3Click === true) {
+            if (mouse.clicks[0] === true || mouse.clicks[2] === true) {
                 clickedObject = null;
                 for (let i = 0; i < objects.length; i++) {
                     const object = objects[i];
-                    if ((mouse.x > object.x && mouse.y > object.y)
-                        && (mouse.x < object.x + object.width && mouse.y < object.y + object.height)) {
-                        draggingOffset.x = object.x - mouse.x;
-                        draggingOffset.y = object.y - mouse.y;
+                    if ((mouse.x > object.positionOnCanvas.pxFromCanvasLeft && mouse.y > object.positionOnCanvas.pxFromCanvasTop)
+                        && (mouse.x < object.positionOnCanvas.pxFromCanvasLeft + object.hitboxSize.widthInPx && mouse.y < object.positionOnCanvas.pxFromCanvasTop + object.hitboxSize.lengthInPx)) {
+                        draggingOffset.x = object.positionOnCanvas.pxFromCanvasLeft - mouse.x;
+                        draggingOffset.y = object.positionOnCanvas.pxFromCanvasTop - mouse.y;
                         clickedObject = object;
                         console.log("Clicked on object:", object);
                         break;
                     }
                 }
             }
-            if ((mouse.button1 === false && mouse.button3 === false) && clickedObject !== null) {
+            if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && clickedObject !== null) {
                 console.log("Released mouse");
                 clickedObject = null;
             }
-            if (clickedObject !== null && mouse.button1 === true) {
+            if (clickedObject !== null && mouse.buttons[0] === true) {
                 console.log("Dragging");
-                clickedObject.x = Math.round((mouse.x + draggingOffset.x) / gridsize) * gridsize;
-                clickedObject.y = Math.round((mouse.y + draggingOffset.y) / gridsize) * gridsize;
+                clickedObject.positionOnCanvas.pxFromCanvasLeft = Math.round((mouse.x + draggingOffset.x) / gridsize) * gridsize;
+                clickedObject.positionOnCanvas.pxFromCanvasTop = Math.round((mouse.y + draggingOffset.y) / gridsize) * gridsize;
             }
-            if (mouse.button3Click === true || mouse.button1Click === true) {
+            if (mouse.clicks[2] === true || mouse.clicks[0] === true) {
                 if (clickedObject === null && editingProperties === true) {
                     console.log("clicked away from editor");
                     propertyEditor.hidePropertyEdit();
                     editingProperties = false;
                 }
             }
-            if (mouse.button3Click === true && clickedObject !== null && editingProperties === false) {
+            if (mouse.clicks[2] === true && clickedObject !== null && editingProperties === false) {
                 console.log("Editing object");
                 propertyEditor.showPropertyEdit(clickedObject.defaultProperties, clickedObject);
                 editingProperties = true;

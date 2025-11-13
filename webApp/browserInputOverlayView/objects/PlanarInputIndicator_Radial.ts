@@ -82,11 +82,6 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 			"planarInputIndicator"
 		);
 
-		this.x = x;
-		this.y = y;
-		this.width = width;
-		this.height = height;
-
 		const props = properties ?? {};
 		const defaults = defaultPlanarInputIndicator_RadialProperties;
 
