@@ -1,7 +1,11 @@
 #!/usr/bin/env node
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import { writeFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 try {
     const gitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
@@ -11,8 +15,8 @@ try {
 export const BUILD_TIME = '${buildTime}';
 `;
 
-    fs.writeFileSync(
-        path.join(__dirname, 'version.ts'),
+    writeFileSync(
+        join(__dirname, 'version.ts'),
         content,
         'utf8'
     );
@@ -21,8 +25,8 @@ export const BUILD_TIME = '${buildTime}';
     const content = `export const CONFIG_VERSION = '${fallbackVersion}';
 export const BUILD_TIME = '${new Date().toISOString()}';
 `;
-    fs.writeFileSync(
-        path.join(__dirname, 'version.ts'),
+    writeFileSync(
+        join(__dirname, 'version.ts'),
         content,
         'utf8'
     );
