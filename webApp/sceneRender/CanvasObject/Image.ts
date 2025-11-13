@@ -6,7 +6,7 @@ interface ImageProperties {
 }
 
 const defaultImageProperties: ImageProperties = {
-    src: "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/browserInputOverlayView/_assets/images/KeyDefault.png",
+    src: "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png",
     opacity: 1.0
 };
 

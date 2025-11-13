@@ -1,7 +1,7 @@
 // Omniconfig - Single source of truth for entire overlay scene
 // NixOS-style: declarative, explicit (no hidden defaults), type-as-key, spawn templates
 
-import type { CanvasObjectPosition, CanvasObjectHitbox } from '../CanvasObject/index.js';
+import type { CanvasObjectPosition, CanvasObjectHitbox } from '../sceneRender/CanvasObject/index.js';
 
 // Canvas configuration
 export interface CanvasConfig {
@@ -109,7 +109,7 @@ export interface OmniConfig {
 // ============================================================================
 
 // Common constants
-const DEFAULT_KEY_IMAGE_URL = "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/browserInputOverlayView/_assets/images/KeyDefault.png";
+const DEFAULT_KEY_IMAGE_URL = "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png";
 
 // LinearInputIndicator default template - complete config
 export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorConfig = {

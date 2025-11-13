@@ -15,9 +15,10 @@
     "declaration": false
   },
   "include": [
-    "browserInputOverlayView/**/*.ts",
-    "browserInputOverlayView/_helpers/draw.js",
-    "browserInputListeners/**/*.ts"
+    "sceneRender/**/*.ts",
+    "inputListeners/**/*.ts",
+    "persistentData/**/*.ts",
+    "_helpers/**/*.ts"
   ],
   "exclude": [
     "node_modules",

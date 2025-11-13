@@ -1,15 +1,15 @@
-import { mouse } from '../browserInputListeners/mouse.js';
-import { keyboard } from '../browserInputListeners/keyboard.js';
+import { mouse } from '../inputListeners/mouse.js';
+import { keyboard } from '../inputListeners/keyboard.js';
 import { PlanarInputIndicator_Radial } from './CanvasObject/PlanarInputIndicator_Radial.js';
 import { LinearInputIndicator } from './CanvasObject/LinearInputIndicator.js';
 import { Text } from './CanvasObject/Text.js';
 import { ImageObject } from './CanvasObject/Image.js';
 import { PropertyEdit } from './actions/PropertyEdit.js';
-import { Vector } from './_helpers/Vector.js';
-import { canvas_properties } from './_helpers/draw.js';
-import { sceneToConfig } from './_helpers/sceneSerializer.js';
-import { ConfigManager } from './_helpers/ConfigManager.js';
-import { CONFIG_VERSION } from './_helpers/version.js';
+import { Vector } from '../_helpers/Vector.js';
+import { canvas_properties } from '../_helpers/draw.js';
+import { sceneToConfig } from '../persistentData/sceneSerializer.js';
+import { ConfigManager } from '../persistentData/ConfigManager.js';
+import { CONFIG_VERSION } from '../_helpers/version.js';
 
 declare global {
 	interface Window {
@@ -223,8 +223,8 @@ function deserializeObject(objData: any): CanvasObject {
 }
 
 // Factory helpers - create class instances from configs
-import type { LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from './_helpers/OmniConfig.js';
-import { defaultTemplateFor_LinearInputIndicator, defaultTemplateFor_PlanarInputIndicator, defaultTemplateFor_Text } from './_helpers/OmniConfig.js';
+import type { LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from '../persistentData/OmniConfig.js';
+import { defaultTemplateFor_LinearInputIndicator, defaultTemplateFor_PlanarInputIndicator, defaultTemplateFor_Text } from '../persistentData/OmniConfig.js';
 
 function createLinearIndicatorFromConfig(config: LinearInputIndicatorConfig): LinearInputIndicator {
 	return new LinearInputIndicator(
@@ -277,7 +277,7 @@ function createTextFromConfig(config: TextConfig): Text {
 	);
 }
 
-function createImageFromConfig(config: import('./_helpers/OmniConfig.js').ImageConfig): ImageObject {
+function createImageFromConfig(config: import('../persistentData/OmniConfig.js').ImageConfig): ImageObject {
 	return new ImageObject(
 		config.positionOnCanvas.pxFromCanvasTop,
 		config.positionOnCanvas.pxFromCanvasLeft,

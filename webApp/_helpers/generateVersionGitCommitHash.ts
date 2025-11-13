@@ -12,7 +12,7 @@ export const BUILD_TIME = '${buildTime}';
 `;
 
     fs.writeFileSync(
-        path.join(__dirname, '../browserInputOverlayView/_helpers/version.ts'),
+        path.join(__dirname, 'version.ts'),
         content,
         'utf8'
     );
@@ -22,7 +22,7 @@ export const BUILD_TIME = '${buildTime}';
 export const BUILD_TIME = '${new Date().toISOString()}';
 `;
     fs.writeFileSync(
-        path.join(__dirname, '../browserInputOverlayView/_helpers/version.ts'),
+        path.join(__dirname, 'version.ts'),
         content,
         'utf8'
     );

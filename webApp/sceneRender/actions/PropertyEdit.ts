@@ -1,4 +1,4 @@
-import { sceneToConfig } from '../_helpers/sceneSerializer.js';
+import { sceneToConfig } from '../../persistentData/sceneSerializer.js';
 
 interface PropertyEditProperties {
 }
