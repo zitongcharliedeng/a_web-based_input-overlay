@@ -1,5 +1,5 @@
 
-import { CanvasObject } from './index.js';
+import { CanvasObject } from './BaseCanvasObject.js';
 import { canvas_fill_rec, canvas_text, canvas_properties } from '../../_helpers/draw.js';
 
 // Type definitions

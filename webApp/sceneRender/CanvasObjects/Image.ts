@@ -1,4 +1,4 @@
-import { CanvasObject } from './index.js';
+import { CanvasObject } from './BaseCanvasObject.js';
 
 interface ImageProperties {
     src?: string;

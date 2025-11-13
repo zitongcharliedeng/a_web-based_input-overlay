@@ -1,9 +1,9 @@
 import { mouse } from '../inputListeners/mouse.js';
 import { keyboard } from '../inputListeners/keyboard.js';
-import { PlanarInputIndicator_Radial } from './CanvasObject/PlanarInputIndicator_Radial.js';
-import { LinearInputIndicator } from './CanvasObject/LinearInputIndicator.js';
-import { Text } from './CanvasObject/Text.js';
-import { ImageObject } from './CanvasObject/Image.js';
+import { PlanarInputIndicator_Radial } from './CanvasObjects/PlanarInputIndicator_Radial.js';
+import { LinearInputIndicator } from './CanvasObjects/LinearInputIndicator.js';
+import { Text } from './CanvasObjects/Text.js';
+import { ImageObject } from './CanvasObjects/Image.js';
 import { PropertyEdit } from './actions/PropertyEdit.js';
 import { Vector } from '../_helpers/Vector.js';
 import { canvas_properties } from '../_helpers/draw.js';

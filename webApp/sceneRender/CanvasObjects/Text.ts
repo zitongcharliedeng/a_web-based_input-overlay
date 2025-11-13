@@ -1,4 +1,4 @@
-import { CanvasObject } from './index.js';
+import { CanvasObject } from './BaseCanvasObject.js';
 import { canvas_text } from '../../_helpers/draw.js';
 
 interface TextStyle {
