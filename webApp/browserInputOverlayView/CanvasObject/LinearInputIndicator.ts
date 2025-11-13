@@ -308,7 +308,7 @@ class LinearInputIndicator extends CanvasObject {
 			// Input inactive - exponential decay to 0
 			// Decay rate: higher fadeOutDuration = slower decay
 			const decayRate = 1.0 / this.fadeOutDuration;
-			this.value = this.value * Math.exp(-decayRate * (delta / 1000));
+			this.value = this.value * Math.exp(-decayRate * delta);
 
 			// Clamp to 0 when very small (prevent floating point drift)
 			if (this.value < 0.001) this.value = 0;
