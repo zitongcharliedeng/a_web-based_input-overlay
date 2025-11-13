@@ -69,21 +69,21 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 	defaultProperties: PlanarInputIndicator_RadialProperties = defaultPlanarInputIndicator_RadialProperties;
 	className: string = "PlanarInputIndicator_Radial";
 
-	xAxes: AxisMapping = defaultPlanarInputIndicator_RadialProperties.input.xAxes;
-	yAxes: AxisMapping = defaultPlanarInputIndicator_RadialProperties.input.yAxes;
-	invertX: boolean = defaultPlanarInputIndicator_RadialProperties.input.invertX;
-	invertY: boolean = defaultPlanarInputIndicator_RadialProperties.input.invertY;
+	xAxes: AxisMapping;
+	yAxes: AxisMapping;
+	invertX: boolean;
+	invertY: boolean;
 
-	deadzone: number = defaultPlanarInputIndicator_RadialProperties.processing.deadzone;
-	antiDeadzone: number = defaultPlanarInputIndicator_RadialProperties.processing.antiDeadzone;
+	deadzone: number;
+	antiDeadzone: number;
 
-	radius: number = defaultPlanarInputIndicator_RadialProperties.display.radius;
-	backgroundStyle: StyleProperties = defaultPlanarInputIndicator_RadialProperties.display.backgroundStyle;
-	xLineStyle: StyleProperties = defaultPlanarInputIndicator_RadialProperties.display.xLineStyle;
-	yLineStyle: StyleProperties = defaultPlanarInputIndicator_RadialProperties.display.yLineStyle;
-	deadzoneStyle: StyleProperties = defaultPlanarInputIndicator_RadialProperties.display.deadzoneStyle;
-	inputVectorStyle: StyleProperties = defaultPlanarInputIndicator_RadialProperties.display.inputVectorStyle;
-	unitVectorStyle: StyleProperties = defaultPlanarInputIndicator_RadialProperties.display.unitVectorStyle;
+	radius: number;
+	backgroundStyle: StyleProperties;
+	xLineStyle: StyleProperties;
+	yLineStyle: StyleProperties;
+	deadzoneStyle: StyleProperties;
+	inputVectorStyle: StyleProperties;
+	unitVectorStyle: StyleProperties;
 
 	inputVector: Vector = new Vector(0, 0);
 	previousX: number = 0;
