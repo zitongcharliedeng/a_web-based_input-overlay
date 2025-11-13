@@ -3,7 +3,7 @@ import { canvas_text } from '../_helpers/draw.js';
 const defaultTextProperties = {
     text: "Sample text",
     textStyle: { textAlign: "center", fillStyle: "black", font: "30px Lucida Console" },
-    shouldStroke: false,
+    shouldStroke: true,
 };
 class Text extends CanvasObject {
     constructor(pxFromCanvasTop, pxFromCanvasLeft, widthInPx, lengthInPx, properties) {

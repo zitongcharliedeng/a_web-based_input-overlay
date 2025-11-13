@@ -16,7 +16,7 @@ interface TextProperties {
 const defaultTextProperties: TextProperties = {
     text: "Sample text",
     textStyle: { textAlign: "center", fillStyle: "black", font: "30px Lucida Console" },
-    shouldStroke: false,
+    shouldStroke: true,
 };
 
 class Text extends CanvasObject {

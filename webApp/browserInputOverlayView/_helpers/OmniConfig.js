@@ -68,8 +68,8 @@ export const defaultTemplateFor_Text = {
     text: "",
     textStyle: {
         textAlign: "left",
-        fillStyle: "#FFFFFF",
+        fillStyle: "black",
         font: "20px Lucida Console"
     },
-    shouldStroke: false
+    shouldStroke: true
 };
