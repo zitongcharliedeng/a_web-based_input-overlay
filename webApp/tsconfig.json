@@ -6,11 +6,13 @@
     "allowJs": true,
     "checkJs": false,
     "noEmit": false,
+    "outDir": ".",
     "strict": false,
     "noImplicitAny": false,
     "skipLibCheck": true,
     "moduleResolution": "node",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "declaration": false
   },
   "include": [
     "browserInputOverlayView/**/*.ts",
@@ -19,6 +21,7 @@
   ],
   "exclude": [
     "node_modules",
-    "**/_compiled/**"
+    "**/_compiled/**",
+    "**/*.js"
   ]
 }

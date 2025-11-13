@@ -1,4 +1,3 @@
-import { applyProperties } from '../_helpers/applyProperties.js';
 const defaultPropertyEditProperties = {};
 class PropertyEdit {
     constructor(x, y, width, height, properties) {
@@ -9,10 +8,6 @@ class PropertyEdit {
         this.y = y;
         this.width = width;
         this.height = height;
-        applyProperties(this, defaultPropertyEditProperties);
-        if (properties) {
-            applyProperties(this, properties);
-        }
     }
     hidePropertyEdit() {
         const editorWindow = document.getElementById("propertyEditor");

@@ -1,5 +1,3 @@
-import { applyProperties } from '../_helpers/applyProperties.js';
-
 interface PropertyEditProperties {
 }
 
@@ -15,18 +13,13 @@ class PropertyEdit {
 	width: number;
 	height: number;
 
-	targetObject: any = null;
+	targetObject: unknown = null;
 
 	constructor(x: number, y: number, width: number, height: number, properties?: Partial<PropertyEditProperties>) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
-
-		applyProperties(this, defaultPropertyEditProperties);
-		if (properties) {
-			applyProperties(this, properties);
-		}
 	}
 
 	hidePropertyEdit(): void {

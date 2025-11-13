@@ -1,11 +1,9 @@
-// Check if value is a plain object (not a special object like Image, Date, etc.)
 function isPlainObject(obj) {
     if (!obj || typeof obj !== 'object')
         return false;
     const prototype = Object.getPrototypeOf(obj);
     return prototype === Object.prototype || prototype === null;
 }
-// Deep merge helper - recursively merges nested objects where overrides win conflicts
 function deepMerge(defaults, overrides) {
     const result = { ...defaults };
     for (const key in overrides) {

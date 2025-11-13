@@ -1,5 +1,4 @@
 import { CanvasObject } from './CanvasObject.js';
-import { applyProperties, deepMerge } from '../_helpers/applyProperties.js';
 import { canvas_fill_rec, canvas_text } from '../_helpers/draw.js';
 // Default restorepoint properties
 const defaultLinearInputIndicatorProperties = {
@@ -80,42 +79,53 @@ class LinearInputIndicator extends CanvasObject {
         this.input = defaultLinearInputIndicatorProperties.input;
         this.processing = defaultLinearInputIndicatorProperties.processing;
         this.display = defaultLinearInputIndicatorProperties.display;
-        // Merge properties using deep merge for nested objects
-        const mergedProperties = deepMerge(defaultLinearInputIndicatorProperties, properties || {});
-        applyProperties(this, mergedProperties);
+        const props = properties ?? {};
+        const defaults = defaultLinearInputIndicatorProperties;
+        this.input = {
+            keyboard: { ...defaults.input.keyboard, ...props.input?.keyboard },
+            mouse: { ...defaults.input.mouse, ...props.input?.mouse },
+            gamepad: {
+                stick: { ...defaults.input.gamepad.stick, ...props.input?.gamepad?.stick },
+                button: { ...defaults.input.gamepad.button, ...props.input?.gamepad?.button }
+            }
+        };
+        this.processing = { ...defaults.processing, ...props.processing };
+        this.display = { ...defaults.display, ...props.display };
         // Convert new API structures to internal properties for update() to use
         if (this.input) {
             // Keyboard
-            this.keyCode = this.input.keyboard.keyCode;
+            this.keyCode = this.input.keyboard?.keyCode ?? null;
             // Mouse
-            this.mouseButton = this.input.mouse.button;
-            this.mouseWheel = this.input.mouse.wheel;
+            this.mouseButton = this.input.mouse?.button ?? null;
+            this.mouseWheel = this.input.mouse?.wheel ?? null;
             // Gamepad stick
-            this.hasStickInput = (asConventionalGamepadAxisNumber(this.input.gamepad.stick) !== null);
-            if (this.hasStickInput) {
-                this.axis = asConventionalGamepadAxisNumber(this.input.gamepad.stick);
-                this.revertedAxis = (this.input.gamepad.stick.direction === "negative");
+            const stick = this.input.gamepad?.stick;
+            this.hasStickInput = stick ? (asConventionalGamepadAxisNumber(stick) !== null) : false;
+            if (this.hasStickInput && stick) {
+                this.axis = asConventionalGamepadAxisNumber(stick);
+                this.revertedAxis = (stick.direction === "negative");
             }
             // Gamepad button
-            this.hasButtonInput = (this.input.gamepad.button.index !== null);
+            const buttonIndex = this.input.gamepad?.button?.index;
+            this.hasButtonInput = (buttonIndex !== null && buttonIndex !== undefined);
             if (this.hasButtonInput) {
-                this.button = this.input.gamepad.button.index;
+                this.button = buttonIndex ?? null;
             }
         }
         if (this.processing) {
             // Processing properties (already flat, just assign)
-            this.linkedAxis = this.processing.linkedAxis;
-            this.multiplier = this.processing.multiplier;
-            this.antiDeadzone = this.processing.antiDeadzone;
+            this.linkedAxis = this.processing.linkedAxis ?? -1;
+            this.multiplier = this.processing.multiplier ?? 1;
+            this.antiDeadzone = this.processing.antiDeadzone ?? 0.0;
         }
         if (this.display) {
             // Display properties (flatten for internal use)
-            this.keyText = this.display.text;
-            this.reverseFillDirection = this.display.reverseFillDirection;
-            this.backgroundImage = this.display.backgroundImage;
-            this.fillStyle = this.display.fillStyle;
-            this.fillStyleBackground = this.display.fillStyleBackground;
-            this.fontStyle = this.display.fontStyle;
+            this.keyText = this.display.text ?? "SampleText";
+            this.reverseFillDirection = this.display.reverseFillDirection ?? false;
+            this.backgroundImage = this.display.backgroundImage ?? new Image();
+            this.fillStyle = this.display.fillStyle ?? "rgba(255, 255, 255, 0.5)";
+            this.fillStyleBackground = this.display.fillStyleBackground ?? "rgba(37, 37, 37, 0.43)";
+            this.fontStyle = this.display.fontStyle ?? { textAlign: "center", fillStyle: "white", font: "30px Lucida Console" };
         }
         // Object values
         this.value = 0;

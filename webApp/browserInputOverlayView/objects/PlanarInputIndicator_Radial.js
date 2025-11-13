@@ -1,6 +1,5 @@
 import { CanvasObject } from './CanvasObject.js';
 import { Vector } from '../_helpers/Vector.js';
-import { applyProperties, deepMerge } from '../_helpers/applyProperties.js';
 import { canvas_properties, canvas_arc, canvas_line, canvas_arrow } from '../_helpers/draw.js';
 // Pure defaults - minimal assumptions
 const defaultPlanarInputIndicator_RadialProperties = {
@@ -33,8 +32,24 @@ class PlanarInputIndicator_Radial extends CanvasObject {
         this.y = y;
         this.width = width;
         this.height = height;
-        const mergedProperties = deepMerge(defaultPlanarInputIndicator_RadialProperties, properties || {});
-        applyProperties(this, mergedProperties);
+        const props = properties ?? {};
+        const defaults = defaultPlanarInputIndicator_RadialProperties;
+        this.input = {
+            xAxes: props.input?.xAxes ?? defaults.input.xAxes,
+            yAxes: props.input?.yAxes ?? defaults.input.yAxes,
+            invertX: props.input?.invertX ?? defaults.input.invertX,
+            invertY: props.input?.invertY ?? defaults.input.invertY
+        };
+        this.processing = { ...defaults.processing, ...props.processing };
+        this.display = {
+            radius: props.display?.radius ?? defaults.display.radius,
+            backgroundStyle: { ...defaults.display.backgroundStyle, ...props.display?.backgroundStyle },
+            xLineStyle: { ...defaults.display.xLineStyle, ...props.display?.xLineStyle },
+            yLineStyle: { ...defaults.display.yLineStyle, ...props.display?.yLineStyle },
+            deadzoneStyle: { ...defaults.display.deadzoneStyle, ...props.display?.deadzoneStyle },
+            inputVectorStyle: { ...defaults.display.inputVectorStyle, ...props.display?.inputVectorStyle },
+            unitVectorStyle: { ...defaults.display.unitVectorStyle, ...props.display?.unitVectorStyle }
+        };
         this.inputVector = new Vector(0, 0);
         this.previousX = 0;
         this.previousY = 0;

@@ -1,17 +1,16 @@
 import { CanvasObject } from './CanvasObject.js';
-import { applyProperties } from '../_helpers/applyProperties.js';
 import { canvas_text } from '../_helpers/draw.js';
 
 interface TextStyle {
-    textAlign: CanvasTextAlign;
-    fillStyle: string;
-    font: string;
+    textAlign?: CanvasTextAlign;
+    fillStyle?: string;
+    font?: string;
 }
 
 interface TextProperties {
-    text: string;
-    textStyle: TextStyle;
-    shouldStroke: boolean;
+    text?: string;
+    textStyle?: TextStyle;
+    shouldStroke?: boolean;
 }
 
 const defaultTextProperties: TextProperties = {
@@ -32,7 +31,7 @@ class Text extends CanvasObject {
         pxFromCanvasLeft: number,
         widthInPx: number,
         lengthInPx: number,
-        properties?: Partial<TextProperties>
+        properties?: TextProperties
     ) {
         super(
             { pxFromCanvasTop, pxFromCanvasLeft },
@@ -40,8 +39,12 @@ class Text extends CanvasObject {
             "text"
         );
 
-        const mergedProperties = { ...defaultTextProperties, ...properties };
-        applyProperties(this, mergedProperties);
+        const props = properties ?? {};
+        const defaults = defaultTextProperties;
+
+        this.text = props.text ?? defaults.text ?? "";
+        this.textStyle = { ...defaults.textStyle, ...props.textStyle };
+        this.shouldStroke = props.shouldStroke ?? defaults.shouldStroke ?? false;
     }
 
     update(delta: number): boolean {
