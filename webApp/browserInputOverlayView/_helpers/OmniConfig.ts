@@ -74,6 +74,8 @@ export interface TextConfig extends BaseCanvasObjectConfig {
 		textAlign: string;
 		fillStyle: string;
 		font: string;
+		strokeStyle: string;
+		strokeWidth: number;
 	};
 	shouldStroke: boolean;
 }
@@ -163,7 +165,9 @@ export const defaultTemplateFor_Text: TextConfig = {
 	textStyle: {
 		textAlign: "left",
 		fillStyle: "black",
-		font: "20px Lucida Console"
+		font: "20px Lucida Console",
+		strokeStyle: "white",
+		strokeWidth: 3
 	},
 	shouldStroke: true
 } as const;

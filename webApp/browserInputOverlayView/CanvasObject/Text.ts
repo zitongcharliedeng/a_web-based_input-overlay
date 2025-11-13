@@ -5,6 +5,8 @@ interface TextStyle {
     textAlign?: CanvasTextAlign;
     fillStyle?: string;
     font?: string;
+    strokeStyle?: string;
+    strokeWidth?: number;
 }
 
 interface TextProperties {
@@ -15,7 +17,13 @@ interface TextProperties {
 
 const defaultTextProperties: TextProperties = {
     text: "Sample text",
-    textStyle: { textAlign: "center", fillStyle: "black", font: "30px Lucida Console" },
+    textStyle: {
+        textAlign: "center",
+        fillStyle: "black",
+        font: "30px Lucida Console",
+        strokeStyle: "white",
+        strokeWidth: 3
+    },
     shouldStroke: true,
 };
 
@@ -54,9 +62,9 @@ class Text extends CanvasObject {
     draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
         ctx.beginPath();
         if (this.shouldStroke) {
-            // White outline
-            ctx.strokeStyle = "white";
-            ctx.lineWidth = 3;
+            // Draw stroke outline
+            ctx.strokeStyle = this.textStyle.strokeStyle ?? "white";
+            ctx.lineWidth = this.textStyle.strokeWidth ?? 3;
             ctx.strokeText(this.text, 0, 0);
         }
         canvas_text(ctx, 0, 0, this.text, this.textStyle);
