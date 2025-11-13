@@ -122,9 +122,34 @@ window.addEventListener("load", function (): void {
 	window.addEventListener("resize", resizeCanvas);
 }, false);
 
+function deserializeImage(src: string): HTMLImageElement {
+	const img = new Image();
+	img.src = src;
+	return img;
+}
+
+function deserializeObject(objData: any): CanvasObject {
+	const { type, x, y, width, height, ...props } = objData;
+
+	if (props.display && props.display.backgroundImage && typeof props.display.backgroundImage === 'string') {
+		props.display.backgroundImage = deserializeImage(props.display.backgroundImage);
+	}
+
+	switch (type) {
+		case 'LinearInputIndicator':
+			return new LinearInputIndicator(x, y, width, height, props);
+		case 'PlanarInputIndicator_Radial':
+			return new PlanarInputIndicator_Radial(x, y, width, height, props);
+		case 'Text':
+			return new Text(y, x, width, height, props);
+		default:
+			throw new Error(`Unknown object type: ${type}`);
+	}
+}
+
 function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Scene {
 	const KeyImage = new Image();
-	KeyImage.src = "./browserInputOverlayView/_assets/images/KeyDefault.png";
+	KeyImage.src = "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/browserInputOverlayView/_assets/images/KeyDefault.png";
 
 	let yOffset = 20;
 	const sectionSpacing = 280;
@@ -683,6 +708,24 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): 
 			if (mouse.clicks[2] === true && clickedObject !== null && editingProperties === false) {
 				console.log("Editing object");
 				propertyEditor.showPropertyEdit(clickedObject.defaultProperties, clickedObject);
+				editingProperties = true;
+			}
+
+			if (mouse.clicks[2] === true && clickedObject === null && editingProperties === false) {
+				console.log("Editing scene config");
+				propertyEditor.showSceneConfig(this, canvas, (config: any) => {
+					console.log("Applying scene config:", config);
+					if (config.canvas) {
+						canvas.width = config.canvas.width;
+						canvas.height = config.canvas.height;
+					}
+					if (config.objects) {
+						objects.length = 0;
+						for (const objData of config.objects) {
+							objects.push(deserializeObject(objData));
+						}
+					}
+				});
 				editingProperties = true;
 			}
 

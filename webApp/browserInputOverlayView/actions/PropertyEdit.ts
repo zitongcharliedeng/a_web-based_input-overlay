@@ -9,6 +9,8 @@ class PropertyEdit {
 	className: string = "PropertyEdit";
 
 	targetObject: unknown = null;
+	targetScene: any = null;
+	applySceneConfig: ((config: any) => void) | null = null;
 
 	constructor() {
 	}
@@ -16,14 +18,35 @@ class PropertyEdit {
 	hidePropertyEdit(): void {
 		const editorWindow = document.getElementById("propertyEditor");
 		const propertyTable = document.getElementById("propertyTable");
+		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
 
 		if (!editorWindow || !propertyTable) return;
+
+		if (sceneConfigText && !sceneConfigText.hidden && this.applySceneConfig) {
+			try {
+				const config = JSON.parse(sceneConfigText.value);
+				this.applySceneConfig(config);
+			} catch (e) {
+				console.error('Invalid JSON in scene config:', e);
+				alert('Invalid JSON configuration. Changes not applied.');
+			}
+		}
 
 		while (propertyTable.firstChild !== null) {
 			propertyTable.removeChild(propertyTable.firstChild);
 		}
 
+		if (sceneConfigText) {
+			sceneConfigText.hidden = true;
+			sceneConfigText.value = '';
+		}
+		if (propertyTable) {
+			propertyTable.hidden = false;
+		}
+
 		this.targetObject = null;
+		this.targetScene = null;
+		this.applySceneConfig = null;
 		editorWindow.hidden = true;
 	}
 
@@ -32,9 +55,13 @@ class PropertyEdit {
 
 		const editorWindow = document.getElementById("propertyEditor");
 		const propertyTable = document.getElementById("propertyTable");
+		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
 		const editorTitle = document.getElementById("propertyEditorTitle");
 
 		if (!editorWindow || !propertyTable || !editorTitle) return;
+
+		if (sceneConfigText) sceneConfigText.hidden = true;
+		propertyTable.hidden = false;
 
 		editorTitle.innerHTML = targetObject.className || "Object";
 
@@ -45,6 +72,79 @@ class PropertyEdit {
 		this.renderProperties(propertyTable, [], defaultProperties, targetObject);
 
 		editorWindow.hidden = false;
+	}
+
+	showSceneConfig(scene: any, canvas: HTMLCanvasElement, applyCallback: (config: any) => void): void {
+		this.targetScene = scene;
+		this.applySceneConfig = applyCallback;
+
+		const editorWindow = document.getElementById("propertyEditor");
+		const propertyTable = document.getElementById("propertyTable");
+		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
+		const editorTitle = document.getElementById("propertyEditorTitle");
+
+		if (!editorWindow || !propertyTable || !sceneConfigText || !editorTitle) return;
+
+		propertyTable.hidden = true;
+		sceneConfigText.hidden = false;
+
+		editorTitle.innerHTML = "Scene Configuration";
+
+		const config = this.serializeScene(scene, canvas);
+		sceneConfigText.value = JSON.stringify(config, null, 2);
+
+		editorWindow.hidden = false;
+	}
+
+	private serializeScene(scene: any, canvas: HTMLCanvasElement): any {
+		const config: any = {
+			canvas: {
+				width: canvas.width,
+				height: canvas.height,
+				backgroundColor: 'transparent'
+			},
+			objects: []
+		};
+
+		for (const obj of scene.objects) {
+			const serialized: any = {
+				type: obj.className,
+				x: obj.positionOnCanvas.pxFromCanvasLeft,
+				y: obj.positionOnCanvas.pxFromCanvasTop,
+				width: obj.hitboxSize.widthInPx,
+				height: obj.hitboxSize.lengthInPx
+			};
+
+			if (obj.input) serialized.input = this.serializeObject(obj.input);
+			if (obj.processing) serialized.processing = this.serializeObject(obj.processing);
+			if (obj.display) serialized.display = this.serializeObject(obj.display);
+			if (obj.text) serialized.text = obj.text;
+			if (obj.textStyle) serialized.textStyle = obj.textStyle;
+			if (obj.shouldStroke !== undefined) serialized.shouldStroke = obj.shouldStroke;
+
+			config.objects.push(serialized);
+		}
+
+		return config;
+	}
+
+	private serializeObject(obj: any): any {
+		if (obj === null || obj === undefined) return obj;
+		if (typeof obj !== 'object') return obj;
+
+		if (obj instanceof Image) {
+			return obj.src || 'https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/browserInputOverlayView/_assets/images/KeyDefault.png';
+		}
+
+		if (Array.isArray(obj)) {
+			return obj.map(item => this.serializeObject(item));
+		}
+
+		const result: any = {};
+		for (const key in obj) {
+			result[key] = this.serializeObject(obj[key]);
+		}
+		return result;
 	}
 
 	private renderProperties(container: HTMLElement, path: string[], schema: any, targetObj: any): void {

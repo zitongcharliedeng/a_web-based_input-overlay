@@ -49,8 +49,8 @@ const defaultPlanarInputIndicator_RadialProperties: PlanarInputIndicator_RadialP
 		invertY: false
 	},
 	processing: {
-		deadzone: 0,         // Pure: no deadzone by default
-		antiDeadzone: 0      // Pure: no anti-deadzone
+		deadzone: 0.01,
+		antiDeadzone: 0
 	},
 	display: {
 		radius: 100,
