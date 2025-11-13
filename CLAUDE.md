@@ -1431,7 +1431,7 @@ processing: {
 ## 📋 Current Session Progress (TypeScript Migration Sprint)
 
 ### Branch: `claude/read-the-l-011CUyxYQP7k5L551y7LxcUT`
-**Latest Commit:** `edf938e` - fix(CL5): remove field initializations for flattened properties
+**Latest Commit:** `efd61e6` - fix(CL5): WORKING - remove property flattening, access nested config directly
 
 ### Development Context
 - **Primary Development Machine:** Windows
@@ -1469,14 +1469,17 @@ processing: {
 - All subclasses updated to pass grouped `positionOnCanvas` and `hitboxSize`
 - Cleaner semantic API
 
-#### CL5: Migrate PlanarInputIndicator_Radial to CanvasObject ✅
-**Commits:** `8d7ac0d`, `4bda554`, `3f8165e`, `de52288`, `edf938e`
+#### CL5: Migrate PlanarInputIndicator_Radial to CanvasObject ✅ WORKING
+**Commits:** `8d7ac0d`, `4bda554`, `efd61e6`
 - Convert function constructor to class extending CanvasObject
 - Fixed input config structure in default.js (was using wrong format)
-- **Critical Fix:** Remove field initializations for flattened properties
-  - `xAxes`, `yAxes`, `radius`, styles should NOT be initialized at field level
-  - They override merged values from constructor
-  - Now only set in constructor after `deepMerge` and `applyProperties`
+- **Critical Fix (Multiple Iterations):** Property flattening was causing gamepad input to fail
+  - Initial attempts to fix flattening logic all failed (field initializations, timing, etc.)
+  - **Root Cause:** Simple property flattening (`this.xAxes = this.input.xAxes`) unreliable in class constructors
+  - **Solution:** Remove flattening entirely - access nested properties directly in update/draw methods
+  - Now uses: `this.input.xAxes[i]`, `this.display.radius`, `this.processing.deadzone`
+  - Cleaner semantic organization - properties stay in logical groups
+- **CONFIRMED WORKING:** All inputs functional (keyboard, mouse, gamepad) on Windows and Linux
 
 ### Key Lessons Learned
 
@@ -1486,11 +1489,16 @@ processing: {
 - **Solution:** Changed abstract method signature in CanvasObject from `void` to `boolean`
 - **Lesson:** Update methods must return `true` to trigger screen redraws
 
-#### Problem 2: TypeScript Class Field Initialization
-- **Symptom:** Flattened properties (xAxes, yAxes, etc.) stayed at defaults instead of using merged values
-- **Root Cause:** Class field initializers run BEFORE constructor code, overriding merged values
-- **Solution:** Remove initializations from field declarations, only set in constructor after property merging
-- **Lesson:** Don't initialize TypeScript class fields that will be set by constructor logic
+#### Problem 2: Property Flattening in Class Constructors (MAJOR)
+- **Symptom:** Gamepad input failed completely while keyboard/mouse worked fine
+- **Root Cause:** Simple property flattening (`this.xAxes = this.input.xAxes`) was unreliable in class constructors
+  - Tried multiple approaches: removing field initializations, changing timing, using mergedProperties directly
+  - All attempts to fix flattening failed on Windows (worked on Linux)
+- **Solution:** Remove flattening entirely - access nested config properties directly
+  - `this.input.xAxes[i]` instead of `this.xAxes[i]`
+  - `this.display.radius` instead of `this.radius`
+  - Properties stay in logical groups (input, processing, display)
+- **Lesson:** Avoid simple property flattening in classes; keep properties nested OR do meaningful computation during flattening (like LinearInputIndicator's `asConventionalGamepadAxisNumber()`)
 
 #### Problem 3: Operator Precedence in Boolean Logic
 - **Symptom:** Gamepad input behaved unexpectedly
@@ -1524,16 +1532,19 @@ constructor(
 - NO comments - semantic naming tells the story
 - Type annotations provide clarity without need for docs
 
-#### DRY Property Flattening Pattern
+#### Nested Property Access Pattern (Recommended)
 ```typescript
 const mergedProperties = deepMerge(defaults, overrides);
 applyProperties(this, mergedProperties);
 
-if (this.input) {
-    this.xAxes = this.input.xAxes;
-    // ... flatten nested config to instance properties
+// NO flattening - access nested properties directly in methods:
+update() {
+    if (this.input.xAxes[i]) { ... }  // Not this.xAxes[i]
+    if (this.display.radius > 0) { ... }  // Not this.radius
 }
 ```
+
+**Why:** Simple property flattening is unreliable in TypeScript class constructors. Keep properties nested in logical groups.
 
 ### Files Modified This Session
 
