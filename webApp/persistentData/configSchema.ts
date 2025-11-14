@@ -108,11 +108,17 @@ const ImageConfigSchema = BaseCanvasObjectConfigSchema.extend({
 	opacity: z.number().min(0).max(1)
 });
 
+const WebEmbedConfigSchema = BaseCanvasObjectConfigSchema.extend({
+	url: z.string(),
+	opacity: z.number().min(0).max(1)
+});
+
 const CanvasObjectConfigSchema = z.union([
 	z.object({ linearInputIndicator: LinearInputIndicatorConfigSchema }),
 	z.object({ planarInputIndicator: PlanarInputIndicatorConfigSchema }),
 	z.object({ text: TextConfigSchema }),
-	z.object({ image: ImageConfigSchema })
+	z.object({ image: ImageConfigSchema }),
+	z.object({ webEmbed: WebEmbedConfigSchema })
 ]);
 
 export const OmniConfigSchema = z.object({

@@ -45,6 +45,56 @@
 	text-shadow: 2px 2px #000
 }
 
+/* Object creation panel - positioned to the right of propertyEditor */
+#objectCreationPanel {
+	color: #cdc1c1;
+	background-color: rgba(111, 110, 122, 0.96);
+	border: solid 1px #B4B4B4;
+	position: absolute;
+	width: 20%;
+	height: auto;
+	top: 5%;
+	right: 5%;
+	padding: 1em;
+}
+
+#objectCreationTitle {
+	font-size: 1.5em;
+	margin-top: 0;
+	margin-bottom: 1em;
+	text-shadow: 2px 2px #000;
+	text-align: center;
+}
+
+#objectTypeButtons {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5em;
+}
+
+.createObjectBtn {
+	color: #cdc1c1;
+	background-color: rgba(50, 50, 60, 0.8);
+	border: 1px solid #B4B4B4;
+	padding: 1em;
+	font-size: 1em;
+	font-family: 'Lucida Console', monospace;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.createObjectBtn:hover {
+	background-color: rgba(80, 80, 90, 0.9);
+}
+
+.createObjectBtn.cancelBtn {
+	background-color: rgba(80, 30, 30, 0.8);
+}
+
+.createObjectBtn.cancelBtn:hover {
+	background-color: rgba(120, 40, 40, 0.9);
+}
+
 body {
 	font: 1em Lucida Console;
 	background-color: transparent;

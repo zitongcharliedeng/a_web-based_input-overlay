@@ -25,6 +25,17 @@
 		<textarea id="sceneConfigText" hidden spellcheck="false"></textarea>
 	</div>
 
+	<div id="objectCreationPanel" hidden oncontextmenu="return false">
+		<p id="objectCreationTitle">Create New Object</p>
+		<div id="objectTypeButtons">
+			<button id="createLinearInputIndicator" class="createObjectBtn">Linear Input Indicator</button>
+			<button id="createPlanarInputIndicator" class="createObjectBtn">Planar Input Indicator</button>
+			<button id="createText" class="createObjectBtn">Text</button>
+			<button id="createWebEmbed" class="createObjectBtn">Web Embed</button>
+			<button id="cancelObjectCreation" class="createObjectBtn cancelBtn">Cancel</button>
+		</div>
+	</div>
+
 	<!-- Bridge uiohook and SDL to Web APIs (Electron only) -->
 	<script>
 		console.log('[Renderer] Script started');

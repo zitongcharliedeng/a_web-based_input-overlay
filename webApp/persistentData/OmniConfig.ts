@@ -98,12 +98,19 @@ export interface ImageConfig extends BaseCanvasObjectConfig {
 	opacity: number;  // 0.0 to 1.0
 }
 
+// WebEmbed configuration - embeds web content via iframe
+export interface WebEmbedConfig extends BaseCanvasObjectConfig {
+	url: string;  // URL to embed
+	opacity: number;  // 0.0 to 1.0
+}
+
 // Discriminated union for all object types
 export type CanvasObjectConfig =
 	| { linearInputIndicator: LinearInputIndicatorConfig }
 	| { planarInputIndicator: PlanarInputIndicatorConfig }
 	| { text: TextConfig }
-	| { image: ImageConfig };
+	| { image: ImageConfig }
+	| { webEmbed: WebEmbedConfig };
 
 export interface OmniConfig {
 	canvas: CanvasConfig;

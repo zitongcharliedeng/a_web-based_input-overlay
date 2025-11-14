@@ -3,6 +3,7 @@ import { defaultTemplateFor_LinearInputIndicator } from '../sceneRender/CanvasOb
 import { defaultTemplateFor_PlanarInputIndicator } from '../sceneRender/CanvasObjects/PlanarInputIndicator_Radial.js';
 import { defaultTemplateFor_Text } from '../sceneRender/CanvasObjects/Text.js';
 import { defaultTemplateFor_Image } from '../sceneRender/CanvasObjects/Image.js';
+import { defaultTemplateFor_WebEmbed } from '../sceneRender/CanvasObjects/WebEmbed.js';
 import { validateOmniConfig } from './configSchema.js';
 
 // Type for objects we're serializing (avoid circular dependencies)
@@ -109,6 +110,15 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 				opacity: (obj as { opacity?: number }).opacity ?? defaultTemplateFor_Image.opacity
 			};
 			return { image: imageConfig };
+		} else if (type === 'WebEmbed') {
+			const webEmbedConfig: import('./OmniConfig.js').WebEmbedConfig = {
+				positionOnCanvas,
+				hitboxSize,
+				layerLevel,
+				url: (obj as { url?: string }).url || defaultTemplateFor_WebEmbed.url,
+				opacity: (obj as { opacity?: number }).opacity ?? defaultTemplateFor_WebEmbed.opacity
+			};
+			return { webEmbed: webEmbedConfig };
 		}
 
 		// Unknown type - shouldn't happen, but return Text as fallback
