@@ -181,14 +181,23 @@ function saveSceneConfig(config: any): void {
 
 function loadSceneConfig(): any | null {
 	try {
+		const raw = localStorage.getItem(SCENE_CONFIG_KEY);
+		if (!raw) {
+			return null;
+		}
+
+		// Parse to check version
+		const parsed = JSON.parse(raw);
+		if (parsed.version !== CONFIG_VERSION) {
+			console.warn(`[Config] Version mismatch: stored=${parsed.version}, current=${CONFIG_VERSION}. Clearing localStorage.`);
+			localStorage.removeItem(SCENE_CONFIG_KEY);
+			showToast(`Config version changed - reset to defaults`);
+			return null;
+		}
+
 		const result = loadConfigFromLocalStorage(SCENE_CONFIG_KEY);
 		if (!result.success) {
-			if (result.error === 'not_found') {
-				return null;
-			}
 			console.error('[Config] Validation failed:', result.error);
-			// Also log the raw localStorage data for debugging
-			const raw = localStorage.getItem(SCENE_CONFIG_KEY);
 			console.error('[Config] Raw data from localStorage:', raw);
 			return null;
 		}
@@ -620,28 +629,9 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	const gridsize = 10;
 	const propertyEditor = new PropertyEdit();
 	let editingProperties = false;
-	let contextMenuActive = false;
 	let creationPanelActive = false;
 	let creationClickX = 0;
 	let creationClickY = 0;
-
-	// Helper: Show context menu at mouse position
-	function showContextMenu(x: number, y: number) {
-		const menu = document.getElementById("contextMenu");
-		if (menu) {
-			menu.style.left = x + 'px';
-			menu.style.top = y + 'px';
-			menu.hidden = false;
-			contextMenuActive = true;
-		}
-	}
-
-	// Helper: Hide context menu
-	function hideContextMenu() {
-		const menu = document.getElementById("contextMenu");
-		if (menu) menu.hidden = true;
-		contextMenuActive = false;
-	}
 
 	// Helper: Show object creation panel
 	function showCreationPanel(x: number, y: number) {
@@ -650,7 +640,6 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		creationPanelActive = true;
 		const panel = document.getElementById("objectCreationPanel");
 		if (panel) panel.hidden = false;
-		hideContextMenu();
 	}
 
 	// Helper: Hide object creation panel
@@ -676,7 +665,19 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			}
 		);
 		editingProperties = true;
-		hideContextMenu();
+	}
+
+	// Helper: Show both panels (scene editor on left, creation on right)
+	function showBothPanels(x: number, y: number) {
+		showSceneConfigEditor();
+		showCreationPanel(x, y);
+	}
+
+	// Helper: Hide both panels
+	function hideBothPanels() {
+		propertyEditor.hidePropertyEdit();
+		hideCreationPanel();
+		editingProperties = false;
 	}
 
 	// Helper: Serialize single object to CanvasObjectConfig format
@@ -774,21 +775,6 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		configManager.deleteObject(index);
 		console.log("Deleted object at index", index);
 		showToast(`Deleted ${objType}`);
-	}
-
-	// Setup context menu button listeners
-	const menuCreateObjectBtn = document.getElementById("menuCreateObject");
-	const menuEditSceneConfigBtn = document.getElementById("menuEditSceneConfig");
-
-	if (menuCreateObjectBtn) {
-		menuCreateObjectBtn.addEventListener("click", () => {
-			showCreationPanel(creationClickX, creationClickY);
-		});
-	}
-	if (menuEditSceneConfigBtn) {
-		menuEditSceneConfigBtn.addEventListener("click", () => {
-			showSceneConfigEditor();
-		});
 	}
 
 	// Populate creation panel from registry (DRY)
@@ -889,13 +875,10 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 
 			// Click away from any active UI - close all
 			if (mouse.clicks[2] === true || mouse.clicks[0] === true) {
-				if (clickedObject === null && (editingProperties === true || creationPanelActive === true || contextMenuActive === true)) {
-					console.log("clicked away from editor/panel/menu - saving changes and closing");
+				if (clickedObject === null && (editingProperties === true || creationPanelActive === true)) {
+					console.log("clicked away from editor/panel - saving changes and closing");
 					const wasEditing = editingProperties;
-					propertyEditor.hidePropertyEdit();
-					hideCreationPanel();
-					hideContextMenu();
-					editingProperties = false;
+					hideBothPanels();
 
 					// Save updated scene to localStorage
 					const updatedConfig = sceneToConfig(objects, canvas);
@@ -908,7 +891,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			}
 
 			// Right-click object - show PropertyEdit
-			if (mouse.clicks[2] === true && clickedObject !== null && !editingProperties && !creationPanelActive && !contextMenuActive) {
+			if (mouse.clicks[2] === true && clickedObject !== null && !editingProperties && !creationPanelActive) {
 				console.log("Right-clicked object - showing PropertyEdit");
 				const objectIndex = objects.indexOf(clickedObject);
 				propertyEditor.showPropertyEdit(
@@ -922,12 +905,10 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				editingProperties = true;
 			}
 
-			// Right-click background - show context menu
-			if (mouse.clicks[2] === true && clickedObject === null && !editingProperties && !creationPanelActive && !contextMenuActive) {
-				console.log("Right-clicked background - showing context menu");
-				creationClickX = mouse.x;
-				creationClickY = mouse.y;
-				showContextMenu(mouse.x, mouse.y);
+			// Right-click background - show both panels (scene editor + creation)
+			if (mouse.clicks[2] === true && clickedObject === null && !editingProperties && !creationPanelActive) {
+				console.log("Right-clicked background - showing both panels");
+				showBothPanels(mouse.x, mouse.y);
 			}
 
 			// Handle delete key (Delete or Backspace)

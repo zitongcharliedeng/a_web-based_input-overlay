@@ -17,6 +17,8 @@
 
 	<!-- Toast notification container -->
 	<div id="toastContainer"></div>
+
+	<!-- Property Editor / Scene Config Editor (LEFT side) -->
 	<div id="propertyEditor" hidden oncontextmenu="return false">
 		<p id="propertyEditorTitle" class="windowTitle">Window title text</p>
 		<table id="propertyTable">
@@ -29,13 +31,7 @@
 		<button id="donePropertyEditor" class="windowDoneBtn">Done</button>
 	</div>
 
-	<!-- Right-click context menu (background only) -->
-	<div id="contextMenu" hidden oncontextmenu="return false">
-		<button id="menuCreateObject" class="contextMenuBtn">Create New Object</button>
-		<button id="menuEditSceneConfig" class="contextMenuBtn">Edit Scene Configuration</button>
-	</div>
-
-	<!-- Object creation panel (programmatically populated from registry) -->
+	<!-- Object creation panel (RIGHT side, programmatically populated from registry) -->
 	<div id="objectCreationPanel" hidden oncontextmenu="return false">
 		<p class="windowTitle">Create New Object</p>
 		<div id="objectCreationContent"></div>
