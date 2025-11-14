@@ -59,6 +59,12 @@ const LinearInputIndicatorConfigSchema = BaseCanvasObjectConfigSchema.extend({
 	})
 });
 
+const StylePropertiesSchema = z.object({
+	strokeStyle: z.string().optional(),
+	fillStyle: z.string().optional(),
+	lineWidth: z.number().optional()
+});
+
 const PlanarInputIndicatorConfigSchema = BaseCanvasObjectConfigSchema.extend({
 	input: z.object({
 		xAxes: z.record(z.number(), z.boolean()),
@@ -72,10 +78,16 @@ const PlanarInputIndicatorConfigSchema = BaseCanvasObjectConfigSchema.extend({
 	}),
 	display: z.object({
 		radius: z.number(),
-		stickRadius: z.number(),
-		fillStyle: z.string(),
-		fillStyleStick: z.string(),
-		fillStyleBackground: z.string()
+		stickRadius: z.number().optional(),
+		fillStyle: z.string().optional(),
+		fillStyleStick: z.string().optional(),
+		fillStyleBackground: z.string().optional(),
+		backgroundStyle: StylePropertiesSchema,
+		xLineStyle: StylePropertiesSchema,
+		yLineStyle: StylePropertiesSchema,
+		deadzoneStyle: StylePropertiesSchema,
+		inputVectorStyle: StylePropertiesSchema,
+		unitVectorStyle: StylePropertiesSchema
 	})
 });
 

@@ -45,6 +45,13 @@ export interface LinearInputIndicatorConfig extends BaseCanvasObjectConfig {
 	};
 }
 
+// Style properties used in PlanarInputIndicator
+export interface StyleProperties {
+	strokeStyle?: string;
+	fillStyle?: string;
+	lineWidth?: number;
+}
+
 // PlanarInputIndicator configuration - ALL fields required (explicit config)
 export interface PlanarInputIndicatorConfig extends BaseCanvasObjectConfig {
 	input: {
@@ -59,10 +66,16 @@ export interface PlanarInputIndicatorConfig extends BaseCanvasObjectConfig {
 	};
 	display: {
 		radius: number;
-		stickRadius: number;
-		fillStyle: string;
-		fillStyleStick: string;
-		fillStyleBackground: string;
+		stickRadius?: number;
+		fillStyle?: string;
+		fillStyleStick?: string;
+		fillStyleBackground?: string;
+		backgroundStyle: StyleProperties;
+		xLineStyle: StyleProperties;
+		yLineStyle: StyleProperties;
+		deadzoneStyle: StyleProperties;
+		inputVectorStyle: StyleProperties;
+		unitVectorStyle: StyleProperties;
 	};
 }
 
