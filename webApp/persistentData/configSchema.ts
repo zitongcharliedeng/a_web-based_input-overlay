@@ -67,8 +67,8 @@ const StylePropertiesSchema = z.object({
 
 const PlanarInputIndicatorConfigSchema = BaseCanvasObjectConfigSchema.extend({
 	input: z.object({
-		xAxes: z.record(z.number(), z.boolean()),
-		yAxes: z.record(z.number(), z.boolean()),
+		xAxes: z.record(z.string(), z.boolean()),
+		yAxes: z.record(z.string(), z.boolean()),
 		invertX: z.boolean(),
 		invertY: z.boolean()
 	}),

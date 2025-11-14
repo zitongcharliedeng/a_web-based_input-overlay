@@ -55,8 +55,8 @@ export interface StyleProperties {
 // PlanarInputIndicator configuration - ALL fields required (explicit config)
 export interface PlanarInputIndicatorConfig extends BaseCanvasObjectConfig {
 	input: {
-		xAxes: { [gamepadIndex: number]: boolean };
-		yAxes: { [gamepadIndex: number]: boolean };
+		xAxes: { [gamepadIndex: string]: boolean };
+		yAxes: { [gamepadIndex: string]: boolean };
 		invertX: boolean;
 		invertY: boolean;
 	};
