@@ -18,24 +18,24 @@
 	<!-- Toast notification container -->
 	<div id="toastContainer"></div>
 
-	<!-- Property Editor / Scene Config Editor (LEFT side) -->
-	<div id="propertyEditor" hidden oncontextmenu="return false">
-		<p id="propertyEditorTitle" class="windowTitle">Window title text</p>
-		<table id="propertyTable">
-			<tr class="property">
-				<td>fillStyle: </td>
-				<td><input type="text" value="" class="inputBox fillStyle"></td>
-			</tr>
-		</table>
-		<textarea id="sceneConfigText" hidden spellcheck="false"></textarea>
-		<button id="donePropertyEditor" class="windowDoneBtn">Done</button>
-	</div>
+	<!-- Unified Editor Window (contains property edit, scene config, and creation panel) -->
+	<div id="unifiedEditor" hidden oncontextmenu="return false">
+		<p id="editorTitle" class="windowTitle">Editor</p>
 
-	<!-- Object creation panel (RIGHT side, programmatically populated from registry) -->
-	<div id="objectCreationPanel" hidden oncontextmenu="return false">
-		<p class="windowTitle">Create New Object</p>
-		<div id="objectCreationContent"></div>
-		<button id="doneCreationPanel" class="windowDoneBtn">Done</button>
+		<!-- Left side: Property Edit or Scene Config -->
+		<div id="leftPanel">
+			<table id="propertyTable" hidden></table>
+			<textarea id="sceneConfigText" hidden spellcheck="false"></textarea>
+		</div>
+
+		<!-- Right side: Object Creation -->
+		<div id="rightPanel" hidden>
+			<p class="panelTitle">Create New Object</p>
+			<div id="objectCreationContent"></div>
+		</div>
+
+		<!-- Single Done button for entire window -->
+		<button id="doneUnifiedEditor" class="actionBtn">Done</button>
 	</div>
 
 	<!-- Bridge uiohook and SDL to Web APIs (Electron only) -->

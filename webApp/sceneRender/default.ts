@@ -634,24 +634,13 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	let creationClickX = 0;
 	let creationClickY = 0;
 
-	// Helper: Show object creation panel
-	function showCreationPanel(x: number, y: number) {
+	// Helper: Show unified editor with both panels
+	function showBothPanels(x: number, y: number) {
 		creationClickX = x;
 		creationClickY = y;
 		creationPanelActive = true;
-		const panel = document.getElementById("objectCreationPanel");
-		if (panel) panel.hidden = false;
-	}
 
-	// Helper: Hide object creation panel
-	function hideCreationPanel() {
-		creationPanelActive = false;
-		const panel = document.getElementById("objectCreationPanel");
-		if (panel) panel.hidden = true;
-	}
-
-	// Helper: Show scene config editor
-	function showSceneConfigEditor() {
+		// Show scene config on left panel
 		propertyEditor.showSceneConfig(
 			{ objects },
 			canvas,
@@ -665,20 +654,29 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				}
 			}
 		);
+
+		// Show creation panel on right
+		const rightPanel = document.getElementById("rightPanel");
+		if (rightPanel) rightPanel.hidden = false;
+
+		// Show unified editor
+		const unifiedEditor = document.getElementById("unifiedEditor");
+		if (unifiedEditor) unifiedEditor.hidden = false;
+
 		editingProperties = true;
 	}
 
-	// Helper: Show both panels (scene editor on left, creation on right)
-	function showBothPanels(x: number, y: number) {
-		showSceneConfigEditor();
-		showCreationPanel(x, y);
-	}
-
-	// Helper: Hide both panels
+	// Helper: Hide unified editor
 	function hideBothPanels() {
 		propertyEditor.hidePropertyEdit();
-		hideCreationPanel();
+		creationPanelActive = false;
 		editingProperties = false;
+
+		const rightPanel = document.getElementById("rightPanel");
+		if (rightPanel) rightPanel.hidden = true;
+
+		const unifiedEditor = document.getElementById("unifiedEditor");
+		if (unifiedEditor) unifiedEditor.hidden = true;
 	}
 
 	// Helper: Serialize single object to CanvasObjectConfig format
@@ -711,7 +709,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			// Create buttons for each template
 			entry.templates.forEach(template => {
 				const button = document.createElement('button');
-				button.className = 'createObjectBtn';
+				button.className = 'createObjectBtn actionBtn';  // White action button with italic text
 				button.setAttribute('data-type', entry.type);
 				button.setAttribute('data-template', template.displayName);
 				button.textContent = template.name;
@@ -791,32 +789,23 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				const template = target.getAttribute('data-template');
 				if (type) {
 					createObjectAt(creationClickX, creationClickY, type, template || 'DEFAULT');
-					hideCreationPanel();
+					hideBothPanels();  // Close entire unified editor
 				}
 			}
 		});
 	}
 
-	// Setup Done button listeners (DRY logic)
-	const donePropertyEditorBtn = document.getElementById("donePropertyEditor");
-	const doneCreationPanelBtn = document.getElementById("doneCreationPanel");
-
-	if (donePropertyEditorBtn) {
-		donePropertyEditorBtn.addEventListener("click", () => {
-			console.log('[Done] PropertyEditor - saving and closing');
-			propertyEditor.hidePropertyEdit();
-			editingProperties = false;
+	// Setup unified Done button (single source of truth)
+	const doneUnifiedEditorBtn = document.getElementById("doneUnifiedEditor");
+	if (doneUnifiedEditorBtn) {
+		doneUnifiedEditorBtn.addEventListener("click", () => {
+			console.log('[Done] Unified Editor - saving and closing');
+			hideBothPanels();
 
 			// Save updated scene to localStorage
 			const updatedConfig = sceneToConfig(objects, canvas);
 			console.log('[Done] Syncing config to ConfigManager');
 			configManager.setConfig(updatedConfig);
-		});
-	}
-	if (doneCreationPanelBtn) {
-		doneCreationPanelBtn.addEventListener("click", () => {
-			console.log('[Done] CreationPanel - closing');
-			hideCreationPanel();
 		});
 	}
 

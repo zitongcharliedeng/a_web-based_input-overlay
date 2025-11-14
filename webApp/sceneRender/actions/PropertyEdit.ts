@@ -19,11 +19,11 @@ class PropertyEdit {
 	}
 
 	hidePropertyEdit(): void {
-		const editorWindow = document.getElementById("propertyEditor");
 		const propertyTable = document.getElementById("propertyTable");
 		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
+		const leftPanel = document.getElementById("leftPanel");
 
-		if (!editorWindow || !propertyTable) return;
+		if (!propertyTable || !leftPanel) return;
 
 		if (sceneConfigText && !sceneConfigText.hidden && this.applySceneConfig) {
 			try {
@@ -51,28 +51,33 @@ class PropertyEdit {
 			sceneConfigText.value = '';
 		}
 		if (propertyTable) {
-			propertyTable.hidden = false;
+			propertyTable.hidden = true;  // Hide both when closing
 		}
 
 		this.targetObject = null;
 		this.targetScene = null;
 		this.applySceneConfig = null;
-		editorWindow.hidden = true;
 	}
 
 	showPropertyEdit(defaultProperties: any, targetObject: any, deleteCallback?: () => void): void {
 		this.targetObject = targetObject;
 		this.deleteCallback = deleteCallback || null;
 
-		const editorWindow = document.getElementById("propertyEditor");
+		const unifiedEditor = document.getElementById("unifiedEditor");
 		const propertyTable = document.getElementById("propertyTable");
 		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
-		const editorTitle = document.getElementById("propertyEditorTitle");
+		const editorTitle = document.getElementById("editorTitle");
+		const leftPanel = document.getElementById("leftPanel");
+		const rightPanel = document.getElementById("rightPanel");
 
-		if (!editorWindow || !propertyTable || !editorTitle) return;
+		if (!unifiedEditor || !propertyTable || !editorTitle || !leftPanel) return;
 
+		// Hide scene config text, show property table in left panel
 		if (sceneConfigText) sceneConfigText.hidden = true;
 		propertyTable.hidden = false;
+
+		// Hide right panel (creation panel not needed for property edit)
+		if (rightPanel) rightPanel.hidden = true;
 
 		editorTitle.innerHTML = targetObject.className || targetObject.canvasObjectType || targetObject.constructor.name || "Object";
 
@@ -131,20 +136,22 @@ class PropertyEdit {
 			propertyTable.appendChild(deleteRow);
 		}
 
-		editorWindow.hidden = false;
+		unifiedEditor.hidden = false;
 	}
 
 	showSceneConfig(scene: any, canvas: HTMLCanvasElement, applyCallback: (config: any) => void): void {
 		this.targetScene = scene;
 		this.applySceneConfig = applyCallback;
 
-		const editorWindow = document.getElementById("propertyEditor");
+		const unifiedEditor = document.getElementById("unifiedEditor");
 		const propertyTable = document.getElementById("propertyTable");
 		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
-		const editorTitle = document.getElementById("propertyEditorTitle");
+		const editorTitle = document.getElementById("editorTitle");
+		const leftPanel = document.getElementById("leftPanel");
 
-		if (!editorWindow || !propertyTable || !sceneConfigText || !editorTitle) return;
+		if (!unifiedEditor || !propertyTable || !sceneConfigText || !editorTitle || !leftPanel) return;
 
+		// Hide property table, show scene config text in left panel
 		propertyTable.hidden = true;
 		sceneConfigText.hidden = false;
 
@@ -153,7 +160,7 @@ class PropertyEdit {
 		const config = this.serializeScene(scene, canvas);
 		sceneConfigText.value = JSON.stringify(config, null, 2);
 
-		editorWindow.hidden = false;
+		// Note: unifiedEditor visibility is managed by caller (showBothPanels)
 	}
 
 	public serializeScene(scene: any, canvas: HTMLCanvasElement): any {
@@ -263,7 +270,9 @@ class PropertyEdit {
 
 	private getNestedValue(obj: any, path: string[]): any {
 		let current = obj;
-		for (const key of path) {
+		// Skip grouping headers like "Base Properties" that don't exist on the object
+		const actualPath = path.filter(key => key !== "Base Properties");
+		for (const key of actualPath) {
 			if (current === null || current === undefined) return undefined;
 			current = current[key];
 		}
@@ -272,13 +281,15 @@ class PropertyEdit {
 
 	private setNestedValue(obj: any, path: string[], value: any): void {
 		let current = obj;
-		for (let i = 0; i < path.length - 1; i++) {
-			if (current[path[i]] === null || current[path[i]] === undefined) {
-				current[path[i]] = {};
+		// Skip grouping headers like "Base Properties" that don't exist on the object
+		const actualPath = path.filter(key => key !== "Base Properties");
+		for (let i = 0; i < actualPath.length - 1; i++) {
+			if (current[actualPath[i]] === null || current[actualPath[i]] === undefined) {
+				current[actualPath[i]] = {};
 			}
-			current = current[path[i]];
+			current = current[actualPath[i]];
 		}
-		current[path[path.length - 1]] = value;
+		current[actualPath[actualPath.length - 1]] = value;
 	}
 
 	private isPlainObject(value: any): boolean {

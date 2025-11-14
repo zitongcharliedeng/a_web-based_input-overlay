@@ -84,7 +84,7 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 			{
 				name: 'DEFAULT_WebEmbed',
 				displayName: 'DEFAULT',
-				create: (x: number, y: number) => new WebEmbed(x, y, 400, 300, { url: "https://www.twitch.tv/" })
+				create: (x: number, y: number) => new WebEmbed(x, y, 560, 315, { url: "https://www.youtube.com/embed/dQw4w9WgXcQ" })
 			}
 		]
 	}

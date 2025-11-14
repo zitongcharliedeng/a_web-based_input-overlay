@@ -3,23 +3,53 @@
 	top: 0; left: 0;
 }
 
-#propertyEditor {
+/* Unified Editor Window */
+#unifiedEditor {
 	color: #cdc1c1;
 	background-color: rgba(111, 110, 122, 0.9);
 	border: solid 1px #B4B4B4;
 	position: absolute;
-	width: 45%;
+	width: 94%;
 	height: 90%;
 	top: 5%;
-	left: 2%;
-	overflow-y: scroll;
-	overflow-x: hidden;
+	left: 3%;
+	display: flex;
+	flex-direction: row;
+	gap: 1em;
+	padding: 1em;
+	padding-bottom: 5em;
 	z-index: 100;
+	overflow: hidden;
 }
+
+#leftPanel {
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding-right: 1em;
+}
+
+#rightPanel {
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding-left: 1em;
+	border-left: 1px solid #666;
+}
+
+.panelTitle {
+	font-size: 1.3em;
+	font-weight: bold;
+	margin-top: 0;
+	margin-bottom: 1em;
+	color: #AAAAAA;
+}
+
 #propertyTable {
 	width: 100%;
 	margin-top: 1em;
 }
+
 #propertyTable input {
 	color: #cdc1c1;
 	padding: .7em;
@@ -28,9 +58,8 @@
 }
 
 #sceneConfigText {
-	width: calc(100% - 2em);
-	height: calc(100% - 6em);
-	margin: 1em;
+	width: 100%;
+	height: calc(100% - 2em);
 	padding: 0.5em;
 	font-family: 'Lucida Console', monospace;
 	font-size: 0.9em;
@@ -38,57 +67,47 @@
 	background-color: rgba(0, 0, 0, 0.3);
 	border: 1px solid #666;
 	resize: none;
+	box-sizing: border-box;
 }
 
 /* Shared window styles */
 .windowTitle {
 	font-size: 1.8em;
-	margin-top: 0.5em;
+	margin-top: 0;
 	margin-bottom: 0.5em;
-	margin-left: 0.5em;
 	padding-top: 0;
 	text-shadow: 2px 2px #000;
 }
 
-#propertyEditorTitle {
-	position: fixed;
-	top: 5%; left: 15%;
-}
-
-.windowDoneBtn {
-	position: absolute;
-	bottom: 1em;
-	right: 1em;
+/* Action buttons (Done, spawn buttons) - white, italic */
+.actionBtn {
 	color: #000;
 	background-color: rgba(255, 255, 255, 0.9);
 	border: 1px solid #B4B4B4;
-	padding: 0.8em 2em;
-	font-size: 1.1em;
+	padding: 0.8em 1.5em;
+	font-size: 1em;
 	font-family: 'Lucida Console', monospace;
+	font-style: italic;
 	cursor: pointer;
 	transition: background-color 0.2s;
+	width: 100%;
+	text-align: center;
 }
 
-.windowDoneBtn:hover {
+.actionBtn:hover {
 	background-color: rgba(255, 255, 255, 1.0);
 }
 
-/* Object creation panel - positioned to the right */
-#objectCreationPanel {
-	color: #cdc1c1;
-	background-color: rgba(111, 110, 122, 0.9);
-	border: solid 1px #B4B4B4;
+#doneUnifiedEditor {
 	position: absolute;
-	width: 45%;
-	height: 90%;
-	top: 5%;
-	right: 2%;
-	padding: 1em;
-	padding-bottom: 4em;
-	overflow-y: auto;
-	z-index: 100;
+	bottom: 1em;
+	right: 1em;
+	left: 1em;
+	font-size: 1.1em;
+	padding: 1em 2em;
 }
 
+/* Object type sections in creation panel */
 .objectTypeSection {
 	margin-bottom: 1.5em;
 }
@@ -103,21 +122,9 @@
 	padding-bottom: 0.3em;
 }
 
+/* Create object buttons use action button styling */
 .createObjectBtn {
-	color: #cdc1c1;
-	background-color: rgba(50, 50, 60, 0.8);
-	border: 1px solid #B4B4B4;
-	padding: 0.6em;
-	font-size: 0.95em;
-	font-family: 'Lucida Console', monospace;
-	cursor: pointer;
-	transition: background-color 0.2s;
-	width: 100%;
-	text-align: left;
-}
-
-.createObjectBtn:hover {
-	background-color: rgba(80, 80, 90, 0.9);
+	margin-bottom: 0.3em;
 }
 
 /* Toast notifications */
