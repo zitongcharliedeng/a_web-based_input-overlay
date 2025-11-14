@@ -152,8 +152,8 @@ class PropertyEdit {
 		unifiedEditor.hidden = false;
 	}
 
-	showCanvasConfig(canvasObjectCollection: any, canvas: HTMLCanvasElement, applyCallback: (config: any) => void): void {
-		this.targetScene = canvasObjectCollection;
+	showCanvasConfig(config: any, canvas: HTMLCanvasElement, applyCallback: (config: any) => void): void {
+		this.targetScene = config;
 		this.applySceneConfig = applyCallback;
 
 		const unifiedEditor = document.getElementById("unifiedEditor");
@@ -171,15 +171,10 @@ class PropertyEdit {
 
 		editorTitle.innerHTML = "Canvas Configuration";
 
-		const config = this.serializeCanvas(canvasObjectCollection, canvas);
+		// Config is already serialized (from ConfigManager) - just display it
 		sceneConfigText.value = JSON.stringify(config, null, 2);
 
 		// Note: unifiedEditor visibility is managed by caller (showBothPanels)
-	}
-
-	public serializeCanvas(canvasObjectCollection: any, canvas: HTMLCanvasElement): any {
-		// Delegate to pure function
-		return objectsToConfig(canvasObjectCollection.objects, canvas);
 	}
 
 	private renderProperties(container: HTMLElement, path: string[], schema: any, targetObj: any): void {
