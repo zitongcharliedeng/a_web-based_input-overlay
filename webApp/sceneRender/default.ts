@@ -76,6 +76,42 @@ window.addEventListener("load", function (): void {
 	// Pass getter so callbacks can access runtime cachedObjects
 	const activeScene = createScene(canvas, ctx, configManager, () => cachedObjects);
 
+	// CL5: Set up InteractionController callbacks (now that we have helper functions from createScene)
+	interactionController.setOnMoveObject((objectIndex, x, y) => {
+		configManager.moveObject(objectIndex, x, y);
+	});
+
+	interactionController.setOnDeleteObject((objectIndex) => {
+		activeScene.deleteObjectAtIndex(objectIndex);
+	});
+
+	interactionController.setOnShowPropertyEdit((obj) => {
+		const objectId = obj.id;
+		activeScene.propertyEditor.showPropertyEdit(
+			obj.defaultProperties,
+			obj,
+			obj.id,
+			configManager,
+			() => {
+				activeScene.deleteObjectById(objectId);
+			}
+		);
+		interactionController.setEditingProperties(true);
+	});
+
+	interactionController.setOnShowCreationPanel(() => {
+		activeScene.showBothPanels();
+	});
+
+	interactionController.setOnCloseEditors(() => {
+		activeScene.hideBothPanels();
+		// Save updated scene from cachedObjects (runtime state)
+		const runtimeObjects = cachedObjects;
+		const updatedConfig = sceneToConfig(runtimeObjects, canvas);
+		console.log('[ClickAway] Syncing config to ConfigManager');
+		configManager.setConfig(updatedConfig);
+	});
+
 	// STEP 3: Serialize scene to config
 	console.log('[Init] Serializing scene to config');
 	const initialConfig = sceneToConfig(activeScene.objects, canvas);
@@ -860,45 +896,13 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		});
 	}
 
-	// CL3: Set up InteractionController callbacks
-	interactionController.setOnMoveObject((objectIndex, x, y) => {
-		configManager.moveObject(objectIndex, x, y);
-	});
-
-	interactionController.setOnDeleteObject((objectIndex) => {
-		deleteObjectAtIndex(objectIndex);
-	});
-
-	interactionController.setOnShowPropertyEdit((obj) => {
-		const objectId = obj.id;
-		propertyEditor.showPropertyEdit(
-			obj.defaultProperties,
-			obj,
-			obj.id,
-			configManager,
-			() => {
-				deleteObjectById(objectId);
-			}
-		);
-		interactionController.setEditingProperties(true);
-	});
-
-	interactionController.setOnShowCreationPanel(() => {
-		showBothPanels();
-	});
-
-	interactionController.setOnCloseEditors(() => {
-		hideBothPanels();
-		// CL5: Save updated scene from cachedObjects (runtime state)
-		const runtimeObjects = getCachedObjects();
-		const updatedConfig = sceneToConfig(runtimeObjects, canvas);
-		console.log('[ClickAway] Syncing config to ConfigManager');
-		configManager.setConfig(updatedConfig);
-	});
-
-	// CL5: Scene only returns initial objects for config generation
-	// Runtime uses cachedObjects (rebuilt from ConfigManager)
+	// CL5: Scene returns initial objects + helper functions for external callback setup
 	return {
-		objects
+		objects,
+		propertyEditor,
+		deleteObjectAtIndex,
+		deleteObjectById,
+		showBothPanels,
+		hideBothPanels
 	};
 }
