@@ -6,14 +6,13 @@ import { Text } from './CanvasObjects/Text.js';
 import { ImageObject } from './CanvasObjects/Image.js';
 import { WebEmbed } from './CanvasObjects/WebEmbed.js';
 import { PropertyEdit } from './actions/PropertyEdit.js';
-import { Vector } from '../_helpers/Vector.js';
-import { canvas_properties } from '../_helpers/draw.js';
 import { sceneToConfig, loadConfigFromLocalStorage } from '../persistentData/sceneSerializer.js';
 import { ConfigManager } from '../persistentData/ConfigManager.js';
 import { CONFIG_VERSION } from '../_helpers/version.js';
 import { showToast } from '../_helpers/toast.js';
 import { CANVAS_OBJECT_REGISTRY } from './CanvasObjects/registry.js';
 import { CanvasRenderer } from './view/CanvasRenderer.js';
+import { InteractionController } from './controller/InteractionController.js';
 
 declare global {
 	interface Window {
@@ -60,6 +59,9 @@ window.addEventListener("load", function (): void {
 
 	// CL2: Create CanvasRenderer (extracted render logic)
 	const canvasRenderer = new CanvasRenderer(canvas);
+
+	// CL3: Create InteractionController (extracted interaction logic)
+	const interactionController = new InteractionController();
 
 	// STEP 1: Create ConfigManager FIRST (must exist before createScene)
 	console.log('[Init] Creating ConfigManager (empty initially)');
@@ -643,16 +645,12 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		),
 	];
 
-	let clickedObject: CanvasObject | null = null;
-	const draggingOffset = new Vector(0, 0);
-	const gridsize = 10;
+	// CL3: Interaction state now managed by InteractionController
 	const propertyEditor = new PropertyEdit();
-	let editingProperties = false;
-	let creationPanelActive = false;
 
 	// Helper: Show unified editor with both panels
 	function showBothPanels() {
-		creationPanelActive = true;
+		interactionController.setCreationPanelActive(true);
 
 		// Show scene config on left panel
 		propertyEditor.showSceneConfig(
@@ -675,14 +673,14 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		const unifiedEditor = document.getElementById("unifiedEditor");
 		if (unifiedEditor) unifiedEditor.hidden = false;
 
-		editingProperties = true;
+		interactionController.setEditingProperties(true);
 	}
 
 	// Helper: Hide unified editor
 	function hideBothPanels() {
 		propertyEditor.hidePropertyEdit();
-		creationPanelActive = false;
-		editingProperties = false;
+		interactionController.setCreationPanelActive(false);
+		interactionController.setEditingProperties(false);
 
 		// Hide all panels
 		const leftPanel = document.getElementById("leftPanel");
@@ -844,105 +842,52 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		});
 	}
 
+	// CL3: Set up InteractionController callbacks
+	interactionController.setOnMoveObject((objectIndex, x, y) => {
+		configManager.moveObject(objectIndex, x, y);
+	});
+
+	interactionController.setOnDeleteObject((objectIndex) => {
+		deleteObjectAtIndex(objectIndex);
+	});
+
+	interactionController.setOnShowPropertyEdit((obj) => {
+		const objectId = obj.id;
+		propertyEditor.showPropertyEdit(
+			obj.defaultProperties,
+			obj,
+			obj.id,
+			configManager,
+			() => {
+				deleteObjectById(objectId);
+			}
+		);
+		interactionController.setEditingProperties(true);
+	});
+
+	interactionController.setOnShowCreationPanel(() => {
+		showBothPanels();
+	});
+
+	interactionController.setOnCloseEditors(() => {
+		hideBothPanels();
+		// Save updated scene to localStorage
+		const updatedConfig = sceneToConfig(objects, canvas);
+		console.log('[ClickAway] Syncing config to ConfigManager');
+		configManager.setConfig(updatedConfig);
+	});
+
 	return {
 		objects,
 
+		// CL3: Replaced with InteractionController.drawHitboxes()
 		draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-			if (clickedObject !== null) {
-				for (let i = 0; i < objects.length; i++) {
-					const object = objects[i];
-					ctx.setTransform(1, 0, 0, 1, object.positionOnCanvas.pxFromCanvasLeft, object.positionOnCanvas.pxFromCanvasTop);
-					ctx.beginPath();
-					canvas_properties(ctx, {strokeStyle:"#FF00FF", lineWidth:1})
-					ctx.rect(0, 0, object.hitboxSize.widthInPx, object.hitboxSize.lengthInPx);
-					ctx.stroke();
-				}
-			}
+			interactionController.drawHitboxes(canvas, ctx, objects);
 		},
 
+		// CL3: Replaced with InteractionController.update()
 		update(delta: number): boolean {
-			if (mouse.clicks[0] === true || mouse.clicks[2] === true) {
-				clickedObject = null;
-				for (let i = 0; i < objects.length; i++) {
-					const object = objects[i];
-					if ((mouse.x > object.positionOnCanvas.pxFromCanvasLeft && mouse.y > object.positionOnCanvas.pxFromCanvasTop)
-					&& (mouse.x < object.positionOnCanvas.pxFromCanvasLeft + object.hitboxSize.widthInPx && mouse.y < object.positionOnCanvas.pxFromCanvasTop + object.hitboxSize.lengthInPx)) {
-						draggingOffset.x = object.positionOnCanvas.pxFromCanvasLeft - mouse.x;
-						draggingOffset.y = object.positionOnCanvas.pxFromCanvasTop - mouse.y;
-						clickedObject = object;
-						console.log("Clicked on object:", object);
-						break;
-					}
-				}
-			}
-
-			if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && clickedObject !== null) {
-				console.log("Released mouse - saving position via ConfigManager");
-				// Find object index
-				const objectIndex = objects.indexOf(clickedObject);
-				if (objectIndex >= 0) {
-					// Update config immutably via ConfigManager (triggers auto-save)
-					configManager.moveObject(
-						objectIndex,
-						clickedObject.positionOnCanvas.pxFromCanvasLeft,
-						clickedObject.positionOnCanvas.pxFromCanvasTop
-					);
-				}
-				clickedObject = null;
-			}
-
-			if (clickedObject !== null && mouse.buttons[0] === true) {
-				console.log("Dragging");
-				clickedObject.positionOnCanvas.pxFromCanvasLeft = Math.round((mouse.x + draggingOffset.x)/gridsize)*gridsize;
-				clickedObject.positionOnCanvas.pxFromCanvasTop = Math.round((mouse.y + draggingOffset.y)/gridsize)*gridsize;
-			}
-
-			// Click away from any active UI - close all
-			if (mouse.clicks[2] === true || mouse.clicks[0] === true) {
-				if (clickedObject === null && (editingProperties === true || creationPanelActive === true)) {
-					console.log("clicked away from editor/panel - saving changes and closing");
-					hideBothPanels();
-
-					// Save updated scene to localStorage
-					const updatedConfig = sceneToConfig(objects, canvas);
-					console.log('[ClickAway] Syncing config to ConfigManager');
-					configManager.setConfig(updatedConfig);
-				}
-			}
-
-			// Right-click object - show PropertyEdit
-			if (mouse.clicks[2] === true && clickedObject !== null && !editingProperties && !creationPanelActive) {
-				console.log("Right-clicked object - showing PropertyEdit");
-				const objectId = clickedObject.id;  // Capture for callback
-				propertyEditor.showPropertyEdit(
-					clickedObject.defaultProperties,
-					clickedObject,
-					clickedObject.id,
-					configManager,
-					() => {
-						deleteObjectById(objectId);
-						clickedObject = null;
-					}
-				);
-				editingProperties = true;
-			}
-
-			// Right-click background - show both panels (scene editor + creation)
-			if (mouse.clicks[2] === true && clickedObject === null && !editingProperties && !creationPanelActive) {
-				console.log("Right-clicked background - showing both panels");
-				showBothPanels();
-			}
-
-			// Handle delete key (Delete or Backspace)
-			if ((keyboard['Delete'] || keyboard['Backspace']) && clickedObject !== null) {
-				const objectIndex = objects.indexOf(clickedObject);
-				if (objectIndex >= 0) {
-					deleteObjectAtIndex(objectIndex);
-					clickedObject = null;
-				}
-			}
-
-			return false;
+			return interactionController.update(objects);
 		}
 	};
 }
