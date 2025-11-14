@@ -4,6 +4,7 @@ import { PlanarInputIndicator_Radial } from './CanvasObjects/PlanarInputIndicato
 import { LinearInputIndicator } from './CanvasObjects/LinearInputIndicator.js';
 import { Text } from './CanvasObjects/Text.js';
 import { ImageObject } from './CanvasObjects/Image.js';
+import { WebEmbed } from './CanvasObjects/WebEmbed.js';
 import { PropertyEdit } from './actions/PropertyEdit.js';
 import { Vector } from '../_helpers/Vector.js';
 import { canvas_properties } from '../_helpers/draw.js';
@@ -596,6 +597,86 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	const gridsize = 10;
 	const propertyEditor = new PropertyEdit();
 	let editingProperties = false;
+	let creationPanelActive = false;
+	let creationClickX = 0;
+	let creationClickY = 0;
+
+	// Helper: Show object creation panel
+	function showCreationPanel(x: number, y: number) {
+		creationClickX = x;
+		creationClickY = y;
+		creationPanelActive = true;
+		const panel = document.getElementById("objectCreationPanel");
+		if (panel) panel.hidden = false;
+	}
+
+	// Helper: Hide object creation panel
+	function hideCreationPanel() {
+		creationPanelActive = false;
+		const panel = document.getElementById("objectCreationPanel");
+		if (panel) panel.hidden = true;
+	}
+
+	// Helper: Create object at click position
+	function createObjectAt(x: number, y: number, type: string) {
+		let newObject: CanvasObject | null = null;
+
+		if (type === "LinearInputIndicator") {
+			newObject = new LinearInputIndicator(x, y, 100, 100);
+		} else if (type === "PlanarInputIndicator") {
+			newObject = new PlanarInputIndicator_Radial(x, y, 200, 200);
+		} else if (type === "Text") {
+			newObject = new Text(x, y, 200, 30, { text: "New Text" });
+		} else if (type === "WebEmbed") {
+			newObject = new WebEmbed(x, y, 400, 300, { url: "https://www.twitch.tv/" });
+		}
+
+		if (newObject) {
+			objects.push(newObject);
+			// Save to config
+			const updatedConfig = sceneToConfig(objects, canvas);
+			saveSceneConfig(updatedConfig);
+			configManager.setConfig(updatedConfig);
+			console.log("Created new", type, "at", x, y);
+		}
+	}
+
+	// Setup creation panel button listeners
+	const createLinearBtn = document.getElementById("createLinearInputIndicator");
+	const createPlanarBtn = document.getElementById("createPlanarInputIndicator");
+	const createTextBtn = document.getElementById("createText");
+	const createWebEmbedBtn = document.getElementById("createWebEmbed");
+	const cancelBtn = document.getElementById("cancelObjectCreation");
+
+	if (createLinearBtn) {
+		createLinearBtn.addEventListener("click", () => {
+			createObjectAt(creationClickX, creationClickY, "LinearInputIndicator");
+			hideCreationPanel();
+		});
+	}
+	if (createPlanarBtn) {
+		createPlanarBtn.addEventListener("click", () => {
+			createObjectAt(creationClickX, creationClickY, "PlanarInputIndicator");
+			hideCreationPanel();
+		});
+	}
+	if (createTextBtn) {
+		createTextBtn.addEventListener("click", () => {
+			createObjectAt(creationClickX, creationClickY, "Text");
+			hideCreationPanel();
+		});
+	}
+	if (createWebEmbedBtn) {
+		createWebEmbedBtn.addEventListener("click", () => {
+			createObjectAt(creationClickX, creationClickY, "WebEmbed");
+			hideCreationPanel();
+		});
+	}
+	if (cancelBtn) {
+		cancelBtn.addEventListener("click", () => {
+			hideCreationPanel();
+		});
+	}
 
 	return {
 		objects,
@@ -651,9 +732,10 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			}
 
 			if (mouse.clicks[2] === true || mouse.clicks[0] === true) {
-				if (clickedObject === null && editingProperties === true) {
-					console.log("clicked away from editor - saving changes");
+				if (clickedObject === null && (editingProperties === true || creationPanelActive === true)) {
+					console.log("clicked away from editor/panel - saving changes");
 					propertyEditor.hidePropertyEdit();
+					hideCreationPanel();
 					editingProperties = false;
 
 					// Save updated scene to localStorage
@@ -663,30 +745,37 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				}
 			}
 
-			if (mouse.clicks[2] === true && clickedObject !== null && editingProperties === false) {
-				console.log("Editing object");
+			if (mouse.clicks[2] === true && clickedObject !== null && editingProperties === false && creationPanelActive === false) {
+				console.log("Right-clicked object - showing PropertyEdit");
 				propertyEditor.showPropertyEdit(clickedObject.defaultProperties, clickedObject);
 				editingProperties = true;
+
+				// Add delete option via confirm dialog
+				// Note: Delete is handled via 'Delete' key or confirm dialog
+				// For now, user can press Delete key while object is selected
 			}
 
-			if (mouse.clicks[2] === true && clickedObject === null && editingProperties === false) {
-				console.log("Editing scene config");
-				propertyEditor.showSceneConfig(this, canvas, (config: any) => {
-					console.log("Applying scene config:", config);
-					if (config.canvas) {
-						canvas.width = config.canvas.width;
-						canvas.height = config.canvas.height;
+			if (mouse.clicks[2] === true && clickedObject === null && editingProperties === false && creationPanelActive === false) {
+				console.log("Right-clicked background - showing object creation panel");
+				showCreationPanel(mouse.x, mouse.y);
+			}
+
+			// Handle delete key (Delete or Backspace)
+			if ((keyboard['Delete'] || keyboard['Backspace']) && clickedObject !== null) {
+				const objectIndex = objects.indexOf(clickedObject);
+				if (objectIndex >= 0) {
+					console.log("Deleting object at index", objectIndex);
+					// Call cleanup if it exists (for WebEmbed iframe removal)
+					if ('cleanup' in clickedObject && typeof (clickedObject as any).cleanup === 'function') {
+						(clickedObject as any).cleanup();
 					}
-					if (config.objects) {
-						objects.length = 0;
-						for (const objData of config.objects) {
-							objects.push(deserializeObject(objData));
-						}
-					}
-					// Save to localStorage
-					saveSceneConfig(config);
-				});
-				editingProperties = true;
+					objects.splice(objectIndex, 1);
+					clickedObject = null;
+					// Save to config
+					const updatedConfig = sceneToConfig(objects, canvas);
+					saveSceneConfig(updatedConfig);
+					configManager.setConfig(updatedConfig);
+				}
 			}
 
 			return false;
