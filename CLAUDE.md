@@ -1205,6 +1205,76 @@ When TypeScript complains about types and you reach for `any` or `as`, that's a 
 
 **Commit:** `447dc39` - refactor!: eliminate deepMerge anti-pattern, use idiomatic TypeScript object spreading
 
+### Latest Session Progress (2025-11-14)
+
+**Priority -1 Foundation Complete: TypeScript Strict Mode + Zod Validation + esbuild Bundler**
+
+**What Was Accomplished:**
+- ✅ **TypeScript Strict Mode Enabled** - All code passes strictest type checking
+- ✅ **Zod Runtime Validation** - Config validation with detailed error messages
+- ✅ **esbuild Bundler** - 305KB minified bundle, <50ms rebuild times
+- ✅ **Pure TypeScript Repository** - All .js files are gitignored build artifacts
+- ✅ **localStorage Persistence** - Scene configs save/load with validation
+- ✅ **PropertyEdit Saves to Config** - UI mutations now persist across reloads
+
+**Branch:** `claude/read-the-l-011CUyxYQP7k5L551y7LxcUT`
+**Latest Commit:** `689b63c` - fix: use string keys for xAxes/yAxes record in Zod schema
+
+**Key Technical Challenges Solved:**
+
+1. **Zod Validation Failures (Multiple Iterations):**
+   - Initial: Shallow object spread didn't merge nested config objects
+   - Fixed: Deep merge all nested levels (input.keyboard, input.gamepad.stick, display.fontStyle)
+   - Second issue: PlanarInputIndicator missing 6 style fields in schema
+   - Final issue: JSON.stringify converts numeric keys to strings (z.record needs string keys)
+   - **Validation approach:** Created test-validate.ts to test with actual localStorage data before pushing
+
+2. **esbuild Module Resolution:**
+   - TypeScript uses `.js` extensions in imports but files are `.ts`
+   - Created custom plugin with onResolve hook to check if `.ts` file exists
+
+3. **Pure TypeScript Repo:**
+   - Changed gitignore to `**/*.js` (global ignore)
+   - Converted esbuild.config.js → esbuild.config.ts
+   - Electron wrapper now compiles from TypeScript sources
+   - Use `tsx` for running .ts config files (not node --loader)
+
+**Files Modified:**
+- `webApp/package.json` - esbuild build scripts using tsx
+- `webApp/esbuild.config.ts` - custom plugin for .js → .ts resolution
+- `webApp/index.html` - uses dist/bundle.js from esbuild
+- `webApp/persistentData/OmniConfig.ts` - added StyleProperties interface, fixed PlanarInputIndicator display config
+- `webApp/persistentData/configSchema.ts` - Zod schemas with StyleProperties, string keys for xAxes/yAxes
+- `webApp/persistentData/sceneSerializer.ts` - deep merge nested config objects
+- `webApp/sceneRender/default.ts` - PropertyEdit saves to localStorage on close
+- `.gitignore` - changed to `**/*.js` (all JS files are build artifacts)
+- `wrapWebAppAsStandaloneProgram/package.json` - added build script for TypeScript
+
+**Build Commands:**
+```bash
+# Web app (bundled with esbuild)
+cd webApp && npm run build
+
+# Electron wrapper (compiled TypeScript)
+cd wrapWebAppAsStandaloneProgram && npm run build
+```
+
+**Current Status:**
+- ✅ All inputs working (keyboard, mouse, gamepad, scroll wheel)
+- ✅ Property edits persist across reloads
+- ✅ Zod validation passes with actual localStorage data
+- ✅ Build tested before every commit
+- ✅ 100% TypeScript codebase (zero .js files tracked)
+
+**Next Session: Priority 0 Refactoring**
+Before adding new features, need to:
+1. Remove non-DRY logic (consolidate duplicated patterns)
+2. Improve variable naming (linkedAxis → radialCompensationAxis)
+3. Complete any remaining cleanup from TypeScript migration
+4. Then proceed to Priority 1: Fade-out duration implementation
+
+---
+
 ### Latest Session Progress (2025-11-12)
 
 **Completed:**
