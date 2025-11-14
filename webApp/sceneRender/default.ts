@@ -56,12 +56,28 @@ window.addEventListener("load", function (): void {
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
-	// Initialize ConfigManager early (will be updated with actual scene config)
-	const configManager = new ConfigManager({
-		canvas: { width: canvas.width, height: canvas.height, backgroundColor: 'transparent' },
-		objects: []
-	});
+	// Create scene with test objects (temporarily using old method)
+	const activeScene = createScene(canvas, ctx);
 
+	// ENFORCEMENT: Initialize ConfigManager from scene, then rebuild scene from ConfigManager
+	console.log('[Init] Serializing scene to config');
+	const initialConfig = sceneToConfig(activeScene.objects, canvas);
+
+	// Try to load saved config from localStorage
+	const savedConfig = loadSceneConfig();
+	const configToUse = savedConfig || initialConfig;
+
+	// Apply canvas dimensions
+	if (configToUse.canvas) {
+		canvas.width = configToUse.canvas.width;
+		canvas.height = configToUse.canvas.height;
+	}
+
+	// Initialize ConfigManager with config (SoT)
+	console.log('[Init] Initializing ConfigManager with', configToUse.objects.length, 'objects');
+	const configManager = new ConfigManager(configToUse);
+
+	// Save callback
 	configManager.onSave((config) => {
 		console.log('[ConfigManager] onSave callback triggered, saving to localStorage');
 		console.log('[ConfigManager] Config to save:', JSON.stringify(config, null, 2).substring(0, 500) + '...');
@@ -69,30 +85,21 @@ window.addEventListener("load", function (): void {
 		showToast('Saved');
 	});
 
-	const activeScene = createScene(canvas, ctx, configManager);
-
-	// Try to load saved config from localStorage
-	const savedConfig = loadSceneConfig();
-	if (savedConfig) {
-		try {
-			if (savedConfig.canvas) {
-				canvas.width = savedConfig.canvas.width;
-				canvas.height = savedConfig.canvas.height;
-			}
-			if (savedConfig.objects) {
-				activeScene.objects.length = 0;
-				for (const objData of savedConfig.objects) {
-					activeScene.objects.push(deserializeObject(objData));
-				}
-			}
-		} catch (e) {
-			console.error('[Config] Failed to apply saved config, using defaults:', e);
-		}
+	// ENFORCEMENT: Rebuild objects[] from ConfigManager (ConfigManager is now SoT)
+	console.log('[Init] Rebuilding objects[] from ConfigManager');
+	activeScene.objects.length = 0;
+	for (const objData of configManager.config.objects) {
+		activeScene.objects.push(deserializeObject(objData));
 	}
 
-	// Update ConfigManager with actual scene config
-	const currentConfig = sceneToConfig(activeScene.objects, canvas);
-	configManager.setConfig(currentConfig);
+	// ENFORCEMENT: Synchronize objects[] from ConfigManager on any config change
+	configManager.onChange((newConfig) => {
+		console.log('[ConfigManager] Config changed, syncing objects[]');
+		activeScene.objects.length = 0;
+		for (const objData of newConfig.objects) {
+			activeScene.objects.push(deserializeObject(objData));
+		}
+	});
 
 	function frameUpdate(): void {
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -337,7 +344,7 @@ function createLabel(x: number, y: number, text: string): Text {
 	});
 }
 
-function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager): Scene {
+function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Scene {
 	let yOffset = 20;
 	const sectionSpacing = 280;
 
@@ -646,12 +653,8 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			canvas,
 			(config) => {
 				console.log('[Scene] Applying updated config from editor');
+				// ConfigManager.onChange() will automatically rebuild objects[]
 				configManager.setConfig(config);
-				// Reload objects from updated config
-				objects.length = 0;
-				for (const objData of config.objects) {
-					objects.push(deserializeObject(objData));
-				}
 			}
 		);
 
@@ -749,18 +752,12 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		const objectConfig = templateObj.createConfig(x, y);
 		console.log('[Create] Created config:', JSON.stringify(objectConfig, null, 2));
 
-		// 2. Add to ConfigManager FIRST (single source of truth)
-		console.log('[Create] Adding to ConfigManager (SoT)');
+		// 2. Add to ConfigManager (single source of truth)
+		// ConfigManager.onChange() will automatically rebuild objects[]
+		console.log('[Create] Adding to ConfigManager (SoT) - onChange will sync objects[]');
 		configManager.addObject(objectConfig);
 
-		// 3. Deserialize config to create runtime object
-		console.log('[Create] Deserializing to runtime object');
-		const newObject = deserializeObject(objectConfig);
-
-		// 4. Add runtime object to scene (for rendering)
-		objects.push(newObject);
-
-		console.log('[Create] Object created and added successfully');
+		console.log('[Create] Object added to ConfigManager successfully');
 	}
 
 	// Helper: Delete object by index
@@ -775,13 +772,11 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			(obj as any).cleanup();
 		}
 
-		// Remove from objects array
-		objects.splice(index, 1);
-
 		// Use ConfigManager to update config (single source of truth)
+		// ConfigManager.onChange() will automatically rebuild objects[]
+		console.log('[Delete] Removing from ConfigManager (SoT) - onChange will sync objects[]');
 		configManager.deleteObject(index);
 		console.log("Deleted object at index", index);
-		showToast(`Deleted ${objType}`);
 	}
 
 	// Populate creation panel from registry (DRY)
