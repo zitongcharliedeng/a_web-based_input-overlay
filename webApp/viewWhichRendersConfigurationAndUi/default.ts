@@ -85,8 +85,24 @@ window.addEventListener("load", function (): void {
 
 	interactionController.setOnShowPropertyEdit((obj) => {
 		const objectId = obj.id;
+		// Find the config for this object
+		const config = configManager.config;
+		const objConfig = config.objects.find(o => {
+			if ('linearInputIndicator' in o) return o.linearInputIndicator.id === objectId;
+			if ('planarInputIndicator' in o) return o.planarInputIndicator.id === objectId;
+			if ('text' in o) return o.text.id === objectId;
+			if ('image' in o) return o.image.id === objectId;
+			if ('webEmbed' in o) return o.webEmbed.id === objectId;
+			return false;
+		});
+
+		if (!objConfig) {
+			console.error('[PropertyEdit] Could not find config for object', objectId);
+			return;
+		}
+
 		activeCanvasObjects.propertyEditor.showPropertyEdit(
-			obj.defaultProperties,
+			objConfig as Record<string, unknown>,
 			obj,
 			obj.id,
 			configManager,
@@ -103,11 +119,8 @@ window.addEventListener("load", function (): void {
 
 	interactionController.setOnCloseEditors(() => {
 		activeCanvasObjects.hideBothPanels();
-		// Save updated canvas from cachedObjects (runtime state)
-		const runtimeObjects = cachedObjects;
-		const updatedConfig = objectsToConfig(runtimeObjects, canvas);
-		console.log('[ClickAway] Syncing config to ConfigManager');
-		configManager.setConfig(updatedConfig);
+		// Phase2: Config already updated by editor callbacks - no need to sync from runtime objects
+		console.log('[ClickAway] Closing editors');
 	});
 
 	// STEP 3: Serialize canvas to config
