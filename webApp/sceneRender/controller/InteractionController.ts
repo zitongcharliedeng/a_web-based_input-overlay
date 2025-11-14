@@ -87,6 +87,13 @@ export class InteractionController {
 	}
 
 	/**
+	 * Clear selection state (called when objects are rebuilt from config)
+	 */
+	clearSelection(): void {
+		this.clickedObject = null;
+	}
+
+	/**
 	 * Update interaction state
 	 * Returns true if scene needs redraw
 	 */

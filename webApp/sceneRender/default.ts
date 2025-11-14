@@ -140,6 +140,15 @@ window.addEventListener("load", function (): void {
 	// Config is source of truth, objects[] is cached view for performance
 	configManager.onChange((newConfig) => {
 		console.log('[ConfigManager] Config changed, rebuilding object cache:', newConfig.objects.length, 'objects');
+
+		// CRITICAL: Clear interaction state before rebuild (object instances will change)
+		// This prevents stale object references in InteractionController
+		const hadClickedObject = interactionController.getClickedObject() !== null;
+		if (hadClickedObject) {
+			console.log('[ConfigManager] Clearing InteractionController state before rebuild');
+			interactionController.clearSelection();
+		}
+
 		cachedObjects = [];
 		let successCount = 0;
 		let failCount = 0;
