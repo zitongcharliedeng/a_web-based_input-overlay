@@ -119,6 +119,7 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 						...defaultTemplateFor_WebEmbed,
 						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
 						hitboxSize: { widthInPx: 560, lengthInPx: 315 },
+						layerLevel: 10,
 						url: "https://www.youtube.com/embed/dQw4w9WgXcQ"
 					}
 				})

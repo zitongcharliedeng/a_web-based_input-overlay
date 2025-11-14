@@ -14,6 +14,7 @@ class PropertyEdit {
 	targetScene: any = null;
 	applySceneConfig: ((config: any) => void) | null = null;
 	deleteCallback: (() => void) | null = null;
+	sceneConfigModified: boolean = false;
 
 	constructor() {
 	}
@@ -25,11 +26,15 @@ class PropertyEdit {
 
 		if (!propertyTable || !leftPanel) return;
 
-		if (sceneConfigText && !sceneConfigText.hidden && this.applySceneConfig) {
+		// CRITICAL: Only apply scene config if it was actually modified by the user
+		// Otherwise we'd apply stale config and lose recently spawned objects
+		if (sceneConfigText && !sceneConfigText.hidden && this.applySceneConfig && this.sceneConfigModified) {
+			console.log('[PropertyEdit] Scene config was modified, applying changes');
 			try {
 				const config = JSON.parse(sceneConfigText.value);
 				try {
 					this.applySceneConfig(config);
+					this.sceneConfigModified = false;
 				} catch (applyError) {
 					console.error('Error applying scene config:', applyError);
 					alert(`Failed to apply configuration: ${applyError instanceof Error ? applyError.message : String(applyError)}`);
@@ -40,6 +45,8 @@ class PropertyEdit {
 				alert('Invalid JSON syntax. Please fix the configuration.');
 				return; // Don't close editor if JSON is invalid
 			}
+		} else if (sceneConfigText && !sceneConfigText.hidden) {
+			console.log('[PropertyEdit] Scene config NOT modified, skipping stale config apply');
 		}
 
 		while (propertyTable.firstChild !== null) {
@@ -143,6 +150,7 @@ class PropertyEdit {
 	showSceneConfig(scene: any, canvas: HTMLCanvasElement, applyCallback: (config: any) => void): void {
 		this.targetScene = scene;
 		this.applySceneConfig = applyCallback;
+		this.sceneConfigModified = false;  // Reset flag for fresh config
 
 		const unifiedEditor = document.getElementById("unifiedEditor");
 		const propertyTable = document.getElementById("propertyTable");
@@ -161,6 +169,12 @@ class PropertyEdit {
 
 		const config = this.serializeScene(scene, canvas);
 		sceneConfigText.value = JSON.stringify(config, null, 2);
+
+		// Track when user edits the config
+		sceneConfigText.addEventListener('input', () => {
+			this.sceneConfigModified = true;
+			console.log('[PropertyEdit] Scene config modified by user');
+		});
 
 		// Note: unifiedEditor visibility is managed by caller (showBothPanels)
 	}

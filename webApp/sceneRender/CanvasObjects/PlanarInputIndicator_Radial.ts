@@ -236,6 +236,12 @@ export const defaultTemplateFor_PlanarInputIndicator: PlanarInputIndicatorConfig
 		stickRadius: 40,
 		fillStyle: "#00ff00",
 		fillStyleStick: "#ffffff",
-		fillStyleBackground: "rgba(0, 0, 0, 0.5)"
+		fillStyleBackground: "rgba(0, 0, 0, 0.5)",
+		backgroundStyle: { lineWidth: 2, strokeStyle: "#B4B4B4", fillStyle: "rgba(0, 0, 0, 0)" },
+		xLineStyle: { strokeStyle: "#FF0000", lineWidth: 2 },
+		yLineStyle: { strokeStyle: "#00FF00", lineWidth: 2 },
+		deadzoneStyle: { fillStyle: "#524d4d" },
+		inputVectorStyle: { strokeStyle: "#FFFF00", lineWidth: 2 },
+		unitVectorStyle: { strokeStyle: "#0000FF", lineWidth: 2 }
 	}
 } as const;
