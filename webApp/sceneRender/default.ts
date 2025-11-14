@@ -123,8 +123,9 @@ window.addEventListener("load", function (): void {
 	configManager.setConfig(configToUse);
 
 	// CL2: Replaced with CanvasRenderer.render()
+	// CL4: Now passes objects[] and scene separately
 	function frameUpdate(): void {
-		canvasRenderer.render(activeScene);
+		canvasRenderer.render(activeScene.objects, activeScene);
 	}
 
 	let previousTime = 0;
@@ -154,7 +155,8 @@ window.addEventListener("load", function (): void {
 		}
 
 		// CL2: Replaced with CanvasRenderer.update()
-		if (canvasRenderer.update(activeScene, delta)) {
+		// CL4: Now passes objects[] and scene separately
+		if (canvasRenderer.update(activeScene.objects, activeScene, delta)) {
 			updateScreen = true;
 		}
 

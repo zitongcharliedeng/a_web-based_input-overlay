@@ -2,16 +2,23 @@
  * CanvasRenderer: Pure rendering utility
  *
  * Responsibilities:
- * - Render scenes and objects to canvas
+ * - Render from CanvasObject array and Scene interface
  * - Call update() on objects
- * - NO state management (reads from scene.objects)
+ * - NO state management (reads from objects passed as parameters)
  * - NO input handling
  *
  * CL2: Extracted from default.ts render logic without behavior change
+ * CL4: Simplified to render from objects[] + scene.draw() without ConfigManager dependency
  */
 
+interface CanvasObject {
+	positionOnCanvas: { pxFromCanvasTop: number; pxFromCanvasLeft: number };
+	hitboxSize: { widthInPx: number; lengthInPx: number };
+	update: (delta: number) => boolean;
+	draw: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => void;
+}
+
 interface Scene {
-	objects: any[];
 	draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void;
 	update(delta: number): boolean;
 }
@@ -28,10 +35,10 @@ export class CanvasRenderer {
 	}
 
 	/**
-	 * Update all objects in scene
+	 * Update all objects and scene
 	 * Returns true if any object needs redraw
 	 */
-	update(scene: Scene, delta: number): boolean {
+	update(objects: CanvasObject[], scene: Scene, delta: number): boolean {
 		let updateScreen = false;
 
 		// Update scene itself
@@ -40,8 +47,8 @@ export class CanvasRenderer {
 		}
 
 		// Update all objects
-		for (let i = 0; i < scene.objects.length; i++) {
-			const object = scene.objects[i];
+		for (let i = 0; i < objects.length; i++) {
+			const object = objects[i];
 			if (object.update(delta) === true) {
 				updateScreen = true;
 			}
@@ -51,19 +58,19 @@ export class CanvasRenderer {
 	}
 
 	/**
-	 * Render scene and all objects to canvas
+	 * Render objects and scene overlays to canvas
 	 */
-	render(scene: Scene): void {
+	render(objects: CanvasObject[], scene: Scene): void {
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		// Draw scene background
+		// Draw scene overlays (hitboxes, etc.)
 		scene.draw(this.canvas, this.ctx);
 		this.ctx.closePath();
 
 		// Draw all objects
-		for (let i = 0; i < scene.objects.length; i++) {
-			const object = scene.objects[i];
+		for (let i = 0; i < objects.length; i++) {
+			const object = objects[i];
 			this.ctx.setTransform(
 				1, 0, 0, 1,
 				object.positionOnCanvas.pxFromCanvasLeft,
