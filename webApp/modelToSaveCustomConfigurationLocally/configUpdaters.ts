@@ -76,6 +76,13 @@ export function updateObjectPosition(
 				positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y }
 			}
 		};
+	} else if ('webEmbed' in targetObject) {
+		newObjects[objectIndex] = {
+			webEmbed: {
+				...targetObject.webEmbed,
+				positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y }
+			}
+		};
 	}
 
 	return { ...config, objects: newObjects };
