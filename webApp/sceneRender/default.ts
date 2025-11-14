@@ -61,6 +61,8 @@ window.addEventListener("load", function (): void {
 	});
 
 	configManager.onSave((config) => {
+		console.log('[ConfigManager] onSave callback triggered, saving to localStorage');
+		console.log('[ConfigManager] Config to save:', JSON.stringify(config, null, 2).substring(0, 500) + '...');
 		saveSceneConfig(config);
 	});
 
@@ -166,7 +168,10 @@ const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 function saveSceneConfig(config: any): void {
 	try {
 		const versionedConfig = { version: CONFIG_VERSION, ...config };
+		console.log('[Save] Writing to localStorage with key:', SCENE_CONFIG_KEY);
+		console.log('[Save] Object count:', config.objects?.length || 0);
 		localStorage.setItem(SCENE_CONFIG_KEY, JSON.stringify(versionedConfig));
+		console.log('[Save] Successfully saved to localStorage');
 	} catch (e) {
 		console.error('[Config] Failed to save:', e);
 	}
@@ -208,6 +213,8 @@ function deserializeObject(objData: any): CanvasObject {
 		return createTextFromConfig(objData.text);
 	} else if ('image' in objData) {
 		return createImageFromConfig(objData.image);
+	} else if ('webEmbed' in objData) {
+		return createWebEmbedFromConfig(objData.webEmbed);
 	}
 
 	// Fallback: handle old flat format (legacy)
@@ -289,6 +296,20 @@ function createImageFromConfig(config: import('../persistentData/OmniConfig.js')
 		config.hitboxSize.lengthInPx,
 		{
 			src: config.src,
+			opacity: config.opacity
+		},
+		config.layerLevel
+	);
+}
+
+function createWebEmbedFromConfig(config: import('../persistentData/OmniConfig.js').WebEmbedConfig): WebEmbed {
+	return new WebEmbed(
+		config.positionOnCanvas.pxFromCanvasLeft,
+		config.positionOnCanvas.pxFromCanvasTop,
+		config.hitboxSize.widthInPx,
+		config.hitboxSize.lengthInPx,
+		{
+			url: config.url,
 			opacity: config.opacity
 		},
 		config.layerLevel
@@ -597,9 +618,28 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	const gridsize = 10;
 	const propertyEditor = new PropertyEdit();
 	let editingProperties = false;
+	let contextMenuActive = false;
 	let creationPanelActive = false;
 	let creationClickX = 0;
 	let creationClickY = 0;
+
+	// Helper: Show context menu at mouse position
+	function showContextMenu(x: number, y: number) {
+		const menu = document.getElementById("contextMenu");
+		if (menu) {
+			menu.style.left = x + 'px';
+			menu.style.top = y + 'px';
+			menu.hidden = false;
+			contextMenuActive = true;
+		}
+	}
+
+	// Helper: Hide context menu
+	function hideContextMenu() {
+		const menu = document.getElementById("contextMenu");
+		if (menu) menu.hidden = true;
+		contextMenuActive = false;
+	}
 
 	// Helper: Show object creation panel
 	function showCreationPanel(x: number, y: number) {
@@ -608,6 +648,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		creationPanelActive = true;
 		const panel = document.getElementById("objectCreationPanel");
 		if (panel) panel.hidden = false;
+		hideContextMenu();
 	}
 
 	// Helper: Hide object creation panel
@@ -615,6 +656,25 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		creationPanelActive = false;
 		const panel = document.getElementById("objectCreationPanel");
 		if (panel) panel.hidden = true;
+	}
+
+	// Helper: Show scene config editor
+	function showSceneConfigEditor() {
+		propertyEditor.showSceneConfig(
+			{ objects },
+			canvas,
+			(config) => {
+				console.log('[Scene] Applying updated config from editor');
+				configManager.setConfig(config);
+				// Reload objects from updated config
+				objects.length = 0;
+				for (const objData of config.objects) {
+					objects.push(deserializeObject(objData));
+				}
+			}
+		);
+		editingProperties = true;
+		hideContextMenu();
 	}
 
 	// Helper: Serialize single object to CanvasObjectConfig format
@@ -630,12 +690,16 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	function createObjectAt(x: number, y: number, type: string) {
 		let newObject: CanvasObject | null = null;
 
+		console.log('[Create] Creating new object:', type, 'at', x, y);
+
 		if (type === "LinearInputIndicator") {
 			newObject = new LinearInputIndicator(x, y, 100, 100);
-		} else if (type === "PlanarInputIndicator") {
+		} else if (type === "PlanarInputIndicator_Radial") {
 			newObject = new PlanarInputIndicator_Radial(x, y, 200, 200);
 		} else if (type === "Text") {
 			newObject = new Text(x, y, 200, 30, { text: "New Text" });
+		} else if (type === "Image") {
+			newObject = new ImageObject(y, x, 200, 200, { src: "https://via.placeholder.com/200" });
 		} else if (type === "WebEmbed") {
 			newObject = new WebEmbed(x, y, 400, 300, { url: "https://www.twitch.tv/" });
 		}
@@ -646,9 +710,11 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 
 			// Use ConfigManager.addObject() - single source of truth
 			const objectConfig = serializeObjectToConfig(newObject);
+			console.log('[Create] Serialized config:', objectConfig);
 			if (objectConfig) {
+				console.log('[Create] Calling configManager.addObject()');
 				configManager.addObject(objectConfig);
-				console.log("Created new", type, "at", x, y);
+				console.log('[Create] Object added to ConfigManager');
 			}
 		}
 	}
@@ -672,39 +738,53 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		console.log("Deleted object at index", index);
 	}
 
-	// Setup creation panel button listeners
-	const createLinearBtn = document.getElementById("createLinearInputIndicator");
-	const createPlanarBtn = document.getElementById("createPlanarInputIndicator");
-	const createTextBtn = document.getElementById("createText");
-	const createWebEmbedBtn = document.getElementById("createWebEmbed");
-	const cancelBtn = document.getElementById("cancelObjectCreation");
+	// Setup context menu button listeners
+	const menuCreateObjectBtn = document.getElementById("menuCreateObject");
+	const menuEditSceneConfigBtn = document.getElementById("menuEditSceneConfig");
 
-	if (createLinearBtn) {
-		createLinearBtn.addEventListener("click", () => {
-			createObjectAt(creationClickX, creationClickY, "LinearInputIndicator");
-			hideCreationPanel();
+	if (menuCreateObjectBtn) {
+		menuCreateObjectBtn.addEventListener("click", () => {
+			showCreationPanel(creationClickX, creationClickY);
 		});
 	}
-	if (createPlanarBtn) {
-		createPlanarBtn.addEventListener("click", () => {
-			createObjectAt(creationClickX, creationClickY, "PlanarInputIndicator");
-			hideCreationPanel();
+	if (menuEditSceneConfigBtn) {
+		menuEditSceneConfigBtn.addEventListener("click", () => {
+			showSceneConfigEditor();
 		});
 	}
-	if (createTextBtn) {
-		createTextBtn.addEventListener("click", () => {
-			createObjectAt(creationClickX, creationClickY, "Text");
-			hideCreationPanel();
+
+	// Setup creation panel button listeners (use data attributes)
+	const createObjectBtns = document.querySelectorAll('.createObjectBtn');
+	createObjectBtns.forEach(btn => {
+		btn.addEventListener("click", (e) => {
+			const target = e.target as HTMLElement;
+			const type = target.getAttribute('data-type');
+			if (type) {
+				createObjectAt(creationClickX, creationClickY, type);
+				hideCreationPanel();
+			}
+		});
+	});
+
+	// Setup Done button listeners (DRY logic)
+	const donePropertyEditorBtn = document.getElementById("donePropertyEditor");
+	const doneCreationPanelBtn = document.getElementById("doneCreationPanel");
+
+	if (donePropertyEditorBtn) {
+		donePropertyEditorBtn.addEventListener("click", () => {
+			console.log('[Done] PropertyEditor - saving and closing');
+			propertyEditor.hidePropertyEdit();
+			editingProperties = false;
+
+			// Save updated scene to localStorage
+			const updatedConfig = sceneToConfig(objects, canvas);
+			console.log('[Done] Syncing config to ConfigManager');
+			configManager.setConfig(updatedConfig);
 		});
 	}
-	if (createWebEmbedBtn) {
-		createWebEmbedBtn.addEventListener("click", () => {
-			createObjectAt(creationClickX, creationClickY, "WebEmbed");
-			hideCreationPanel();
-		});
-	}
-	if (cancelBtn) {
-		cancelBtn.addEventListener("click", () => {
+	if (doneCreationPanelBtn) {
+		doneCreationPanelBtn.addEventListener("click", () => {
+			console.log('[Done] CreationPanel - closing');
 			hideCreationPanel();
 		});
 	}
@@ -762,21 +842,24 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				clickedObject.positionOnCanvas.pxFromCanvasTop = Math.round((mouse.y + draggingOffset.y)/gridsize)*gridsize;
 			}
 
+			// Click away from any active UI - close all
 			if (mouse.clicks[2] === true || mouse.clicks[0] === true) {
-				if (clickedObject === null && (editingProperties === true || creationPanelActive === true)) {
-					console.log("clicked away from editor/panel - saving changes");
+				if (clickedObject === null && (editingProperties === true || creationPanelActive === true || contextMenuActive === true)) {
+					console.log("clicked away from editor/panel/menu - saving changes and closing");
 					propertyEditor.hidePropertyEdit();
 					hideCreationPanel();
+					hideContextMenu();
 					editingProperties = false;
 
 					// Save updated scene to localStorage
 					const updatedConfig = sceneToConfig(objects, canvas);
-					saveSceneConfig(updatedConfig);
+					console.log('[ClickAway] Syncing config to ConfigManager');
 					configManager.setConfig(updatedConfig);
 				}
 			}
 
-			if (mouse.clicks[2] === true && clickedObject !== null && editingProperties === false && creationPanelActive === false) {
+			// Right-click object - show PropertyEdit
+			if (mouse.clicks[2] === true && clickedObject !== null && !editingProperties && !creationPanelActive && !contextMenuActive) {
 				console.log("Right-clicked object - showing PropertyEdit");
 				const objectIndex = objects.indexOf(clickedObject);
 				propertyEditor.showPropertyEdit(
@@ -790,9 +873,12 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				editingProperties = true;
 			}
 
-			if (mouse.clicks[2] === true && clickedObject === null && editingProperties === false && creationPanelActive === false) {
-				console.log("Right-clicked background - showing object creation panel");
-				showCreationPanel(mouse.x, mouse.y);
+			// Right-click background - show context menu
+			if (mouse.clicks[2] === true && clickedObject === null && !editingProperties && !creationPanelActive && !contextMenuActive) {
+				console.log("Right-clicked background - showing context menu");
+				creationClickX = mouse.x;
+				creationClickY = mouse.y;
+				showContextMenu(mouse.x, mouse.y);
 			}
 
 			// Handle delete key (Delete or Backspace)

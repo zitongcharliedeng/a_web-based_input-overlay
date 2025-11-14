@@ -15,7 +15,7 @@
 		Your browser does not support the HTML5 canvas tag.
 	</canvas>
 	<div id="propertyEditor" hidden oncontextmenu="return false">
-		<p id="propertyEditorTitle">Window title text</p>
+		<p id="propertyEditorTitle" class="windowTitle">Window title text</p>
 		<table id="propertyTable">
 			<tr class="property">
 				<td>fillStyle: </td>
@@ -23,17 +23,39 @@
 			</tr>
 		</table>
 		<textarea id="sceneConfigText" hidden spellcheck="false"></textarea>
+		<button id="donePropertyEditor" class="windowDoneBtn">Done</button>
 	</div>
 
+	<!-- Right-click context menu (background only) -->
+	<div id="contextMenu" hidden oncontextmenu="return false">
+		<button id="menuCreateObject" class="contextMenuBtn">Create New Object</button>
+		<button id="menuEditSceneConfig" class="contextMenuBtn">Edit Scene Configuration</button>
+	</div>
+
+	<!-- Object creation panel (organized by type) -->
 	<div id="objectCreationPanel" hidden oncontextmenu="return false">
-		<p id="objectCreationTitle">Create New Object</p>
-		<div id="objectTypeButtons">
-			<button id="createLinearInputIndicator" class="createObjectBtn">Linear Input Indicator</button>
-			<button id="createPlanarInputIndicator" class="createObjectBtn">Planar Input Indicator</button>
-			<button id="createText" class="createObjectBtn">Text</button>
-			<button id="createWebEmbed" class="createObjectBtn">Web Embed</button>
-			<button id="cancelObjectCreation" class="createObjectBtn cancelBtn">Cancel</button>
+		<p class="windowTitle">Create New Object</p>
+		<div class="objectTypeSection">
+			<p class="sectionHeader">LinearInputIndicator</p>
+			<button class="createObjectBtn" data-type="LinearInputIndicator" data-template="DEFAULT">DEFAULT_LinearInputIndicator</button>
 		</div>
+		<div class="objectTypeSection">
+			<p class="sectionHeader">PlanarInputIndicator_Radial</p>
+			<button class="createObjectBtn" data-type="PlanarInputIndicator_Radial" data-template="DEFAULT">DEFAULT_PlanarInputIndicator_Radial</button>
+		</div>
+		<div class="objectTypeSection">
+			<p class="sectionHeader">Text</p>
+			<button class="createObjectBtn" data-type="Text" data-template="DEFAULT">DEFAULT_Text</button>
+		</div>
+		<div class="objectTypeSection">
+			<p class="sectionHeader">Image</p>
+			<button class="createObjectBtn" data-type="Image" data-template="DEFAULT">DEFAULT_Image</button>
+		</div>
+		<div class="objectTypeSection">
+			<p class="sectionHeader">WebEmbed</p>
+			<button class="createObjectBtn" data-type="WebEmbed" data-template="DEFAULT">DEFAULT_WebEmbed</button>
+		</div>
+		<button id="doneCreationPanel" class="windowDoneBtn">Done</button>
 	</div>
 
 	<!-- Bridge uiohook and SDL to Web APIs (Electron only) -->
