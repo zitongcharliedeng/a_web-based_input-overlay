@@ -655,8 +655,10 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			}
 		);
 
-		// Show creation panel on right
+		// Show both panels
+		const leftPanel = document.getElementById("leftPanel");
 		const rightPanel = document.getElementById("rightPanel");
+		if (leftPanel) leftPanel.hidden = false;
 		if (rightPanel) rightPanel.hidden = false;
 
 		// Show unified editor
@@ -672,9 +674,13 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		creationPanelActive = false;
 		editingProperties = false;
 
+		// Hide all panels
+		const leftPanel = document.getElementById("leftPanel");
 		const rightPanel = document.getElementById("rightPanel");
+		if (leftPanel) leftPanel.hidden = true;
 		if (rightPanel) rightPanel.hidden = true;
 
+		// Hide entire window
 		const unifiedEditor = document.getElementById("unifiedEditor");
 		if (unifiedEditor) unifiedEditor.hidden = true;
 	}

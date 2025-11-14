@@ -102,9 +102,9 @@
 	position: absolute;
 	bottom: 1em;
 	right: 1em;
-	left: 1em;
 	font-size: 1.1em;
 	padding: 1em 2em;
+	width: auto;
 }
 
 /* Object type sections in creation panel */

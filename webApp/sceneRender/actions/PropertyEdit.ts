@@ -72,7 +72,8 @@ class PropertyEdit {
 
 		if (!unifiedEditor || !propertyTable || !editorTitle || !leftPanel) return;
 
-		// Hide scene config text, show property table in left panel
+		// Show left panel with property table, hide scene config text
+		leftPanel.hidden = false;
 		if (sceneConfigText) sceneConfigText.hidden = true;
 		propertyTable.hidden = false;
 
@@ -151,7 +152,8 @@ class PropertyEdit {
 
 		if (!unifiedEditor || !propertyTable || !sceneConfigText || !editorTitle || !leftPanel) return;
 
-		// Hide property table, show scene config text in left panel
+		// Show left panel with scene config text, hide property table
+		leftPanel.hidden = false;
 		propertyTable.hidden = true;
 		sceneConfigText.hidden = false;
 
