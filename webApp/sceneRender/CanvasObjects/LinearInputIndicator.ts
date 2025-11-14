@@ -163,7 +163,7 @@ class LinearInputIndicator extends CanvasObject {
 	mouseWheel: "up" | "down" | null = null;
 	hasStickInput: boolean = false;
 	axis: number | null = null;
-	revertedAxis: boolean = false;
+	invertedAxis: boolean = false;
 	hasButtonInput: boolean = false;
 	button: number | null = null;
 
@@ -231,11 +231,11 @@ class LinearInputIndicator extends CanvasObject {
 			this.hasStickInput = stick ? (asConventionalGamepadAxisNumber(stick) !== null) : false;
 			if (this.hasStickInput && stick) {
 				this.axis = asConventionalGamepadAxisNumber(stick);
-				this.revertedAxis = (stick.direction === "negative");
+				this.invertedAxis = (stick.direction === "negative");
 			} else {
 				this.hasStickInput = false;
 				this.axis = null;
-				this.revertedAxis = false;
+				this.invertedAxis = false;
 			}
 
 			const buttonIndex = this.input.gamepad?.button?.index;
@@ -296,7 +296,7 @@ class LinearInputIndicator extends CanvasObject {
 
 	update(delta: number): boolean {
 		var value = 0;
-		var linkedValue = 0;
+		var compensationAxisValue = 0;
 
 		// Get keyboard input
 		const keyboard = (window as any).keyboard;
@@ -317,9 +317,9 @@ class LinearInputIndicator extends CanvasObject {
 			}
 		}
 
-		// Key antiDeadzone has to be lowered when a linked axis surpasses the antiDeadzone for better directional indications
+		// Key antiDeadzone has to be lowered when a compensation axis surpasses the antiDeadzone for better directional indications
 		// This is a lazy way to achieve this, but works for now
-		var newAntiDeadzone = Math.max(0, this.antiDeadzone - linkedValue * 0.5)
+		var newAntiDeadzone = Math.max(0, this.antiDeadzone - compensationAxisValue * 0.5)
 
 		// Get gamepad input
 		const gamepads = (window as any).gamepads;
@@ -328,8 +328,8 @@ class LinearInputIndicator extends CanvasObject {
 			if (gamepad !== null && gamepad.axes && this.hasStickInput && this.axis !== null) {
 
 				if (gamepad.axes[this.axis] !== null && gamepad.axes[this.axis] !== undefined
-				&& ((this.revertedAxis === true && gamepad.axes[this.axis] < 0)
-				|| (this.revertedAxis === false && gamepad.axes[this.axis] > 0))) {
+				&& ((this.invertedAxis === true && gamepad.axes[this.axis] < 0)
+				|| (this.invertedAxis === false && gamepad.axes[this.axis] > 0))) {
 					if (this.radialCompensationAxis >= 0 && gamepad.axes[this.radialCompensationAxis]) {
 
 						//Converts circular back to square coordinates
@@ -344,7 +344,7 @@ class LinearInputIndicator extends CanvasObject {
 
 				if (this.radialCompensationAxis >= 0 && gamepad.axes[this.radialCompensationAxis]) {
 
-					linkedValue += Math.abs(gamepad.axes[this.radialCompensationAxis])
+					compensationAxisValue += Math.abs(gamepad.axes[this.radialCompensationAxis])
 				}
 			}
 			if (gamepad !== null && gamepad.buttons && this.hasButtonInput && this.button !== null) {
