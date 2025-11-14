@@ -9,8 +9,18 @@ node_modules/
 
 # TypeScript compiled output (build artifacts - compile locally)
 # Pure source-only approach: .ts files are source of truth
-**/*.js
+# Exclude compiled JS but NOT config files
+**/viewWhichRendersConfigurationAndUi/**/*.js
+**/modelToSaveCustomConfigurationLocally/**/*.js
+**/controllerToMutateCustomConfiguration/**/*.js
+**/_helpers/**/*.js
+**/_compiled/**/*.js
+**/dist/**/*.js
 **/*.js.map
+
+# IMPORTANT: Do NOT ignore config files
+!*.config.js
+!eslint.config.js
 
 # esbuild bundled output
 webApp/dist/
