@@ -22,11 +22,20 @@
 	overflow: hidden;
 }
 
+/* Ensure hidden attribute actually hides the element (higher specificity than display: flex) */
+#unifiedEditor[hidden] {
+	display: none !important;
+}
+
 #leftPanel {
 	flex: 1;
 	overflow-y: auto;
 	overflow-x: hidden;
 	padding-right: 1em;
+}
+
+#leftPanel[hidden] {
+	display: none !important;
 }
 
 #rightPanel {
@@ -35,6 +44,10 @@
 	overflow-x: hidden;
 	padding-left: 1em;
 	border-left: 1px solid #666;
+}
+
+#rightPanel[hidden] {
+	display: none !important;
 }
 
 .panelTitle {
