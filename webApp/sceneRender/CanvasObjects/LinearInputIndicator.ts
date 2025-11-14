@@ -445,4 +445,4 @@ export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorTempla
 		},
 		reverseFillDirection: false
 	}
-} as const;
+};

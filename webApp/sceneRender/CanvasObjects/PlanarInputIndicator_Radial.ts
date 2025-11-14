@@ -242,4 +242,4 @@ export const defaultTemplateFor_PlanarInputIndicator: PlanarInputIndicatorTempla
 		inputVectorStyle: { strokeStyle: "#FFFF00", lineWidth: 2 },
 		unitVectorStyle: { strokeStyle: "#0000FF", lineWidth: 2 }
 	}
-} as const;
+};

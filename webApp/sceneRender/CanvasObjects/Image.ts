@@ -89,5 +89,5 @@ import type { ImageTemplate } from '../../persistentData/OmniConfig.js';
 export const defaultTemplateFor_Image: ImageTemplate = {
 	src: DEFAULT_KEY_IMAGE_URL,
 	opacity: 1.0
-} as const;
+};
 export type { ImageProperties };

@@ -90,5 +90,5 @@ export const defaultTemplateFor_Text: TextTemplate = {
 		strokeWidth: 3
 	},
 	shouldStroke: true
-} as const;
+};
 export type { TextProperties, TextStyle };
