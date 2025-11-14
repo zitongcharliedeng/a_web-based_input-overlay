@@ -89,8 +89,9 @@ class PropertyEdit {
 		}
 
 		// Combine base properties and object-specific properties into single schema
+		// Base properties: shared by all CanvasObjects (see BaseCanvasObject.ts)
 		const combinedSchema = {
-			"Base Properties": {
+			"CanvasObject (shared)": {
 				positionOnCanvas: {
 					pxFromCanvasLeft: targetObject.positionOnCanvas.pxFromCanvasLeft,
 					pxFromCanvasTop: targetObject.positionOnCanvas.pxFromCanvasTop
@@ -98,7 +99,8 @@ class PropertyEdit {
 				hitboxSize: {
 					widthInPx: targetObject.hitboxSize.widthInPx,
 					lengthInPx: targetObject.hitboxSize.lengthInPx
-				}
+				},
+				layerLevel: targetObject.layerLevel  // Z-index: lower = behind, higher = front
 			},
 			...defaultProperties
 		};
