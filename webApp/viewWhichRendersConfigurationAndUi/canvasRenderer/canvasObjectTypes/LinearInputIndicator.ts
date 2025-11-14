@@ -415,7 +415,7 @@ class LinearInputIndicator extends CanvasObject {
 
 export { LinearInputIndicator };
 
-import type { LinearInputIndicatorTemplate } from '../../../model/OmniConfig.js';
+import type { LinearInputIndicatorTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorTemplate = {
 	input: {

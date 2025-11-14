@@ -6,13 +6,13 @@ import { Text } from './canvasRenderer/canvasObjectTypes/Text.js';
 import { ImageObject } from './canvasRenderer/canvasObjectTypes/Image.js';
 import { WebEmbed } from './canvasRenderer/canvasObjectTypes/WebEmbed.js';
 import { PropertyEdit } from './uiComponents/PropertyEdit.js';
-import { objectsToConfig, loadConfigFromLocalStorage } from '../model/configSerializer.js';
-import { ConfigManager } from '../model/ConfigManager.js';
+import { objectsToConfig, loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLocally/configSerializer.js';
+import { ConfigManager } from '../modelToSaveCustomConfigurationLocally/ConfigManager.js';
 import { CONFIG_VERSION } from '../_helpers/version.js';
 import { showToast } from './uiComponents/toast.js';
 import { CANVAS_OBJECT_REGISTRY } from './canvasRenderer/canvasObjectTypes/registry.js';
 import { CanvasRenderer } from './canvasRenderer/CanvasRenderer.js';
-import { InteractionController } from '../controller/InteractionController.js';
+import { InteractionController } from '../controllerToMutateCustomConfiguration/InteractionController.js';
 
 declare global {
 	interface Window {
@@ -284,7 +284,7 @@ function deserializeObject(objData: any): CanvasObject {
 	}
 }
 
-import type { LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from '../model/OmniConfig.js';
+import type { LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 import { defaultTemplateFor_Text } from './canvasRenderer/canvasObjectTypes/Text.js';
 
 function createLinearIndicatorFromConfig(config: LinearInputIndicatorConfig): LinearInputIndicator {

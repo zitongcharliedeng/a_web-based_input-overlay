@@ -1,4 +1,4 @@
-import { objectsToConfig } from '../../model/configSerializer.js';
+import { objectsToConfig } from '../../modelToSaveCustomConfigurationLocally/configSerializer.js';
 
 interface PropertyEditProperties {
 }

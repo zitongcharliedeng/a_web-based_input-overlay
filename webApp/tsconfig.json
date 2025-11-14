@@ -14,10 +14,11 @@
     "declaration": false
   },
   "include": [
-    "sceneRender/**/*.ts",
-    "inputListeners/**/*.ts",
-    "persistentData/**/*.ts",
-    "_helpers/**/*.ts"
+    "viewWhichRendersConfigurationAndUi/**/*.ts",
+    "modelToSaveCustomConfigurationLocally/**/*.ts",
+    "controllerToMutateCustomConfiguration/**/*.ts",
+    "_helpers/**/*.ts",
+    "*.ts"
   ],
   "exclude": [
     "node_modules",

@@ -5,18 +5,23 @@
   "description": "Web application for input overlay visualization",
   "scripts": {
     "prebuild": "tsx _helpers/generateVersionGitCommitHash.ts && rimraf dist",
-    "build": "npm run prebuild && tsx esbuild.config.ts",
+    "lint": "eslint . --ext .ts",
+    "build": "npm run lint && npm run prebuild && tsx esbuild.config.ts",
     "dev": "npm run prebuild && tsx esbuild.config.ts --watch",
     "serve": "http-server -p 8080 -c-1 -o",
     "check": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/parser": "^8.46.4",
     "esbuild": "^0.27.0",
+    "eslint": "^9.39.1",
     "http-server": "^14.1.1",
     "rimraf": "^6.1.0",
     "tsx": "^4.20.6",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.46.4"
   },
   "dependencies": {
     "zod": "^4.1.12"

@@ -105,7 +105,7 @@ class WebEmbed extends CanvasObject {
 	}
 }
 
-import type { WebEmbedTemplate } from '../../../model/OmniConfig.js';
+import type { WebEmbedTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 // Template for creating new WebEmbed objects
 export const defaultTemplateFor_WebEmbed: WebEmbedTemplate = {

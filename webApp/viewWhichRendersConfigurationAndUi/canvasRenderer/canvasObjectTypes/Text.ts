@@ -78,7 +78,7 @@ class Text extends CanvasObject {
 
 export { Text };
 
-import type { TextTemplate } from '../../../model/OmniConfig.js';
+import type { TextTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 export const defaultTemplateFor_Text: TextTemplate = {
 	text: "",

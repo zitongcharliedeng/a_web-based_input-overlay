@@ -12,9 +12,9 @@
  */
 
 import { Vector } from '../_helpers/Vector.js';
-import type { CanvasObject } from '../view/canvasRenderer/canvasObjectTypes/index.js';
-import { mouse } from '../view/inputReaders/mouse.js';
-import { keyboard } from '../view/inputReaders/keyboard.js';
+import type { CanvasObject } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/index.js';
+import { mouse } from '../viewWhichRendersConfigurationAndUi/inputReaders/mouse.js';
+import { keyboard } from '../viewWhichRendersConfigurationAndUi/inputReaders/keyboard.js';
 
 export class InteractionController {
 	private clickedObject: CanvasObject | null = null;

@@ -30,7 +30,7 @@ const resolveTsPlugin = {
 };
 
 const config = {
-	entryPoints: [path.join(__dirname, 'view/default.ts')],
+	entryPoints: [path.join(__dirname, 'viewWhichRendersConfigurationAndUi/default.ts')],
 	bundle: true,
 	outfile: path.join(__dirname, 'dist/bundle.js'),
 	format: 'esm',

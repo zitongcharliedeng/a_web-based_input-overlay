@@ -16,7 +16,7 @@ import { defaultTemplateFor_PlanarInputIndicator } from './PlanarInputIndicator_
 import { defaultTemplateFor_Text } from './Text.js';
 import { defaultTemplateFor_Image } from './Image.js';
 import { defaultTemplateFor_WebEmbed } from './WebEmbed.js';
-import type { CanvasObjectConfig } from '../../../model/OmniConfig.js';
+import type { CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 export interface SpawnTemplate {
 	name: string; // e.g., "DEFAULT_LinearInputIndicator"

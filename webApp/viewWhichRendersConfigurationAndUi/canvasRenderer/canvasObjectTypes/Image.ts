@@ -80,11 +80,11 @@ class ImageObject extends CanvasObject {
 
 export { ImageObject };
 
-import type { ImageConfig } from '../../../model/OmniConfig.js';
+import type { ImageConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 const DEFAULT_KEY_IMAGE_URL = "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png";
 
-import type { ImageTemplate } from '../../../model/OmniConfig.js';
+import type { ImageTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 export const defaultTemplateFor_Image: ImageTemplate = {
 	src: DEFAULT_KEY_IMAGE_URL,
