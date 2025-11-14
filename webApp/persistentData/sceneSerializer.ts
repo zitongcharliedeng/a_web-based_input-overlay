@@ -56,6 +56,7 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 			const objDisplay = (obj.display && typeof obj.display === 'object' ? obj.display : {}) as Partial<LinearInputIndicatorConfig['display']>;
 
 			const linearConfig: LinearInputIndicatorConfig = {
+				id: obj.id,
 				positionOnCanvas,
 				hitboxSize,
 				layerLevel,
@@ -81,6 +82,7 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 			const objDisplay = (obj.display && typeof obj.display === 'object' ? obj.display : {}) as Partial<PlanarInputIndicatorConfig['display']>;
 
 			const planarConfig: PlanarInputIndicatorConfig = {
+				id: obj.id,
 				positionOnCanvas,
 				hitboxSize,
 				layerLevel,
@@ -93,6 +95,7 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 			const objTextStyle = (obj.textStyle && typeof obj.textStyle === 'object' ? obj.textStyle : {}) as Partial<TextConfig['textStyle']>;
 
 			const textConfig: TextConfig = {
+				id: obj.id,
 				positionOnCanvas,
 				hitboxSize,
 				layerLevel,
@@ -103,6 +106,7 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 			return { text: textConfig };
 		} else if (type === 'Image') {
 			const imageConfig: import('./OmniConfig.js').ImageConfig = {
+				id: obj.id,
 				positionOnCanvas,
 				hitboxSize,
 				layerLevel,
@@ -112,6 +116,7 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 			return { image: imageConfig };
 		} else if (type === 'WebEmbed') {
 			const webEmbedConfig: import('./OmniConfig.js').WebEmbedConfig = {
+				id: obj.id,
 				positionOnCanvas,
 				hitboxSize,
 				layerLevel,
