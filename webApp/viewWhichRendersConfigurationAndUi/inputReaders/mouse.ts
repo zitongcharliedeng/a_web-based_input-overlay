@@ -1,6 +1,7 @@
 
 // Type definitions
 interface MouseButtons {
+	[key: number]: boolean;
 	0: boolean;
 	1: boolean;
 	2: boolean;
@@ -9,6 +10,7 @@ interface MouseButtons {
 }
 
 interface MouseClicks {
+	[key: number]: boolean;
 	0: boolean;
 	1: boolean;
 	2: boolean;

@@ -2,17 +2,6 @@
 import { CanvasObject } from './BaseCanvasObject.js';
 import { canvas_fill_rec, canvas_text, canvas_properties } from '../canvasDrawingHelpers.js';
 
-// Type definitions
-interface Position {
-	x: number;
-	y: number;
-}
-
-interface Dimensions {
-	width: number;
-	height: number;
-}
-
 interface GamepadStickInput {
 	type?: "left" | "right" | null;
 	axis?: "X" | "Y" | null;
@@ -300,11 +289,11 @@ class LinearInputIndicator extends CanvasObject {
 		let compensationAxisValue = 0;
 
 		// Get keyboard input
-		const keyboard = (window as any).keyboard;
+		const keyboard = window.keyboard;
 		value += (this.keyCode && keyboard[this.keyCode]) ? 1 : 0;
 
 		// Get mouse input
-		const mouse = (window as any).mouse;
+		const mouse = window.mouse;
 		if (this.mouseButton !== null && mouse.buttons[this.mouseButton]) {
 			value += 1;
 		}
@@ -323,9 +312,10 @@ class LinearInputIndicator extends CanvasObject {
 		let newAntiDeadzone = Math.max(0, this.antiDeadzone - compensationAxisValue * 0.5)
 
 		// Get gamepad input
-		const gamepads = (window as any).gamepads;
-		for (const id in gamepads) {
-			const gamepad = gamepads[id];
+		const gamepads = window.gamepads;
+		if (gamepads) {
+			for (let i = 0; i < gamepads.length; i++) {
+				const gamepad = gamepads[i];
 			if (gamepad !== null && gamepad.axes && this.hasStickInput && this.axis !== null) {
 
 				if (gamepad.axes[this.axis] !== null && gamepad.axes[this.axis] !== undefined
@@ -354,6 +344,7 @@ class LinearInputIndicator extends CanvasObject {
 
 					value += gamepad.buttons[this.button].value
 				}
+			}
 			}
 		}
 

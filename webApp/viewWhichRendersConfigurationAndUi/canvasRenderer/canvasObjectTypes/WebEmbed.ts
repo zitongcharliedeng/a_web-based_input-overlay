@@ -1,10 +1,5 @@
 import { CanvasObject } from './BaseCanvasObject.js';
 
-interface WebEmbedConfig {
-	url?: string;
-	opacity?: number;
-}
-
 interface WebEmbedProperties {
 	url?: string;
 	opacity?: number;
@@ -63,7 +58,7 @@ class WebEmbed extends CanvasObject {
 		document.body.appendChild(this.iframe);
 	}
 
-	update(delta: number): boolean {
+	update(): boolean {
 		// Update iframe position if object moved
 		if (this.iframe) {
 			const padding = 10;

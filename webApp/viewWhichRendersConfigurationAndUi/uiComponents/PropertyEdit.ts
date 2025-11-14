@@ -1,24 +1,27 @@
-import { objectsToConfig } from '../../modelToSaveCustomConfigurationLocally/configSerializer.js';
+import type { ConfigManager } from '../../modelToSaveCustomConfigurationLocally/ConfigManager.js';
+import type { OmniConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
-interface PropertyEditProperties {
-}
-
-const defaultPropertyEditProperties: PropertyEditProperties = {
+// CanvasObject interface for type safety
+interface CanvasObject {
+	id: string;
+	className?: string;
+	canvasObjectType?: string;
+	positionOnCanvas: { pxFromCanvasLeft: number; pxFromCanvasTop: number };
+	hitboxSize: { widthInPx: number; lengthInPx: number };
+	layerLevel: number;
+	defaultProperties?: Record<string, unknown>;
+	constructor: { name: string };
 }
 
 class PropertyEdit {
-	defaultProperties: PropertyEditProperties = defaultPropertyEditProperties;
 	className: string = "PropertyEdit";
 
-	targetObject: unknown = null;
-	targetObjectId: string | null = null;  // NEW: Track object by ID
-	configManager: any = null;  // NEW: ConfigManager reference
-	targetScene: any = null;
-	applySceneConfig: ((config: any) => void) | null = null;
+	targetObject: CanvasObject | null = null;
+	targetObjectId: string | null = null;  // Track object by ID
+	configManager: ConfigManager | null = null;  // ConfigManager reference
+	targetScene: OmniConfig | null = null;
+	applySceneConfig: ((config: OmniConfig) => void) | null = null;
 	deleteCallback: (() => void) | null = null;
-
-	constructor() {
-	}
 
 	hidePropertyEdit(): void {
 		const propertyTable = document.getElementById("propertyTable");
@@ -67,7 +70,7 @@ class PropertyEdit {
 		this.applySceneConfig = null;
 	}
 
-	showPropertyEdit(defaultProperties: any, targetObject: any, objectId: string, configManager: any, deleteCallback?: () => void): void {
+	showPropertyEdit(defaultProperties: Record<string, unknown>, targetObject: CanvasObject, objectId: string, configManager: ConfigManager, deleteCallback?: () => void): void {
 		this.targetObject = targetObject;
 		this.targetObjectId = objectId;
 		this.configManager = configManager;
@@ -152,7 +155,7 @@ class PropertyEdit {
 		unifiedEditor.hidden = false;
 	}
 
-	showCanvasConfig(config: any, canvas: HTMLCanvasElement, applyCallback: (config: any) => void): void {
+	showCanvasConfig(config: OmniConfig, canvas: HTMLCanvasElement, applyCallback: (config: OmniConfig) => void): void {
 		this.targetScene = config;
 		this.applySceneConfig = applyCallback;
 
@@ -177,7 +180,7 @@ class PropertyEdit {
 		// Note: unifiedEditor visibility is managed by caller (showBothPanels)
 	}
 
-	private renderProperties(container: HTMLElement, path: string[], schema: any, targetObj: any): void {
+	private renderProperties(container: HTMLElement, path: string[], schema: Record<string, unknown>, targetObj: Record<string, unknown>): void {
 		for (const key in schema) {
 			const currentPath = [...path, key];
 			const schemaValue = schema[key];
@@ -205,7 +208,7 @@ class PropertyEdit {
 		return header;
 	}
 
-	private createPropertyRow(label: string, currentValue: any, path: string[], targetObj: any, depth: number): HTMLElement {
+	private createPropertyRow(label: string, currentValue: unknown, path: string[], targetObj: Record<string, unknown>, depth: number): HTMLElement {
 		const row = document.createElement('div');
 		row.style.display = 'flex';
 		row.style.alignItems = 'center';
@@ -225,7 +228,7 @@ class PropertyEdit {
 		return row;
 	}
 
-	private createInput(currentValue: any, path: string[], targetObj: any): HTMLInputElement {
+	private createInput(currentValue: unknown, path: string[], targetObj: Record<string, unknown>): HTMLInputElement {
 		const input = document.createElement('input');
 		input.type = 'text';
 		input.value = this.valueToString(currentValue);
@@ -251,7 +254,8 @@ class PropertyEdit {
 						targetObj.syncProperties();
 					}
 				}
-			} catch (e) {
+			} catch (error) {
+				console.error('[PropertyEdit] Failed to parse input:', error);
 				input.style.borderColor = 'red';
 			}
 		});
@@ -259,17 +263,24 @@ class PropertyEdit {
 		return input;
 	}
 
-	private valueToString(value: any): string {
+	private valueToString(value: unknown): string {
 		if (value === null) return 'null';
 		if (value === undefined) return 'undefined';
 		if (typeof value === 'string') return value;
 		if (typeof value === 'number') return String(value);
 		if (typeof value === 'boolean') return String(value);
-		if (typeof value === 'object') return JSON.stringify(value);
-		return String(value);
+		if (typeof value === 'object') {
+			try {
+				return JSON.stringify(value);
+			} catch {
+				return '[Object]';
+			}
+		}
+		// Fallback for unexpected types
+		return '[Unknown]';
 	}
 
-	private parseValue(str: string): any {
+	private parseValue(str: string): unknown {
 		if (str === 'null') return null;
 		if (str === 'undefined') return undefined;
 		if (str === 'true') return true;
@@ -286,7 +297,7 @@ class PropertyEdit {
 		}
 	}
 
-	private getNestedValue(obj: any, path: string[]): any {
+	private getNestedValue(obj: Record<string, unknown>, path: string[]): unknown {
 		let current = obj;
 		// Skip grouping headers like "Base Properties" that don't exist on the object
 		const actualPath = path.filter(key => key !== "Base Properties");
@@ -297,7 +308,7 @@ class PropertyEdit {
 		return current;
 	}
 
-	private setNestedValue(obj: any, path: string[], value: any): void {
+	private setNestedValue(obj: Record<string, unknown>, path: string[], value: unknown): void {
 		let current = obj;
 		// Skip grouping headers like "Base Properties" that don't exist on the object
 		const actualPath = path.filter(key => key !== "Base Properties");
@@ -310,17 +321,17 @@ class PropertyEdit {
 		current[actualPath[actualPath.length - 1]] = value;
 	}
 
-	private isPlainObject(value: any): boolean {
+	private isPlainObject(value: unknown): boolean {
 		if (value === null || typeof value !== 'object') return false;
 		if (value instanceof Image || value instanceof HTMLElement) return false;
 		if (Array.isArray(value)) return false;
 		return value.constructor === Object;
 	}
 
-	update(delta: number): void {
+	update(): void {
 	}
 
-	draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
+	draw(): void {
 	}
 }
 

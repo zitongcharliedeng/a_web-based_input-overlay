@@ -8,6 +8,7 @@ import { WebEmbed } from './canvasRenderer/canvasObjectTypes/WebEmbed.js';
 import { PropertyEdit } from './uiComponents/PropertyEdit.js';
 import { objectsToConfig, loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLocally/configSerializer.js';
 import { ConfigManager } from '../modelToSaveCustomConfigurationLocally/ConfigManager.js';
+import type { OmniConfig, LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig, ImageConfig, WebEmbedConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 import { CONFIG_VERSION } from '../_helpers/version.js';
 import { showToast } from './uiComponents/toast.js';
 import { CANVAS_OBJECT_REGISTRY } from './canvasRenderer/canvasObjectTypes/registry.js';
@@ -29,7 +30,8 @@ interface CanvasObject {
 	hitboxSize: { widthInPx: number; lengthInPx: number };
 	update: (delta: number) => boolean;
 	draw: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => void;
-	defaultProperties: unknown;
+	cleanup?: () => void;  // Optional cleanup for objects like WebEmbed
+	[key: string]: unknown;  // Allow additional properties
 }
 
 // CL5: CanvasObjectCollection now only returns initial objects for config generation
@@ -169,7 +171,10 @@ window.addEventListener("load", function (): void {
 				console.log('[Game Loop] Gamepad detected! Count:', connectedCount);
 				for (let i = 0; i < pads.length; i++) {
 					if (pads[i]) {
-						console.log('[Game Loop] Gamepad', i, ':', pads[i]!.id, '- Axes:', pads[i]!.axes.length, 'Buttons:', pads[i]!.buttons.length);
+						const pad = pads[i];
+					if (pad) {
+						console.log('[Game Loop] Gamepad', i, ':', pad.id, '- Axes:', pad.axes.length, 'Buttons:', pad.buttons.length);
+					}
 					}
 				}
 				window._gamepadDebugLogged = true;
@@ -177,7 +182,7 @@ window.addEventListener("load", function (): void {
 		}
 
 		// Phase2: Deserialize config to objects every frame (pure MVC)
-		const config = configManager.getConfig();
+		const config = configManager.config;
 		frameObjects = canvasRenderer.update(config, delta);
 		updateScreen = true; // Always redraw (60fps)
 
@@ -206,7 +211,7 @@ window.addEventListener("load", function (): void {
 
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 
-function saveSceneConfig(config: any): void {
+function saveSceneConfig(config: OmniConfig): void {
 	try {
 		const versionedConfig = { version: CONFIG_VERSION, ...config };
 		console.log('[Save] Writing to localStorage with key:', SCENE_CONFIG_KEY);
@@ -218,7 +223,7 @@ function saveSceneConfig(config: any): void {
 	}
 }
 
-function loadSceneConfig(): any | null {
+function loadSceneConfig() {
 	try {
 		const raw = localStorage.getItem(SCENE_CONFIG_KEY);
 		if (!raw) {
@@ -234,26 +239,30 @@ function loadSceneConfig(): any | null {
 			return null;
 		}
 
-		const result = loadConfigFromLocalStorage(SCENE_CONFIG_KEY);
-		if (!result.success) {
+			const result = loadConfigFromLocalStorage(SCENE_CONFIG_KEY);
+		if (result.success) {
+			return result.config;
+		} else {
 			console.error('[Config] Validation failed:', result.error);
 			console.error('[Config] Raw data from localStorage:', raw);
 			return null;
 		}
-		return result.config;
 	} catch (e) {
 		console.error('[Config] Failed to load:', e);
 		return null;
 	}
 }
 
-function deserializeImage(src: string): HTMLImageElement {
-	const img = new Image();
-	img.src = src;
-	return img;
-}
+// Unused for now - may be needed for future deserialization
+// function deserializeImage(src: string): HTMLImageElement {
+// 	const img = new Image();
+// 	img.src = src;
+// 	return img;
+// }
 
-function deserializeObject(objData: any): CanvasObject {
+import type { CanvasObjectConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+
+function deserializeObject(objData: CanvasObjectConfig): CanvasObject {
 	// Handle OmniConfig discriminated union format
 	if ('linearInputIndicator' in objData) {
 		return createLinearIndicatorFromConfig(objData.linearInputIndicator);
@@ -267,24 +276,10 @@ function deserializeObject(objData: any): CanvasObject {
 		return createWebEmbedFromConfig(objData.webEmbed);
 	}
 
-	// Fallback: handle old flat format (legacy) - generate UUID for missing id
-	const { type, x, y, width, height, ...props } = objData;
-	switch (type) {
-		case 'LinearInputIndicator':
-		case 'linearInputIndicator':
-			return new LinearInputIndicator(crypto.randomUUID(), x, y, width, height, props, props.layerLevel);
-		case 'PlanarInputIndicator_Radial':
-		case 'planarInputIndicator':
-			return new PlanarInputIndicator_Radial(crypto.randomUUID(), x, y, width, height, props, props.layerLevel);
-		case 'Text':
-		case 'text':
-			return new Text(crypto.randomUUID(), y, x, width, height, props, props.layerLevel);
-		default:
-			throw new Error(`Unknown object type: ${type}`);
-	}
+	// All formats should use discriminated union - this should never happen
+	throw new Error('Invalid object data format - expected discriminated union');
 }
 
-import type { LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 import { defaultTemplateFor_Text } from './canvasRenderer/canvasObjectTypes/Text.js';
 
 function createLinearIndicatorFromConfig(config: LinearInputIndicatorConfig): LinearInputIndicator {
@@ -297,7 +292,7 @@ function createLinearIndicatorFromConfig(config: LinearInputIndicatorConfig): Li
 		{
 			input: config.input,
 			processing: config.processing,
-			display: config.display as any  // Temporary: old constructor has different DisplayConfig type
+			display: config.display
 		},
 		config.layerLevel
 	);
@@ -341,7 +336,7 @@ function createTextFromConfig(config: TextConfig): Text {
 	);
 }
 
-function createImageFromConfig(config: import('../persistentData/OmniConfig.js').ImageConfig): ImageObject {
+function createImageFromConfig(config: ImageConfig): ImageObject {
 	return new ImageObject(
 		config.id,
 		config.positionOnCanvas.pxFromCanvasTop,
@@ -356,7 +351,7 @@ function createImageFromConfig(config: import('../persistentData/OmniConfig.js')
 	);
 }
 
-function createWebEmbedFromConfig(config: import('../persistentData/OmniConfig.js').WebEmbedConfig): WebEmbed {
+function createWebEmbedFromConfig(config: WebEmbedConfig): WebEmbed {
 	return new WebEmbed(
 		config.id,
 		config.positionOnCanvas.pxFromCanvasLeft,
@@ -384,7 +379,7 @@ function createLabel(x: number, y: number, text: string): Text {
 }
 
 // CL5: Pass getCachedObjects function and interactionController so callbacks can access runtime state
-function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager, interactionController: any): CanvasObjectCollection {
+function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager, interactionController: InteractionController): CanvasObjectCollection {
 	let yOffset = 20;
 	const sectionSpacing = 280;
 
@@ -681,7 +676,7 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 
 		// Phase2: Show canvas config (from ConfigManager - no cache)
 		propertyEditor.showCanvasConfig(
-			configManager.getConfig(),
+			configManager.config,
 			canvas,
 			(config) => {
 				console.log('[Canvas] Applying updated config from editor');
@@ -719,14 +714,14 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 		if (unifiedEditor) unifiedEditor.hidden = true;
 	}
 
-	// Helper: Serialize single object to CanvasObjectConfig format
-	function serializeObjectToConfig(obj: CanvasObject): import('../model/OmniConfig.js').CanvasObjectConfig | null {
-		const allObjectsConfig = objectsToConfig([obj], canvas);
-		if (allObjectsConfig.objects.length > 0) {
-			return allObjectsConfig.objects[0];
-		}
-		return null;
-	}
+	// Unused for now - may be needed for future serialization
+	// function serializeObjectToConfig(obj: CanvasObject): CanvasObjectConfig | null {
+	// 	const allObjectsConfig = objectsToConfig([obj], canvas);
+	// 	if (allObjectsConfig.objects.length > 0) {
+	// 		return allObjectsConfig.objects[0];
+	// 	}
+	// 	return null;
+	// }
 
 	// Helper: Populate creation panel from registry (DRY)
 	function populateCreationPanel() {
@@ -792,15 +787,13 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 
 	// Phase2: Delete object by index
 	function deleteObjectAtIndex(index: number) {
-		const config = configManager.getConfig();
+		const config = configManager.config;
 		if (index < 0 || index >= config.objects.length) return;
 
 		// Deserialize to call cleanup (for WebEmbed iframe removal)
 		try {
 			const obj = deserializeObject(config.objects[index]);
-			if ('cleanup' in obj && typeof (obj as any).cleanup === 'function') {
-				(obj as any).cleanup();
-			}
+			obj.cleanup?.();
 		} catch (e) {
 			console.error('[Delete] Failed to deserialize for cleanup:', e);
 		}
@@ -812,7 +805,7 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 
 	function deleteObjectById(objectId: string) {
 		// Phase2: Delete by ID directly from config
-		const config = configManager.getConfig();
+		const config = configManager.config;
 		const index = config.objects.findIndex(obj => {
 			if ('linearInputIndicator' in obj) return obj.linearInputIndicator.id === objectId;
 			if ('planarInputIndicator' in obj) return obj.planarInputIndicator.id === objectId;
@@ -830,9 +823,7 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 		// Call cleanup on deserialized object
 		try {
 			const obj = deserializeObject(config.objects[index]);
-			if ('cleanup' in obj && typeof (obj as any).cleanup === 'function') {
-				(obj as any).cleanup();
-			}
+			obj.cleanup?.();
 		} catch (e) {
 			console.error('[Delete] Failed to deserialize for cleanup:', e);
 		}

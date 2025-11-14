@@ -23,12 +23,14 @@ export interface CanvasObject {
 	defaultProperties: unknown;
 }
 
+import type { CanvasObjectConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+
 export class CanvasRenderer {
 	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
-	private deserializer: (objData: any) => CanvasObject;
+	private deserializer: (objData: CanvasObjectConfig) => CanvasObject;
 
-	constructor(canvas: HTMLCanvasElement, deserializer: (objData: any) => CanvasObject) {
+	constructor(canvas: HTMLCanvasElement, deserializer: (objData: CanvasObjectConfig) => CanvasObject) {
 		this.canvas = canvas;
 		const ctx = canvas.getContext('2d');
 		if (!ctx) throw new Error('Failed to get 2D context');
@@ -58,12 +60,9 @@ export class CanvasRenderer {
 	 */
 	update(config: OmniConfig, delta: number): CanvasObject[] {
 		const objects = this.deserializeObjects(config);
-		let updateScreen = false;
 
 		for (let i = 0; i < objects.length; i++) {
-			if (objects[i].update(delta) === true) {
-				updateScreen = true;
-			}
+			objects[i].update(delta);
 		}
 
 		return objects;

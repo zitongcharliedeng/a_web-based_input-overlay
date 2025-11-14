@@ -21,7 +21,6 @@ abstract class CanvasObject {
     hitboxSize: CanvasObjectHitbox;
     layerLevel: number;  // Z-index for rendering order (lower = behind, higher = front)
     canvasObjectType: CanvasObjectType;
-    abstract defaultProperties: any;
 
     constructor(
         id: string,

@@ -38,15 +38,15 @@ class ImageObject extends CanvasObject {
         const props = properties ?? {};
         const defaults = defaultImageProperties;
 
-        this.src = props.src ?? defaults.src!;
-        this.opacity = props.opacity ?? defaults.opacity!;
+        this.src = props.src ?? (defaults.src || "");
+        this.opacity = props.opacity ?? (defaults.opacity || 1.0);
 
         // Create and load image
         this.imageElement = new window.Image();
         this.imageElement.src = this.src;
     }
 
-    update(_delta: number): boolean {
+    update(): boolean {
         // Images are static - no updates needed
         // Return false if image not loaded, true once loaded
         return this.imageElement.complete;
@@ -69,7 +69,7 @@ class ImageObject extends CanvasObject {
                 0, 0,
                 this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx
             );
-        } catch (e) {
+        } catch {
             // Image loading failed - skip silently
         }
 
@@ -79,8 +79,7 @@ class ImageObject extends CanvasObject {
 }
 
 export { ImageObject };
-
-import type { ImageConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+export type { ImageConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 const DEFAULT_KEY_IMAGE_URL = "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png";
 

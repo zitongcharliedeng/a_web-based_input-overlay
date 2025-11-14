@@ -20,7 +20,7 @@ export const BUILD_TIME = '${buildTime}';
         content,
         'utf8'
     );
-} catch (error) {
+} catch {
     const fallbackVersion = Date.now().toString();
     const content = `export const CONFIG_VERSION = '${fallbackVersion}';
 export const BUILD_TIME = '${new Date().toISOString()}';

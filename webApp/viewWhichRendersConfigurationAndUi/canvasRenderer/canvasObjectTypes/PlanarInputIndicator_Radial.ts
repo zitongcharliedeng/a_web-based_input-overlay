@@ -138,13 +138,14 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 		this.previousY = 0;
 	}
 
-	update(delta: number): boolean {
+	update(): boolean {
 		let xAxis = 0;
 		let yAxis = 0;
 
-		const gamepads = (window as any).gamepads;
-		for (const id in gamepads) {
-			const gamepad = gamepads[id];
+		const gamepads = window.gamepads;
+		if (gamepads) {
+			for (let i = 0; i < gamepads.length; i++) {
+				const gamepad = gamepads[i];
 			if (gamepad !== null && gamepad.axes) {
 				for (let i = 0; i < gamepad.axes.length; i++) {
 					if (this.input.xAxes[i]) {
@@ -154,6 +155,7 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 						yAxis += gamepad.axes[i] || 0;
 					}
 				}
+			}
 			}
 		}
 

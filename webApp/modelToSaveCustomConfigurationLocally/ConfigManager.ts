@@ -3,7 +3,6 @@
 
 import type { OmniConfig, CanvasObjectConfig } from './OmniConfig.js';
 import { updateObjectPosition, updateObjectPropertyById, updateCanvasDimensions, addObject, removeObject, removeObjectById } from './configUpdaters.js';
-import { objectsToConfig } from './configSerializer.js';
 
 // Callback type for when config changes
 type ConfigChangeCallback = (newConfig: OmniConfig) => void;
@@ -88,7 +87,7 @@ export class ConfigManager {
 	 * Update object property by ID (immutable deep update)
 	 * This is the proper way for PropertyEdit to mutate objects
 	 */
-	updateObjectProperty(objectId: string, path: string[], value: any): void {
+	updateObjectProperty(objectId: string, path: string[], value: unknown): void {
 		const newConfig = updateObjectPropertyById(this._config, objectId, path, value);
 		this.setConfig(newConfig);
 	}
