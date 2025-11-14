@@ -42,7 +42,7 @@ interface InputConfig {
 }
 
 interface ProcessingConfig {
-	linkedAxis?: number;
+	radialCompensationAxis?: number;
 	multiplier?: number;
 	antiDeadzone?: number;
 	fadeOutDuration?: number;
@@ -80,7 +80,7 @@ interface InputConfigDefaults {
 }
 
 interface ProcessingConfigDefaults {
-	linkedAxis: number;
+	radialCompensationAxis: number;
 	multiplier: number;
 	antiDeadzone: number;
 	fadeOutDuration: number;
@@ -126,7 +126,7 @@ const defaultLinearInputIndicatorProperties: LinearInputIndicatorDefaults = {
 	},
 
 	processing: {
-		linkedAxis: -1,
+		radialCompensationAxis: -1,
 		multiplier: 1,
 		antiDeadzone: 0.01,
 		fadeOutDuration: 0.2,
@@ -168,7 +168,7 @@ class LinearInputIndicator extends CanvasObject {
 	button: number | null = null;
 
 	// Internal properties from processing config
-	linkedAxis: number = -1;
+	radialCompensationAxis: number = -1;
 	multiplier: number = 1;
 	antiDeadzone: number = 0.0;
 	fadeOutDuration: number = 0.0;
@@ -249,7 +249,7 @@ class LinearInputIndicator extends CanvasObject {
 		}
 
 		if (this.processing) {
-			this.linkedAxis = this.processing.linkedAxis ?? -1;
+			this.radialCompensationAxis = this.processing.radialCompensationAxis ?? -1;
 			this.multiplier = this.processing.multiplier ?? 1;
 			this.antiDeadzone = this.processing.antiDeadzone ?? 0.0;
 			this.fadeOutDuration = this.processing.fadeOutDuration ?? 0.0;
@@ -330,21 +330,21 @@ class LinearInputIndicator extends CanvasObject {
 				if (gamepad.axes[this.axis] !== null && gamepad.axes[this.axis] !== undefined
 				&& ((this.revertedAxis === true && gamepad.axes[this.axis] < 0)
 				|| (this.revertedAxis === false && gamepad.axes[this.axis] > 0))) {
-					if (this.linkedAxis >= 0 && gamepad.axes[this.linkedAxis]) {
+					if (this.radialCompensationAxis >= 0 && gamepad.axes[this.radialCompensationAxis]) {
 
 						//Converts circular back to square coordinates
-						value += Math.abs(gamepad.axes[this.axis]) * Math.sqrt(1 + 2 * Math.pow(Math.abs(gamepad.axes[this.linkedAxis]), 2))
+						value += Math.abs(gamepad.axes[this.axis]) * Math.sqrt(1 + 2 * Math.pow(Math.abs(gamepad.axes[this.radialCompensationAxis]), 2))
 
-					} else if (this.linkedAxis < 0) {
+					} else if (this.radialCompensationAxis < 0) {
 
 						value += (Math.abs(gamepad.axes[this.axis]) - newAntiDeadzone) / (1 - newAntiDeadzone)
 					}
 				}
 
 
-				if (this.linkedAxis >= 0 && gamepad.axes[this.linkedAxis]) {
+				if (this.radialCompensationAxis >= 0 && gamepad.axes[this.radialCompensationAxis]) {
 
-					linkedValue += Math.abs(gamepad.axes[this.linkedAxis])
+					linkedValue += Math.abs(gamepad.axes[this.radialCompensationAxis])
 				}
 			}
 			if (gamepad !== null && gamepad.buttons && this.hasButtonInput && this.button !== null) {
@@ -429,7 +429,7 @@ export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorConfig
 		}
 	},
 	processing: {
-		linkedAxis: -1,
+		radialCompensationAxis: -1,
 		multiplier: 1,
 		antiDeadzone: 0.01,
 		fadeOutDuration: 0.2

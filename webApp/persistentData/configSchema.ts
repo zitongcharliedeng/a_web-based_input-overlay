@@ -39,7 +39,7 @@ const LinearInputIndicatorConfigSchema = BaseCanvasObjectConfigSchema.extend({
 		})
 	}),
 	processing: z.object({
-		linkedAxis: z.number(),
+		radialCompensationAxis: z.number(),
 		multiplier: z.number(),
 		antiDeadzone: z.number(),
 		fadeOutDuration: z.number()

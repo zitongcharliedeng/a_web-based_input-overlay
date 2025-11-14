@@ -343,7 +343,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 0 },
+				processing: { radialCompensationAxis: 0 },
 				display: { text: "W" }
 			}
 		),
@@ -358,7 +358,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 1 }, display: { text: "A" }
+				processing: { radialCompensationAxis: 1 }, display: { text: "A" }
 			}
 		),
 		new LinearInputIndicator(
@@ -372,7 +372,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 0 }, display: { text: "S" }
+				processing: { radialCompensationAxis: 0 }, display: { text: "S" }
 			}
 		),
 		new LinearInputIndicator(
@@ -386,7 +386,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 1 }, display: { text: "D" }
+				processing: { radialCompensationAxis: 1 }, display: { text: "D" }
 			}
 		),
 
@@ -401,7 +401,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "W" }
+				processing: { radialCompensationAxis: -1 }, display: { text: "W" }
 			}
 		),
 		new LinearInputIndicator(
@@ -415,7 +415,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "A" }
+				processing: { radialCompensationAxis: -1 }, display: { text: "A" }
 			}
 		),
 		new LinearInputIndicator(
@@ -429,7 +429,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "S" }
+				processing: { radialCompensationAxis: -1 }, display: { text: "S" }
 			}
 		),
 		new LinearInputIndicator(
@@ -443,7 +443,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: -1 }, display: { text: "D" }
+				processing: { radialCompensationAxis: -1 }, display: { text: "D" }
 			}
 		),
 
@@ -460,7 +460,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 2 }, display: { text: "I" }
+				processing: { radialCompensationAxis: 2 }, display: { text: "I" }
 			}
 		),
 		new LinearInputIndicator(
@@ -473,7 +473,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 3 }, display: { text: "J" }
+				processing: { radialCompensationAxis: 3 }, display: { text: "J" }
 			}
 		),
 		new LinearInputIndicator(
@@ -486,7 +486,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 2 }, display: { text: "K" }
+				processing: { radialCompensationAxis: 2 }, display: { text: "K" }
 			}
 		),
 		new LinearInputIndicator(
@@ -499,7 +499,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 						button: { index: null }
 					}
 				},
-				processing: { linkedAxis: 3 }, display: { text: "L" }
+				processing: { radialCompensationAxis: 3 }, display: { text: "L" }
 			}
 		),
 

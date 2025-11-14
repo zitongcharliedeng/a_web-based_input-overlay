@@ -25,7 +25,7 @@ export interface LinearInputIndicatorConfig extends BaseCanvasObjectConfig {
 		};
 	};
 	processing: {
-		linkedAxis: number;
+		radialCompensationAxis: number;
 		multiplier: number;
 		antiDeadzone: number;
 		fadeOutDuration: number;
