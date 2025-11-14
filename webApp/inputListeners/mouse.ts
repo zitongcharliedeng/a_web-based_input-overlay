@@ -137,4 +137,9 @@ canvas.addEventListener('wheel', (e: WheelEvent) => {
 	}
 });
 
+// Prevent context menu on right-click
+canvas.addEventListener('contextmenu', (e: MouseEvent) => {
+	e.preventDefault();
+});
+
 export { mouse };
