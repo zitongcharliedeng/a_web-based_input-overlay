@@ -87,7 +87,7 @@ class Vector {
 		return new Vector(this.x, this.y, this.z);
 	}
 
-	init(x: number, y: number, z: number): Vector {
+	init(x: number, y: number, z: number): this {
 		this.x = x; this.y = y; this.z = z;
 		return this;
 	}

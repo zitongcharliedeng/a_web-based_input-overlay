@@ -44,7 +44,7 @@ export class ConfigManager {
 		this._config = newConfig;
 
 		// Notify all observers
-		this.changeCallbacks.forEach(callback => callback(newConfig));
+		this.changeCallbacks.forEach(callback => { callback(newConfig); });
 
 		// Trigger save
 		if (this.saveCallback) {

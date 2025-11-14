@@ -296,8 +296,8 @@ class LinearInputIndicator extends CanvasObject {
 	}
 
 	update(delta: number): boolean {
-		var value = 0;
-		var compensationAxisValue = 0;
+		let value = 0;
+		let compensationAxisValue = 0;
 
 		// Get keyboard input
 		const keyboard = (window as any).keyboard;
@@ -320,12 +320,12 @@ class LinearInputIndicator extends CanvasObject {
 
 		// Key antiDeadzone has to be lowered when a compensation axis surpasses the antiDeadzone for better directional indications
 		// This is a lazy way to achieve this, but works for now
-		var newAntiDeadzone = Math.max(0, this.antiDeadzone - compensationAxisValue * 0.5)
+		let newAntiDeadzone = Math.max(0, this.antiDeadzone - compensationAxisValue * 0.5)
 
 		// Get gamepad input
 		const gamepads = (window as any).gamepads;
-		for (var id in gamepads) {
-			var gamepad = gamepads[id];
+		for (const id in gamepads) {
+			const gamepad = gamepads[id];
 			if (gamepad !== null && gamepad.axes && this.hasStickInput && this.axis !== null) {
 
 				if (gamepad.axes[this.axis] !== null && gamepad.axes[this.axis] !== undefined
