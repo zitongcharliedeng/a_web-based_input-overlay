@@ -92,11 +92,23 @@ window.addEventListener("load", function (): void {
 
 	// ENFORCEMENT: Synchronize objects[] from ConfigManager on any config change
 	configManager.onChange((newConfig) => {
-		console.log('[ConfigManager] Config changed, syncing objects[]');
+		console.log('[ConfigManager] Config changed, syncing', newConfig.objects.length, 'objects');
 		activeScene.objects.length = 0;
-		for (const objData of newConfig.objects) {
-			activeScene.objects.push(deserializeObject(objData));
+		let successCount = 0;
+		let failCount = 0;
+		for (let i = 0; i < newConfig.objects.length; i++) {
+			try {
+				const objData = newConfig.objects[i];
+				const obj = deserializeObject(objData);
+				activeScene.objects.push(obj);
+				successCount++;
+			} catch (e) {
+				console.error('[ConfigManager] Failed to deserialize object at index', i, ':', e);
+				console.error('[ConfigManager] Object data:', JSON.stringify(newConfig.objects[i], null, 2));
+				failCount++;
+			}
 		}
+		console.log('[ConfigManager] Sync complete:', successCount, 'succeeded,', failCount, 'failed');
 	});
 
 	// STEP 7: Update ConfigManager with actual config (triggers onChange to rebuild objects[])
@@ -756,10 +768,12 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 
 		// 2. Add to ConfigManager (single source of truth)
 		// ConfigManager.onChange() will automatically rebuild objects[]
+		console.log('[Create] Current objects[] length:', objects.length);
+		console.log('[Create] Current ConfigManager objects:', configManager.config.objects.length);
 		console.log('[Create] Adding to ConfigManager (SoT) - onChange will sync objects[]');
 		configManager.addObject(objectConfig);
-
-		console.log('[Create] Object added to ConfigManager successfully');
+		console.log('[Create] After addObject - ConfigManager objects:', configManager.config.objects.length);
+		console.log('[Create] After addObject - objects[] length:', objects.length);
 	}
 
 	// Helper: Delete object by index
@@ -808,7 +822,9 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			hideBothPanels();
 
 			// Save updated scene to localStorage
+			console.log('[Done] Serializing', objects.length, 'objects to config');
 			const updatedConfig = sceneToConfig(objects, canvas);
+			console.log('[Done] Serialized', updatedConfig.objects.length, 'objects');
 			console.log('[Done] Syncing config to ConfigManager');
 			configManager.setConfig(updatedConfig);
 		});
