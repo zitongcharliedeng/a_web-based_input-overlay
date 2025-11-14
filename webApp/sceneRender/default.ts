@@ -73,8 +73,8 @@ window.addEventListener("load", function (): void {
 	let cachedObjects: CanvasObject[] = [];
 
 	// STEP 2: Create scene (initial objects for default config)
-	// Pass getter so callbacks can access runtime cachedObjects
-	const activeScene = createScene(canvas, ctx, configManager, () => cachedObjects);
+	// Pass getter so callbacks can access runtime cachedObjects, and interactionController for state management
+	const activeScene = createScene(canvas, ctx, configManager, () => cachedObjects, interactionController);
 
 	// CL5: Set up InteractionController callbacks (now that we have helper functions from createScene)
 	interactionController.setOnMoveObject((objectIndex, x, y) => {
@@ -417,8 +417,8 @@ function createLabel(x: number, y: number, text: string): Text {
 	});
 }
 
-// CL5: Pass getCachedObjects function so callbacks can access runtime state
-function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager, getCachedObjects: () => CanvasObject[]): Scene {
+// CL5: Pass getCachedObjects function and interactionController so callbacks can access runtime state
+function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager, getCachedObjects: () => CanvasObject[], interactionController: any): Scene {
 	let yOffset = 20;
 	const sectionSpacing = 280;
 
