@@ -10,11 +10,6 @@ interface WebEmbedProperties {
 	opacity?: number;
 }
 
-interface WebEmbedConfigDefaults {
-	url: string;
-	opacity: number;
-}
-
 const defaultWebEmbedProperties: { url: string; opacity: number } = {
 	url: "https://www.twitch.tv/",
 	opacity: 1.0
@@ -110,8 +105,10 @@ class WebEmbed extends CanvasObject {
 	}
 }
 
+import type { WebEmbedTemplate } from '../../persistentData/OmniConfig.js';
+
 // Template for creating new WebEmbed objects
-export const defaultTemplateFor_WebEmbed: WebEmbedConfigDefaults = {
+export const defaultTemplateFor_WebEmbed: WebEmbedTemplate = {
 	url: "https://www.twitch.tv/",
 	opacity: 1.0
 };

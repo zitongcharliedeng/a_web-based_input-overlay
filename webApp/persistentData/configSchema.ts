@@ -17,6 +17,7 @@ const CanvasConfigSchema = z.object({
 });
 
 const BaseCanvasObjectConfigSchema = z.object({
+	id: z.string(),  // UUID for stable object identity
 	positionOnCanvas: CanvasObjectPositionSchema,
 	hitboxSize: CanvasObjectHitboxSchema,
 	layerLevel: z.number()

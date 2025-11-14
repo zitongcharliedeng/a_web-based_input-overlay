@@ -8,6 +8,7 @@ import { validateOmniConfig } from './configSchema.js';
 
 // Type for objects we're serializing (avoid circular dependencies)
 interface SerializableObject {
+	id: string;  // UUID for stable object identity
 	className?: string;
 	canvasObjectType?: string;
 	positionOnCanvas: { pxFromCanvasLeft: number; pxFromCanvasTop: number };
@@ -128,10 +129,11 @@ export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasE
 
 		// Unknown type - shouldn't happen, but return Text as fallback
 		const fallbackConfig: TextConfig = {
-			...defaultTemplateFor_Text,
+			id: obj.id,
 			positionOnCanvas,
 			hitboxSize,
 			layerLevel,
+			...defaultTemplateFor_Text,
 			text: "Unknown object"
 		};
 		return { text: fallbackConfig };

@@ -24,6 +24,7 @@ declare global {
 }
 
 interface CanvasObject {
+	id: string;  // UUID for stable object identity
 	positionOnCanvas: { pxFromCanvasTop: number; pxFromCanvasLeft: number };
 	hitboxSize: { widthInPx: number; lengthInPx: number };
 	update: (delta: number) => boolean;
@@ -250,18 +251,18 @@ function deserializeObject(objData: any): CanvasObject {
 		return createWebEmbedFromConfig(objData.webEmbed);
 	}
 
-	// Fallback: handle old flat format (legacy)
+	// Fallback: handle old flat format (legacy) - generate UUID for missing id
 	const { type, x, y, width, height, ...props } = objData;
 	switch (type) {
 		case 'LinearInputIndicator':
 		case 'linearInputIndicator':
-			return new LinearInputIndicator(x, y, width, height, props, props.layerLevel);
+			return new LinearInputIndicator(crypto.randomUUID(), x, y, width, height, props, props.layerLevel);
 		case 'PlanarInputIndicator_Radial':
 		case 'planarInputIndicator':
-			return new PlanarInputIndicator_Radial(x, y, width, height, props, props.layerLevel);
+			return new PlanarInputIndicator_Radial(crypto.randomUUID(), x, y, width, height, props, props.layerLevel);
 		case 'Text':
 		case 'text':
-			return new Text(y, x, width, height, props, props.layerLevel);
+			return new Text(crypto.randomUUID(), y, x, width, height, props, props.layerLevel);
 		default:
 			throw new Error(`Unknown object type: ${type}`);
 	}
@@ -357,8 +358,11 @@ function createWebEmbedFromConfig(config: import('../persistentData/OmniConfig.j
 // Helper to create text labels using default template
 function createLabel(x: number, y: number, text: string): Text {
 	return createTextFromConfig({
-		...defaultTemplateFor_Text,
+		id: crypto.randomUUID(),
 		positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
+		hitboxSize: { widthInPx: 800, lengthInPx: 30 },
+		layerLevel: 20,
+		...defaultTemplateFor_Text,
 		text
 	});
 }
@@ -371,7 +375,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		createLabel(20, yOffset, "TEST 1: Left Stick + WASD + Mouse - WITH radial compensation vs WITHOUT"),
 		createLabel(20, yOffset + 25, "Move diagonally: LEFT shows ~100% (compensated), RIGHT shows ~70% (raw circular)"),
 
-		new PlanarInputIndicator_Radial(
+		new PlanarInputIndicator_Radial(crypto.randomUUID(), 
 			20, yOffset + 60, 200, 200,
 			{
 				input: {
@@ -392,7 +396,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			}
 		),
 
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			240, yOffset + 60, 100, 100,
 			{
 				input: {
@@ -407,7 +411,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				display: { text: "W" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			150, yOffset + 160, 100, 100,
 			{
 				input: {
@@ -421,7 +425,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				processing: { radialCompensationAxis: 1 }, display: { text: "A" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			250, yOffset + 160, 100, 100,
 			{
 				input: {
@@ -435,7 +439,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				processing: { radialCompensationAxis: 0 }, display: { text: "S" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			350, yOffset + 160, 100, 100,
 			{
 				input: {
@@ -450,7 +454,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			}
 		),
 
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			740, yOffset + 60, 100, 100,
 			{
 				input: {
@@ -464,7 +468,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				processing: { radialCompensationAxis: -1 }, display: { text: "W" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			650, yOffset + 160, 100, 100,
 			{
 				input: {
@@ -478,7 +482,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				processing: { radialCompensationAxis: -1 }, display: { text: "A" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			750, yOffset + 160, 100, 100,
 			{
 				input: {
@@ -492,7 +496,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				processing: { radialCompensationAxis: -1 }, display: { text: "S" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			850, yOffset + 160, 100, 100,
 			{
 				input: {
@@ -510,7 +514,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		createLabel(1050, yOffset, "TEST 1B: Right Gamepad Stick (IJKL)"),
 		createLabel(1050, yOffset + 25, "Same as Test 1, but using right stick"),
 
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			1150, yOffset + 60, 100, 100,
 			{
 				input: {
@@ -523,7 +527,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				processing: { radialCompensationAxis: 2 }, display: { text: "I" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			1050, yOffset + 160, 100, 100,
 			{
 				input: {
@@ -536,7 +540,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				processing: { radialCompensationAxis: 3 }, display: { text: "J" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			1150, yOffset + 160, 100, 100,
 			{
 				input: {
@@ -549,7 +553,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				processing: { radialCompensationAxis: 2 }, display: { text: "K" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			1250, yOffset + 160, 100, 100,
 			{
 				input: {
@@ -566,7 +570,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		(() => { yOffset += sectionSpacing; return createLabel(20, yOffset, "TEST 3: Gamepad Buttons (Digital)"); })(),
 		createLabel(20, yOffset + 25, "Face buttons (A/B/X/Y) - digital on/off, no pressure sensitivity"),
 
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			150, yOffset + 60, 100, 100,
 			{
 				input: {
@@ -580,7 +584,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				display: { text: "A" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			250, yOffset + 60, 100, 100,
 			{
 				input: {
@@ -594,7 +598,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				display: { text: "B" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			350, yOffset + 60, 100, 100,
 			{
 				input: {
@@ -608,7 +612,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				display: { text: "X" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			450, yOffset + 60, 100, 100,
 			{
 				input: {
@@ -623,7 +627,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			}
 		),
 
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			550, yOffset + 60, 100, 100,
 			{
 				input: {
@@ -636,7 +640,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				display: { text: "LT" }
 			}
 		),
-		new LinearInputIndicator(
+		new LinearInputIndicator(crypto.randomUUID(), 
 			650, yOffset + 60, 100, 100,
 			{
 				input: {
@@ -657,13 +661,9 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	const propertyEditor = new PropertyEdit();
 	let editingProperties = false;
 	let creationPanelActive = false;
-	let creationClickX = 0;
-	let creationClickY = 0;
 
 	// Helper: Show unified editor with both panels
-	function showBothPanels(x: number, y: number) {
-		creationClickX = x;
-		creationClickY = y;
+	function showBothPanels() {
 		creationPanelActive = true;
 
 		// Show scene config on left panel
@@ -748,10 +748,10 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		});
 	}
 
-	// Helper: Create object at click position (uses registry)
+	// Helper: Create object with default position (uses registry)
 	// ARCHITECTURE: Config-first approach - ConfigManager is single source of truth
-	function createObjectAt(x: number, y: number, type: string, template: string = 'DEFAULT') {
-		console.log('[Create] Creating new object:', type, template, 'at', x, y);
+	function createObject(type: string, template: string = 'DEFAULT') {
+		console.log('[Create] Creating new object:', type, template);
 
 		// Find the registry entry
 		const entry = CANVAS_OBJECT_REGISTRY.find(e => e.type === type);
@@ -767,8 +767,8 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			return;
 		}
 
-		// 1. Create OmniConfig object (not runtime object)
-		const objectConfig = templateObj.createConfig(x, y);
+		// 1. Create OmniConfig object (not runtime object) - uses idempotent default position
+		const objectConfig = templateObj.createConfig();
 		console.log('[Create] Created config:', JSON.stringify(objectConfig, null, 2));
 
 		// 2. Add to ConfigManager (single source of truth)
@@ -833,7 +833,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 				const type = target.getAttribute('data-type');
 				const template = target.getAttribute('data-template');
 				if (type) {
-					createObjectAt(creationClickX, creationClickY, type, template || 'DEFAULT');
+					createObject(type, template || 'DEFAULT');
 					hideBothPanels();  // Close entire unified editor
 				}
 			}
@@ -925,13 +925,14 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			// Right-click object - show PropertyEdit
 			if (mouse.clicks[2] === true && clickedObject !== null && !editingProperties && !creationPanelActive) {
 				console.log("Right-clicked object - showing PropertyEdit");
+				const objectId = clickedObject.id;  // Capture for callback
 				propertyEditor.showPropertyEdit(
 					clickedObject.defaultProperties,
 					clickedObject,
 					clickedObject.id,
 					configManager,
 					() => {
-						deleteObjectById(clickedObject.id);
+						deleteObjectById(objectId);
 						clickedObject = null;
 					}
 				);
@@ -941,7 +942,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			// Right-click background - show both panels (scene editor + creation)
 			if (mouse.clicks[2] === true && clickedObject === null && !editingProperties && !creationPanelActive) {
 				console.log("Right-clicked background - showing both panels");
-				showBothPanels(mouse.x, mouse.y);
+				showBothPanels();
 			}
 
 			// Handle delete key (Delete or Backspace)

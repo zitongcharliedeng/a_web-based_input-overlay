@@ -84,10 +84,9 @@ import type { ImageConfig } from '../../persistentData/OmniConfig.js';
 
 const DEFAULT_KEY_IMAGE_URL = "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png";
 
-export const defaultTemplateFor_Image: ImageConfig = {
-	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
-	hitboxSize: { widthInPx: 100, lengthInPx: 100 },
-	layerLevel: 0,
+import type { ImageTemplate } from '../../persistentData/OmniConfig.js';
+
+export const defaultTemplateFor_Image: ImageTemplate = {
 	src: DEFAULT_KEY_IMAGE_URL,
 	opacity: 1.0
 } as const;

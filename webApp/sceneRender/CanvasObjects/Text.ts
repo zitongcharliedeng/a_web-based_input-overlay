@@ -78,12 +78,9 @@ class Text extends CanvasObject {
 
 export { Text };
 
-import type { TextConfig } from '../../persistentData/OmniConfig.js';
+import type { TextTemplate } from '../../persistentData/OmniConfig.js';
 
-export const defaultTemplateFor_Text: TextConfig = {
-	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
-	hitboxSize: { widthInPx: 600, lengthInPx: 30 },
-	layerLevel: 20,
+export const defaultTemplateFor_Text: TextTemplate = {
 	text: "",
 	textStyle: {
 		textAlign: "left",

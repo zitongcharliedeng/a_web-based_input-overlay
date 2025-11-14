@@ -415,12 +415,9 @@ class LinearInputIndicator extends CanvasObject {
 
 export { LinearInputIndicator };
 
-import type { LinearInputIndicatorConfig } from '../../persistentData/OmniConfig.js';
+import type { LinearInputIndicatorTemplate } from '../../persistentData/OmniConfig.js';
 
-export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorConfig = {
-	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
-	hitboxSize: { widthInPx: 100, lengthInPx: 100 },
-	layerLevel: 10,
+export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorTemplate = {
 	input: {
 		keyboard: { keyCode: null },
 		mouse: { button: null, wheel: null },

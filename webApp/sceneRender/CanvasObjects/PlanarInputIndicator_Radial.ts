@@ -216,12 +216,9 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 
 export { PlanarInputIndicator_Radial };
 
-import type { PlanarInputIndicatorConfig } from '../../persistentData/OmniConfig.js';
+import type { PlanarInputIndicatorTemplate } from '../../persistentData/OmniConfig.js';
 
-export const defaultTemplateFor_PlanarInputIndicator: PlanarInputIndicatorConfig = {
-	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
-	hitboxSize: { widthInPx: 200, lengthInPx: 200 },
-	layerLevel: 10,
+export const defaultTemplateFor_PlanarInputIndicator: PlanarInputIndicatorTemplate = {
 	input: {
 		xAxes: {},
 		yAxes: {},

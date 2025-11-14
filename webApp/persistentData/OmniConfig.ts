@@ -15,8 +15,8 @@ interface BaseCanvasObjectConfig {
 	layerLevel: number;  // Z-index for rendering order (lower = behind, higher = front)
 }
 
-// LinearInputIndicator configuration - ALL fields required (explicit config)
-export interface LinearInputIndicatorConfig extends BaseCanvasObjectConfig {
+// LinearInputIndicator template - property defaults only (no id/position/size)
+export interface LinearInputIndicatorTemplate {
 	input: {
 		keyboard: { keyCode: string | null };
 		mouse: { button: number | null; wheel: 'up' | 'down' | null };
@@ -46,6 +46,13 @@ export interface LinearInputIndicatorConfig extends BaseCanvasObjectConfig {
 	};
 }
 
+// LinearInputIndicator configuration - full config with runtime fields
+export interface LinearInputIndicatorConfig extends BaseCanvasObjectConfig {
+	input: LinearInputIndicatorTemplate['input'];
+	processing: LinearInputIndicatorTemplate['processing'];
+	display: LinearInputIndicatorTemplate['display'];
+}
+
 // Style properties used in PlanarInputIndicator
 export interface StyleProperties {
 	strokeStyle?: string;
@@ -53,8 +60,8 @@ export interface StyleProperties {
 	lineWidth?: number;
 }
 
-// PlanarInputIndicator configuration - ALL fields required (explicit config)
-export interface PlanarInputIndicatorConfig extends BaseCanvasObjectConfig {
+// PlanarInputIndicator template - property defaults only
+export interface PlanarInputIndicatorTemplate {
 	input: {
 		xAxes: { [gamepadIndex: string]: boolean };
 		yAxes: { [gamepadIndex: string]: boolean };
@@ -80,8 +87,15 @@ export interface PlanarInputIndicatorConfig extends BaseCanvasObjectConfig {
 	};
 }
 
-// Text configuration - ALL fields required (explicit config)
-export interface TextConfig extends BaseCanvasObjectConfig {
+// PlanarInputIndicator configuration - full config with runtime fields
+export interface PlanarInputIndicatorConfig extends BaseCanvasObjectConfig {
+	input: PlanarInputIndicatorTemplate['input'];
+	processing: PlanarInputIndicatorTemplate['processing'];
+	display: PlanarInputIndicatorTemplate['display'];
+}
+
+// Text template - property defaults only
+export interface TextTemplate {
 	text: string;
 	textStyle: {
 		textAlign: string;
@@ -93,16 +107,35 @@ export interface TextConfig extends BaseCanvasObjectConfig {
 	shouldStroke: boolean;
 }
 
-// Image configuration - displays a static image (PNG/JPG/etc)
-export interface ImageConfig extends BaseCanvasObjectConfig {
+// Text configuration - full config with runtime fields
+export interface TextConfig extends BaseCanvasObjectConfig {
+	text: TextTemplate['text'];
+	textStyle: TextTemplate['textStyle'];
+	shouldStroke: TextTemplate['shouldStroke'];
+}
+
+// Image template - property defaults only
+export interface ImageTemplate {
 	src: string;  // URL or data URL
 	opacity: number;  // 0.0 to 1.0
 }
 
-// WebEmbed configuration - embeds web content via iframe
-export interface WebEmbedConfig extends BaseCanvasObjectConfig {
+// Image configuration - full config with runtime fields
+export interface ImageConfig extends BaseCanvasObjectConfig {
+	src: ImageTemplate['src'];
+	opacity: ImageTemplate['opacity'];
+}
+
+// WebEmbed template - property defaults only
+export interface WebEmbedTemplate {
 	url: string;  // URL to embed
 	opacity: number;  // 0.0 to 1.0
+}
+
+// WebEmbed configuration - full config with runtime fields
+export interface WebEmbedConfig extends BaseCanvasObjectConfig {
+	url: WebEmbedTemplate['url'];
+	opacity: WebEmbedTemplate['opacity'];
 }
 
 // Discriminated union for all object types

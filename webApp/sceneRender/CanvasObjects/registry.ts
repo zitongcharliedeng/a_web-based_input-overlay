@@ -21,7 +21,7 @@ import type { CanvasObjectConfig } from '../../persistentData/OmniConfig.js';
 export interface SpawnTemplate {
 	name: string; // e.g., "DEFAULT_LinearInputIndicator"
 	displayName: string; // e.g., "DEFAULT"
-	createConfig: (x: number, y: number) => CanvasObjectConfig; // Factory creates OmniConfig
+	createConfig: () => CanvasObjectConfig; // Factory creates OmniConfig with default position
 }
 
 export interface CanvasObjectRegistryEntry {
@@ -40,12 +40,13 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 			{
 				name: 'DEFAULT_LinearInputIndicator',
 				displayName: 'DEFAULT',
-				createConfig: (x: number, y: number) => ({
+				createConfig: () => ({
 					linearInputIndicator: {
-						...defaultTemplateFor_LinearInputIndicator,
 						id: crypto.randomUUID(),
-						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
-						hitboxSize: { widthInPx: 100, lengthInPx: 100 }
+						positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
+						hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+						layerLevel: 10,
+						...defaultTemplateFor_LinearInputIndicator
 					}
 				})
 			}
@@ -59,12 +60,13 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 			{
 				name: 'DEFAULT_PlanarInputIndicator_Radial',
 				displayName: 'DEFAULT',
-				createConfig: (x: number, y: number) => ({
+				createConfig: () => ({
 					planarInputIndicator: {
-						...defaultTemplateFor_PlanarInputIndicator,
 						id: crypto.randomUUID(),
-						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
-						hitboxSize: { widthInPx: 200, lengthInPx: 200 }
+						positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
+						hitboxSize: { widthInPx: 200, lengthInPx: 200 },
+						layerLevel: 10,
+						...defaultTemplateFor_PlanarInputIndicator
 					}
 				})
 			}
@@ -78,13 +80,13 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 			{
 				name: 'DEFAULT_Text',
 				displayName: 'DEFAULT',
-				createConfig: (x: number, y: number) => ({
+				createConfig: () => ({
 					text: {
-						...defaultTemplateFor_Text,
 						id: crypto.randomUUID(),
-						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
+						positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
 						hitboxSize: { widthInPx: 200, lengthInPx: 30 },
-						text: "New Text"
+						layerLevel: 20,
+						...defaultTemplateFor_Text
 					}
 				})
 			}
@@ -98,13 +100,13 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 			{
 				name: 'DEFAULT_Image',
 				displayName: 'DEFAULT',
-				createConfig: (x: number, y: number) => ({
+				createConfig: () => ({
 					image: {
-						...defaultTemplateFor_Image,
 						id: crypto.randomUUID(),
-						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
+						positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
 						hitboxSize: { widthInPx: 200, lengthInPx: 200 },
-						src: "https://via.placeholder.com/200"
+						layerLevel: 0,
+						...defaultTemplateFor_Image
 					}
 				})
 			}
@@ -118,14 +120,13 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 			{
 				name: 'DEFAULT_WebEmbed',
 				displayName: 'DEFAULT',
-				createConfig: (x: number, y: number) => ({
+				createConfig: () => ({
 					webEmbed: {
-						...defaultTemplateFor_WebEmbed,
 						id: crypto.randomUUID(),
-						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
+						positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
 						hitboxSize: { widthInPx: 560, lengthInPx: 315 },
 						layerLevel: 10,
-						url: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+						...defaultTemplateFor_WebEmbed
 					}
 				})
 			}
