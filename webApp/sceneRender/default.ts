@@ -727,6 +727,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	}
 
 	// Helper: Create object at click position (uses registry)
+	// ARCHITECTURE: Config-first approach - ConfigManager is single source of truth
 	function createObjectAt(x: number, y: number, type: string, template: string = 'DEFAULT') {
 		console.log('[Create] Creating new object:', type, template, 'at', x, y);
 
@@ -744,21 +745,22 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			return;
 		}
 
-		// Create the object using the template factory
-		const newObject = templateObj.create(x, y);
+		// 1. Create OmniConfig object (not runtime object)
+		const objectConfig = templateObj.createConfig(x, y);
+		console.log('[Create] Created config:', JSON.stringify(objectConfig, null, 2));
 
-		// Add to objects array (for immediate rendering)
+		// 2. Add to ConfigManager FIRST (single source of truth)
+		console.log('[Create] Adding to ConfigManager (SoT)');
+		configManager.addObject(objectConfig);
+
+		// 3. Deserialize config to create runtime object
+		console.log('[Create] Deserializing to runtime object');
+		const newObject = deserializeObject(objectConfig);
+
+		// 4. Add runtime object to scene (for rendering)
 		objects.push(newObject);
 
-		// Use ConfigManager.addObject() - single source of truth
-		const objectConfig = serializeObjectToConfig(newObject);
-		console.log('[Create] Serialized config:', objectConfig);
-		if (objectConfig) {
-			console.log('[Create] Calling configManager.addObject()');
-			configManager.addObject(objectConfig);
-			console.log('[Create] Object added to ConfigManager');
-			showToast(`Created ${type}`);
-		}
+		console.log('[Create] Object created and added successfully');
 	}
 
 	// Helper: Delete object by index

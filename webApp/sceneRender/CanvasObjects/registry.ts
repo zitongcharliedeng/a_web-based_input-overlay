@@ -6,18 +6,22 @@
  * - displayName: Human-readable name for UI
  * - className: Class name for identification
  * - templates: Array of spawnable templates with their configs
+ *
+ * ARCHITECTURE: Templates create OmniConfig objects (not runtime objects)
+ * This ensures ConfigManager is the single source of truth.
  */
 
-import { LinearInputIndicator, defaultTemplateFor_LinearInputIndicator } from './LinearInputIndicator.js';
-import { PlanarInputIndicator_Radial, defaultTemplateFor_PlanarInputIndicator } from './PlanarInputIndicator_Radial.js';
-import { Text, defaultTemplateFor_Text } from './Text.js';
-import { ImageObject, defaultTemplateFor_Image } from './Image.js';
-import { WebEmbed, defaultTemplateFor_WebEmbed } from './WebEmbed.js';
+import { defaultTemplateFor_LinearInputIndicator } from './LinearInputIndicator.js';
+import { defaultTemplateFor_PlanarInputIndicator } from './PlanarInputIndicator_Radial.js';
+import { defaultTemplateFor_Text } from './Text.js';
+import { defaultTemplateFor_Image } from './Image.js';
+import { defaultTemplateFor_WebEmbed } from './WebEmbed.js';
+import type { CanvasObjectConfig } from '../../persistentData/OmniConfig.js';
 
 export interface SpawnTemplate {
 	name: string; // e.g., "DEFAULT_LinearInputIndicator"
 	displayName: string; // e.g., "DEFAULT"
-	create: (x: number, y: number) => any; // Factory function
+	createConfig: (x: number, y: number) => CanvasObjectConfig; // Factory creates OmniConfig
 }
 
 export interface CanvasObjectRegistryEntry {
@@ -36,7 +40,13 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 			{
 				name: 'DEFAULT_LinearInputIndicator',
 				displayName: 'DEFAULT',
-				create: (x: number, y: number) => new LinearInputIndicator(x, y, 100, 100)
+				createConfig: (x: number, y: number) => ({
+					linearInputIndicator: {
+						...defaultTemplateFor_LinearInputIndicator,
+						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
+						hitboxSize: { widthInPx: 100, lengthInPx: 100 }
+					}
+				})
 			}
 		]
 	},
@@ -48,7 +58,13 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 			{
 				name: 'DEFAULT_PlanarInputIndicator_Radial',
 				displayName: 'DEFAULT',
-				create: (x: number, y: number) => new PlanarInputIndicator_Radial(x, y, 200, 200)
+				createConfig: (x: number, y: number) => ({
+					planarInputIndicator: {
+						...defaultTemplateFor_PlanarInputIndicator,
+						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
+						hitboxSize: { widthInPx: 200, lengthInPx: 200 }
+					}
+				})
 			}
 		]
 	},
@@ -60,7 +76,14 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 			{
 				name: 'DEFAULT_Text',
 				displayName: 'DEFAULT',
-				create: (x: number, y: number) => new Text(x, y, 200, 30, { text: "New Text" })
+				createConfig: (x: number, y: number) => ({
+					text: {
+						...defaultTemplateFor_Text,
+						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
+						hitboxSize: { widthInPx: 200, lengthInPx: 30 },
+						text: "New Text"
+					}
+				})
 			}
 		]
 	},
@@ -72,7 +95,14 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 			{
 				name: 'DEFAULT_Image',
 				displayName: 'DEFAULT',
-				create: (x: number, y: number) => new ImageObject(y, x, 200, 200, { src: "https://via.placeholder.com/200" })
+				createConfig: (x: number, y: number) => ({
+					image: {
+						...defaultTemplateFor_Image,
+						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
+						hitboxSize: { widthInPx: 200, lengthInPx: 200 },
+						src: "https://via.placeholder.com/200"
+					}
+				})
 			}
 		]
 	},
@@ -84,7 +114,14 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 			{
 				name: 'DEFAULT_WebEmbed',
 				displayName: 'DEFAULT',
-				create: (x: number, y: number) => new WebEmbed(x, y, 560, 315, { url: "https://www.youtube.com/embed/dQw4w9WgXcQ" })
+				createConfig: (x: number, y: number) => ({
+					webEmbed: {
+						...defaultTemplateFor_WebEmbed,
+						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
+						hitboxSize: { widthInPx: 560, lengthInPx: 315 },
+						url: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+					}
+				})
 			}
 		]
 	}
