@@ -755,7 +755,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	}
 
 	// Helper: Serialize single object to CanvasObjectConfig format
-	function serializeObjectToConfig(obj: CanvasObject): import('../persistentData/OmniConfig.js').CanvasObjectConfig | null {
+	function serializeObjectToConfig(obj: CanvasObject): import('../modelToSaveCustomConfigurationLocally/OmniConfig.js').CanvasObjectConfig | null {
 		const allObjectsConfig = sceneToConfig([obj], canvas);
 		if (allObjectsConfig.objects.length > 0) {
 			return allObjectsConfig.objects[0];
