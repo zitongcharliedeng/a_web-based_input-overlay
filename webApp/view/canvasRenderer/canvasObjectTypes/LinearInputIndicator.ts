@@ -1,6 +1,6 @@
 
 import { CanvasObject } from './BaseCanvasObject.js';
-import { canvas_fill_rec, canvas_text, canvas_properties } from '../../../_helpers/draw.js';
+import { canvas_fill_rec, canvas_text, canvas_properties } from '../canvasDrawingHelpers.js';
 
 // Type definitions
 interface Position {

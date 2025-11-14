@@ -1,5 +1,5 @@
 import { CanvasObject } from './BaseCanvasObject.js';
-import { canvas_text } from '../../../_helpers/draw.js';
+import { canvas_text } from '../canvasDrawingHelpers.js';
 
 interface TextStyle {
     textAlign?: CanvasTextAlign;

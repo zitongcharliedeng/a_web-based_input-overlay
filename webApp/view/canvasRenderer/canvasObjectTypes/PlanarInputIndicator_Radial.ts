@@ -1,6 +1,6 @@
 import { CanvasObject } from './BaseCanvasObject.js';
 import { Vector } from '../../../_helpers/Vector.js';
-import { canvas_properties, canvas_arc, canvas_line, canvas_arrow } from '../../../_helpers/draw.js';
+import { canvas_properties, canvas_arc, canvas_line, canvas_arrow } from '../canvasDrawingHelpers.js';
 
 interface AxisMapping {
 	[axisIndex: number]: boolean;
