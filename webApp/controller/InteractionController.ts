@@ -12,7 +12,7 @@
  */
 
 import { Vector } from '../_helpers/Vector.js';
-import type { CanvasObject } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/index.js';
+import type { CanvasObject } from '../view/canvasRenderer/canvasObjectTypes/index.js';
 import { mouse } from '../inputListeners/mouse.js';
 import { keyboard } from '../inputListeners/keyboard.js';
 

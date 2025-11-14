@@ -12,7 +12,7 @@
  * Phase2: Removed cachedObjects, deserializes from config every frame
  */
 
-import type { OmniConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+import type { OmniConfig } from '../../model/OmniConfig.js';
 
 export interface CanvasObject {
 	id: string;

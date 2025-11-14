@@ -1,4 +1,4 @@
-import { sceneToConfig } from '../../modelToSaveCustomConfigurationLocally/sceneSerializer.js';
+import { sceneToConfig } from '../../model/sceneSerializer.js';
 
 interface PropertyEditProperties {
 }

@@ -6,13 +6,13 @@ import { Text } from './canvasRenderer/canvasObjectTypes/Text.js';
 import { ImageObject } from './canvasRenderer/canvasObjectTypes/Image.js';
 import { WebEmbed } from './canvasRenderer/canvasObjectTypes/WebEmbed.js';
 import { PropertyEdit } from './popupRenderers/PropertyEdit.js';
-import { sceneToConfig, loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLocally/sceneSerializer.js';
-import { ConfigManager } from '../modelToSaveCustomConfigurationLocally/ConfigManager.js';
+import { sceneToConfig, loadConfigFromLocalStorage } from '../model/sceneSerializer.js';
+import { ConfigManager } from '../model/ConfigManager.js';
 import { CONFIG_VERSION } from '../_helpers/version.js';
 import { showToast } from '../_helpers/toast.js';
 import { CANVAS_OBJECT_REGISTRY } from './canvasRenderer/canvasObjectTypes/registry.js';
 import { CanvasRenderer } from './canvasRenderer/CanvasRenderer.js';
-import { InteractionController } from '../controllerToMutateCustomConfiguration/InteractionController.js';
+import { InteractionController } from '../controller/InteractionController.js';
 
 declare global {
 	interface Window {
@@ -284,7 +284,7 @@ function deserializeObject(objData: any): CanvasObject {
 	}
 }
 
-import type { LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+import type { LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from '../model/OmniConfig.js';
 import { defaultTemplateFor_Text } from './canvasRenderer/canvasObjectTypes/Text.js';
 
 function createLinearIndicatorFromConfig(config: LinearInputIndicatorConfig): LinearInputIndicator {
@@ -720,7 +720,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	}
 
 	// Helper: Serialize single object to CanvasObjectConfig format
-	function serializeObjectToConfig(obj: CanvasObject): import('../modelToSaveCustomConfigurationLocally/OmniConfig.js').CanvasObjectConfig | null {
+	function serializeObjectToConfig(obj: CanvasObject): import('../model/OmniConfig.js').CanvasObjectConfig | null {
 		const allObjectsConfig = sceneToConfig([obj], canvas);
 		if (allObjectsConfig.objects.length > 0) {
 			return allObjectsConfig.objects[0];
