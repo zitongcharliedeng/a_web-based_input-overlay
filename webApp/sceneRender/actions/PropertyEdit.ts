@@ -24,6 +24,7 @@ class PropertyEdit {
 		const propertyTable = document.getElementById("propertyTable");
 		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
 		const leftPanel = document.getElementById("leftPanel");
+		const unifiedEditor = document.getElementById("unifiedEditor");
 
 		if (!propertyTable || !leftPanel) return;
 
@@ -50,6 +51,13 @@ class PropertyEdit {
 		}
 		if (propertyTable) {
 			propertyTable.hidden = true;
+		}
+		if (leftPanel) {
+			leftPanel.hidden = true;
+		}
+		// CRITICAL: Hide the unifiedEditor wrapper itself
+		if (unifiedEditor) {
+			unifiedEditor.hidden = true;
 		}
 
 		this.targetObject = null;
