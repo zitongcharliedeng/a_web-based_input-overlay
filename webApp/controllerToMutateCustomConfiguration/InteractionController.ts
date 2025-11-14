@@ -174,19 +174,9 @@ export class InteractionController {
 	}
 
 	/**
-	 * Draw interaction visuals (hitboxes when object selected)
+	 * Check if any object is selected (for View to decide whether to render hitboxes)
 	 */
-	drawHitboxes(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, objects: CanvasObject[]): void {
-		if (this.clickedObject !== null) {
-			for (let i = 0; i < objects.length; i++) {
-				const object = objects[i];
-				ctx.setTransform(1, 0, 0, 1, object.positionOnCanvas.pxFromCanvasLeft, object.positionOnCanvas.pxFromCanvasTop);
-				ctx.beginPath();
-				ctx.strokeStyle = "#FF00FF";
-				ctx.lineWidth = 1;
-				ctx.rect(0, 0, object.hitboxSize.widthInPx, object.hitboxSize.lengthInPx);
-				ctx.stroke();
-			}
-		}
+	hasSelection(): boolean {
+		return this.clickedObject !== null;
 	}
 }

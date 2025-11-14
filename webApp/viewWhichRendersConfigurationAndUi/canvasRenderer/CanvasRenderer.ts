@@ -94,4 +94,20 @@ export class CanvasRenderer {
 	renderOverlay(drawFn: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => void): void {
 		drawFn(this.canvas, this.ctx);
 	}
+
+	/**
+	 * Render debug overlay (hitboxes for all objects)
+	 * Phase3: Moved from InteractionController (MVC violation fix)
+	 */
+	renderDebugHitboxes(objects: CanvasObject[]): void {
+		for (let i = 0; i < objects.length; i++) {
+			const object = objects[i];
+			this.ctx.setTransform(1, 0, 0, 1, object.positionOnCanvas.pxFromCanvasLeft, object.positionOnCanvas.pxFromCanvasTop);
+			this.ctx.beginPath();
+			this.ctx.strokeStyle = "#FF00FF";
+			this.ctx.lineWidth = 1;
+			this.ctx.rect(0, 0, object.hitboxSize.widthInPx, object.hitboxSize.lengthInPx);
+			this.ctx.stroke();
+		}
+	}
 }

@@ -144,9 +144,10 @@ window.addEventListener("load", function (): void {
 	// Phase2: Render from config (pure MVC - no cache)
 	function frameUpdate(): void {
 		canvasRenderer.render(frameObjects);
-		canvasRenderer.renderOverlay((canvas, ctx) => {
-			interactionController.drawHitboxes(canvas, ctx, frameObjects);
-		});
+		// Phase3: View renders hitboxes when Controller has selection
+		if (interactionController.hasSelection()) {
+			canvasRenderer.renderDebugHitboxes(frameObjects);
+		}
 	}
 
 	let previousTime = 0;
