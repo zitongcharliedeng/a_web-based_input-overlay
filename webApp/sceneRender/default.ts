@@ -66,6 +66,7 @@ window.addEventListener("load", function (): void {
 		console.log('[ConfigManager] onSave callback triggered, saving to localStorage');
 		console.log('[ConfigManager] Config to save:', JSON.stringify(config, null, 2).substring(0, 500) + '...');
 		saveSceneConfig(config);
+		showToast('Saved');
 	});
 
 	const activeScene = createScene(canvas, ctx, configManager);
@@ -810,7 +811,6 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			const updatedConfig = sceneToConfig(objects, canvas);
 			console.log('[Done] Syncing config to ConfigManager');
 			configManager.setConfig(updatedConfig);
-			showToast('Saved');
 		});
 	}
 	if (doneCreationPanelBtn) {
@@ -877,16 +877,12 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			if (mouse.clicks[2] === true || mouse.clicks[0] === true) {
 				if (clickedObject === null && (editingProperties === true || creationPanelActive === true)) {
 					console.log("clicked away from editor/panel - saving changes and closing");
-					const wasEditing = editingProperties;
 					hideBothPanels();
 
 					// Save updated scene to localStorage
 					const updatedConfig = sceneToConfig(objects, canvas);
 					console.log('[ClickAway] Syncing config to ConfigManager');
 					configManager.setConfig(updatedConfig);
-					if (wasEditing) {
-						showToast('Saved');
-					}
 				}
 			}
 

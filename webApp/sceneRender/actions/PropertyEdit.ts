@@ -80,26 +80,23 @@ class PropertyEdit {
 			propertyTable.removeChild(propertyTable.firstChild);
 		}
 
-		// Render base properties first (position, size)
-		const basePropertiesHeader = this.createPropertyHeader('Base Properties', 0);
-		propertyTable.appendChild(basePropertiesHeader);
-
-		const baseProperties = {
-			positionOnCanvas: {
-				pxFromCanvasLeft: targetObject.positionOnCanvas.pxFromCanvasLeft,
-				pxFromCanvasTop: targetObject.positionOnCanvas.pxFromCanvasTop
+		// Combine base properties and object-specific properties into single schema
+		const combinedSchema = {
+			"Base Properties": {
+				positionOnCanvas: {
+					pxFromCanvasLeft: targetObject.positionOnCanvas.pxFromCanvasLeft,
+					pxFromCanvasTop: targetObject.positionOnCanvas.pxFromCanvasTop
+				},
+				hitboxSize: {
+					widthInPx: targetObject.hitboxSize.widthInPx,
+					lengthInPx: targetObject.hitboxSize.lengthInPx
+				}
 			},
-			hitboxSize: {
-				widthInPx: targetObject.hitboxSize.widthInPx,
-				lengthInPx: targetObject.hitboxSize.lengthInPx
-			}
+			...defaultProperties
 		};
-		this.renderProperties(propertyTable, [], baseProperties, targetObject);
 
-		// Render object-specific properties
-		const specificPropertiesHeader = this.createPropertyHeader('Object Properties', 0);
-		propertyTable.appendChild(specificPropertiesHeader);
-		this.renderProperties(propertyTable, [], defaultProperties, targetObject);
+		// Render all properties programmatically with proper indentation
+		this.renderProperties(propertyTable, [], combinedSchema, targetObject);
 
 		// Add Delete button at the bottom
 		if (this.deleteCallback) {
