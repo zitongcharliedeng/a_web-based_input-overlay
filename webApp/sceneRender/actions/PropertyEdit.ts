@@ -13,6 +13,7 @@ class PropertyEdit {
 	targetObject: unknown = null;
 	targetScene: any = null;
 	applySceneConfig: ((config: any) => void) | null = null;
+	deleteCallback: (() => void) | null = null;
 
 	constructor() {
 	}
@@ -59,8 +60,9 @@ class PropertyEdit {
 		editorWindow.hidden = true;
 	}
 
-	showPropertyEdit(defaultProperties: any, targetObject: any): void {
+	showPropertyEdit(defaultProperties: any, targetObject: any, deleteCallback?: () => void): void {
 		this.targetObject = targetObject;
+		this.deleteCallback = deleteCallback || null;
 
 		const editorWindow = document.getElementById("propertyEditor");
 		const propertyTable = document.getElementById("propertyTable");
@@ -79,6 +81,39 @@ class PropertyEdit {
 		}
 
 		this.renderProperties(propertyTable, [], defaultProperties, targetObject);
+
+		// Add Delete button at the bottom
+		if (this.deleteCallback) {
+			const deleteRow = document.createElement('tr');
+			deleteRow.className = 'property';
+			const deleteCell = document.createElement('td');
+			deleteCell.colSpan = 2;
+			deleteCell.style.paddingTop = '20px';
+
+			const deleteButton = document.createElement('button');
+			deleteButton.textContent = 'Delete Object';
+			deleteButton.style.width = '100%';
+			deleteButton.style.padding = '10px';
+			deleteButton.style.backgroundColor = 'rgba(120, 40, 40, 0.9)';
+			deleteButton.style.color = '#cdc1c1';
+			deleteButton.style.border = '1px solid #B4B4B4';
+			deleteButton.style.cursor = 'pointer';
+			deleteButton.style.fontFamily = 'Lucida Console';
+			deleteButton.style.fontSize = '1em';
+
+			deleteButton.addEventListener('click', () => {
+				if (confirm('Delete this object?')) {
+					if (this.deleteCallback) {
+						this.deleteCallback();
+					}
+					this.hidePropertyEdit();
+				}
+			});
+
+			deleteCell.appendChild(deleteButton);
+			deleteRow.appendChild(deleteCell);
+			propertyTable.appendChild(deleteRow);
+		}
 
 		editorWindow.hidden = false;
 	}

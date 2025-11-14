@@ -617,6 +617,15 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		if (panel) panel.hidden = true;
 	}
 
+	// Helper: Serialize single object to CanvasObjectConfig format
+	function serializeObjectToConfig(obj: CanvasObject): import('../persistentData/OmniConfig.js').CanvasObjectConfig | null {
+		const allObjectsConfig = sceneToConfig([obj], canvas);
+		if (allObjectsConfig.objects.length > 0) {
+			return allObjectsConfig.objects[0];
+		}
+		return null;
+	}
+
 	// Helper: Create object at click position
 	function createObjectAt(x: number, y: number, type: string) {
 		let newObject: CanvasObject | null = null;
@@ -632,13 +641,35 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		}
 
 		if (newObject) {
+			// Add to objects array (for immediate rendering)
 			objects.push(newObject);
-			// Save to config
-			const updatedConfig = sceneToConfig(objects, canvas);
-			saveSceneConfig(updatedConfig);
-			configManager.setConfig(updatedConfig);
-			console.log("Created new", type, "at", x, y);
+
+			// Use ConfigManager.addObject() - single source of truth
+			const objectConfig = serializeObjectToConfig(newObject);
+			if (objectConfig) {
+				configManager.addObject(objectConfig);
+				console.log("Created new", type, "at", x, y);
+			}
 		}
+	}
+
+	// Helper: Delete object by index
+	function deleteObjectAtIndex(index: number) {
+		if (index < 0 || index >= objects.length) return;
+
+		const obj = objects[index];
+
+		// Call cleanup if it exists (for WebEmbed iframe removal)
+		if ('cleanup' in obj && typeof (obj as any).cleanup === 'function') {
+			(obj as any).cleanup();
+		}
+
+		// Remove from objects array
+		objects.splice(index, 1);
+
+		// Use ConfigManager to update config (single source of truth)
+		configManager.deleteObject(index);
+		console.log("Deleted object at index", index);
 	}
 
 	// Setup creation panel button listeners
@@ -747,12 +778,16 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 
 			if (mouse.clicks[2] === true && clickedObject !== null && editingProperties === false && creationPanelActive === false) {
 				console.log("Right-clicked object - showing PropertyEdit");
-				propertyEditor.showPropertyEdit(clickedObject.defaultProperties, clickedObject);
+				const objectIndex = objects.indexOf(clickedObject);
+				propertyEditor.showPropertyEdit(
+					clickedObject.defaultProperties,
+					clickedObject,
+					() => {
+						deleteObjectAtIndex(objectIndex);
+						clickedObject = null;
+					}
+				);
 				editingProperties = true;
-
-				// Add delete option via confirm dialog
-				// Note: Delete is handled via 'Delete' key or confirm dialog
-				// For now, user can press Delete key while object is selected
 			}
 
 			if (mouse.clicks[2] === true && clickedObject === null && editingProperties === false && creationPanelActive === false) {
@@ -764,17 +799,8 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			if ((keyboard['Delete'] || keyboard['Backspace']) && clickedObject !== null) {
 				const objectIndex = objects.indexOf(clickedObject);
 				if (objectIndex >= 0) {
-					console.log("Deleting object at index", objectIndex);
-					// Call cleanup if it exists (for WebEmbed iframe removal)
-					if ('cleanup' in clickedObject && typeof (clickedObject as any).cleanup === 'function') {
-						(clickedObject as any).cleanup();
-					}
-					objects.splice(objectIndex, 1);
+					deleteObjectAtIndex(objectIndex);
 					clickedObject = null;
-					// Save to config
-					const updatedConfig = sceneToConfig(objects, canvas);
-					saveSceneConfig(updatedConfig);
-					configManager.setConfig(updatedConfig);
 				}
 			}
 
