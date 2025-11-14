@@ -56,25 +56,21 @@ window.addEventListener("load", function (): void {
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
-	// CL2: Create CanvasRenderer (extracted render logic)
-	const canvasRenderer = new CanvasRenderer(canvas);
-
-	// CL3: Create InteractionController (extracted interaction logic)
-	const interactionController = new InteractionController();
-
-	// STEP 1: Create ConfigManager FIRST (must exist before createScene)
+	// Phase2: Create ConfigManager FIRST (pure MVC - config is source of truth)
 	console.log('[Init] Creating ConfigManager (empty initially)');
 	const configManager = new ConfigManager({
 		canvas: { width: canvas.width, height: canvas.height, backgroundColor: 'transparent' },
 		objects: []
 	});
 
-	// CL5: cachedObjects is declared below, so use forward reference via getter
-	let cachedObjects: CanvasObject[] = [];
+	// Phase2: Create CanvasRenderer with deserializer (no caching)
+	const canvasRenderer = new CanvasRenderer(canvas, deserializeObject);
+
+	// CL3: Create InteractionController (extracted interaction logic)
+	const interactionController = new InteractionController();
 
 	// STEP 2: Create scene (initial objects for default config)
-	// Pass getter so callbacks can access runtime cachedObjects, and interactionController for state management
-	const activeScene = createScene(canvas, ctx, configManager, () => cachedObjects, interactionController);
+	const activeScene = createScene(canvas, ctx, configManager, interactionController);
 
 	// CL5: Set up InteractionController callbacks (now that we have helper functions from createScene)
 	interactionController.setOnMoveObject((objectIndex, x, y) => {
@@ -136,48 +132,20 @@ window.addEventListener("load", function (): void {
 		showToast('Saved');
 	});
 
-	// CL5: Rebuild cache when config changes
-	// Config is source of truth, objects[] is cached view for performance
-	configManager.onChange((newConfig) => {
-		console.log('[ConfigManager] Config changed, rebuilding object cache:', newConfig.objects.length, 'objects');
+	// Phase2: No onChange cache rebuild - config is deserialized every frame (pure MVC)
 
-		// CRITICAL: Clear interaction state before rebuild (object instances will change)
-		// This prevents stale object references in InteractionController
-		const hadClickedObject = interactionController.getClickedObject() !== null;
-		if (hadClickedObject) {
-			console.log('[ConfigManager] Clearing InteractionController state before rebuild');
-			interactionController.clearSelection();
-		}
-
-		cachedObjects = [];
-		let successCount = 0;
-		let failCount = 0;
-		for (let i = 0; i < newConfig.objects.length; i++) {
-			try {
-				const objData = newConfig.objects[i];
-				const obj = deserializeObject(objData);
-				cachedObjects.push(obj);
-				successCount++;
-			} catch (e) {
-				console.error('[ConfigManager] Failed to deserialize object at index', i, ':', e);
-				console.error('[ConfigManager] Object data:', JSON.stringify(newConfig.objects[i], null, 2));
-				failCount++;
-			}
-		}
-		console.log('[ConfigManager] Cache rebuilt:', successCount, 'succeeded,', failCount, 'failed');
-	});
-
-	// STEP 7: Update ConfigManager with actual config (triggers onChange to rebuild objects[])
+	// STEP 7: Update ConfigManager with actual config
 	console.log('[Init] Updating ConfigManager with', configToUse.objects.length, 'objects');
 	configManager.setConfig(configToUse);
 
-	// CL2: Replaced with CanvasRenderer.render()
-	// CL4: Now passes objects[] and scene separately
-	// CL5: Render from cachedObjects (rebuilt from config)
+	// Phase2: Frame-local objects for interaction handling
+	let frameObjects: CanvasObject[] = [];
+
+	// Phase2: Render from config (pure MVC - no cache)
 	function frameUpdate(): void {
-		canvasRenderer.render(cachedObjects);
+		canvasRenderer.render(frameObjects);
 		canvasRenderer.renderOverlay((canvas, ctx) => {
-			interactionController.drawHitboxes(canvas, ctx, cachedObjects);
+			interactionController.drawHitboxes(canvas, ctx, frameObjects);
 		});
 	}
 
@@ -207,16 +175,13 @@ window.addEventListener("load", function (): void {
 			}
 		}
 
-		// CL2: Replaced with CanvasRenderer.update()
-		// CL4: Now passes objects[] and scene separately
-		// CL5: Update cachedObjects (rebuilt from config)
-		if (canvasRenderer.update(cachedObjects, delta)) {
-			updateScreen = true;
-		}
+		// Phase2: Deserialize config to objects every frame (pure MVC)
+		const config = configManager.getConfig();
+		frameObjects = canvasRenderer.update(config, delta);
+		updateScreen = true; // Always redraw (60fps)
 
-		// CL5: InteractionController updates (handles dragging, clicks, etc.)
-		interactionController.update(cachedObjects);
-		// Note: InteractionController doesn't affect updateScreen since it's handled via ConfigManager callbacks
+		// InteractionController updates (handles dragging, clicks, etc.)
+		interactionController.update(frameObjects);
 
 		if (updateScreen) {
 			frameUpdate();
@@ -418,7 +383,7 @@ function createLabel(x: number, y: number, text: string): Text {
 }
 
 // CL5: Pass getCachedObjects function and interactionController so callbacks can access runtime state
-function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager, getCachedObjects: () => CanvasObject[], interactionController: any): Scene {
+function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager, interactionController: any): Scene {
 	let yOffset = 20;
 	const sectionSpacing = 280;
 
@@ -713,13 +678,12 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	function showBothPanels() {
 		interactionController.setCreationPanelActive(true);
 
-		// CL5: Show scene config on left panel (from cachedObjects)
+		// Phase2: Show scene config (from ConfigManager - no cache)
 		propertyEditor.showSceneConfig(
-			{ objects: getCachedObjects() },
+			configManager.getConfig(),
 			canvas,
 			(config) => {
 				console.log('[Scene] Applying updated config from editor');
-				// CL5: ConfigManager.onChange() will automatically rebuild cachedObjects
 				configManager.setConfig(config);
 			}
 		);
@@ -818,54 +782,61 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		const objectConfig = templateObj.createConfig();
 		console.log('[Create] Created config:', JSON.stringify(objectConfig, null, 2));
 
-		// CL5: Add to ConfigManager (single source of truth)
-		// ConfigManager.onChange() will automatically rebuild cachedObjects
-		console.log('[Create] Current cachedObjects length:', getCachedObjects().length);
-		console.log('[Create] Current ConfigManager objects:', configManager.config.objects.length);
-		console.log('[Create] Adding to ConfigManager (SoT) - onChange will rebuild cache');
+		// Phase2: Add to ConfigManager (single source of truth)
+		console.log('[Create] Current config objects:', configManager.config.objects.length);
+		console.log('[Create] Adding to ConfigManager');
 		configManager.addObject(objectConfig);
-		console.log('[Create] After addObject - ConfigManager objects:', configManager.config.objects.length);
+		console.log('[Create] After addObject:', configManager.config.objects.length);
 	}
 
-	// CL5: Delete object by index (from cachedObjects)
+	// Phase2: Delete object by index
 	function deleteObjectAtIndex(index: number) {
-		const runtimeObjects = getCachedObjects();
-		if (index < 0 || index >= runtimeObjects.length) return;
+		const config = configManager.getConfig();
+		if (index < 0 || index >= config.objects.length) return;
 
-		const obj = runtimeObjects[index];
-		const objType = (obj as any).className || 'Object';
-
-		// Call cleanup if it exists (for WebEmbed iframe removal)
-		if ('cleanup' in obj && typeof (obj as any).cleanup === 'function') {
-			(obj as any).cleanup();
+		// Deserialize to call cleanup (for WebEmbed iframe removal)
+		try {
+			const obj = deserializeObject(config.objects[index]);
+			if ('cleanup' in obj && typeof (obj as any).cleanup === 'function') {
+				(obj as any).cleanup();
+			}
+		} catch (e) {
+			console.error('[Delete] Failed to deserialize for cleanup:', e);
 		}
 
-		// CL5: Use ConfigManager to update config (single source of truth)
-		// ConfigManager.onChange() will automatically rebuild cachedObjects
-		console.log('[Delete] Removing from ConfigManager (SoT) - onChange will rebuild cache');
+		console.log('[Delete] Removing from ConfigManager');
 		configManager.deleteObject(index);
 		console.log("Deleted object at index", index);
 	}
 
 	function deleteObjectById(objectId: string) {
-		// CL5: Find object by ID in cachedObjects
-		const runtimeObjects = getCachedObjects();
-		const obj = runtimeObjects.find(o => o.id === objectId);
-		if (!obj) {
+		// Phase2: Delete by ID directly from config
+		const config = configManager.getConfig();
+		const index = config.objects.findIndex(obj => {
+			if ('linearInputIndicator' in obj) return obj.linearInputIndicator.id === objectId;
+			if ('planarInputIndicator' in obj) return obj.planarInputIndicator.id === objectId;
+			if ('text' in obj) return obj.text.id === objectId;
+			if ('image' in obj) return obj.image.id === objectId;
+			if ('webEmbed' in obj) return obj.webEmbed.id === objectId;
+			return false;
+		});
+
+		if (index === -1) {
 			console.error(`[Delete] Object with id ${objectId} not found`);
 			return;
 		}
 
-		const objType = (obj as any).className || 'Object';
-
-		// Call cleanup if it exists (for WebEmbed iframe removal)
-		if ('cleanup' in obj && typeof (obj as any).cleanup === 'function') {
-			(obj as any).cleanup();
+		// Call cleanup on deserialized object
+		try {
+			const obj = deserializeObject(config.objects[index]);
+			if ('cleanup' in obj && typeof (obj as any).cleanup === 'function') {
+				(obj as any).cleanup();
+			}
+		} catch (e) {
+			console.error('[Delete] Failed to deserialize for cleanup:', e);
 		}
 
-		// CL5: Use ConfigManager to update config (single source of truth)
-		// ConfigManager.onChange() will automatically rebuild cachedObjects
-		console.log('[Delete] Removing from ConfigManager by ID (SoT) - onChange will rebuild cache');
+		console.log('[Delete] Removing from ConfigManager by ID');
 		configManager.deleteObjectById(objectId);
 	}
 
@@ -892,16 +863,9 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	const doneUnifiedEditorBtn = document.getElementById("doneUnifiedEditor");
 	if (doneUnifiedEditorBtn) {
 		doneUnifiedEditorBtn.addEventListener("click", () => {
-			console.log('[Done] Unified Editor - saving and closing');
+			console.log('[Done] Unified Editor - closing (config already updated)');
 			hideBothPanels();
-
-			// CL5: Save updated scene from cachedObjects (runtime state)
-			const runtimeObjects = getCachedObjects();
-			console.log('[Done] Serializing', runtimeObjects.length, 'objects to config');
-			const updatedConfig = sceneToConfig(runtimeObjects, canvas);
-			console.log('[Done] Serialized', updatedConfig.objects.length, 'objects');
-			console.log('[Done] Syncing config to ConfigManager');
-			configManager.setConfig(updatedConfig);
+			// Phase2: Config already updated by editor callbacks - no need to sync
 		});
 	}
 

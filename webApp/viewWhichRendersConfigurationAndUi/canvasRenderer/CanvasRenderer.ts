@@ -1,61 +1,81 @@
 /**
- * CanvasRenderer: Pure rendering utility
+ * CanvasRenderer: Pure MVC View
  *
  * Responsibilities:
- * - Render canvas objects from provided array
+ * - Deserialize OmniConfig to canvas objects
+ * - Render canvas objects
  * - Call update() on objects
- * - NO state management (stateless - reads from parameters)
+ * - NO state management (stateless - reads from config parameter)
  * - NO input handling
+ * - NO caching (pure function - rebuild every frame)
  *
- * CL2: Extracted from default.ts render logic without behavior change
- * CL4: Simplified to render from objects[] + scene.draw() without ConfigManager dependency
- * CL5: Further simplified to just render objects[] - scene overlays handled externally
+ * Phase2: Removed cachedObjects, deserializes from config every frame
  */
 
-interface CanvasObject {
+import type { OmniConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+
+export interface CanvasObject {
+	id: string;
 	positionOnCanvas: { pxFromCanvasTop: number; pxFromCanvasLeft: number };
 	hitboxSize: { widthInPx: number; lengthInPx: number };
 	update: (delta: number) => boolean;
 	draw: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => void;
+	defaultProperties: unknown;
 }
 
 export class CanvasRenderer {
 	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
+	private deserializer: (objData: any) => CanvasObject;
 
-	constructor(canvas: HTMLCanvasElement) {
+	constructor(canvas: HTMLCanvasElement, deserializer: (objData: any) => CanvasObject) {
 		this.canvas = canvas;
 		const ctx = canvas.getContext('2d');
 		if (!ctx) throw new Error('Failed to get 2D context');
 		this.ctx = ctx;
+		this.deserializer = deserializer;
 	}
 
 	/**
-	 * Update all objects
-	 * Returns true if any object needs redraw
+	 * Deserialize config to canvas objects (pure function)
 	 */
-	update(objects: CanvasObject[], delta: number): boolean {
+	private deserializeObjects(config: OmniConfig): CanvasObject[] {
+		const objects: CanvasObject[] = [];
+		for (let i = 0; i < config.objects.length; i++) {
+			try {
+				const obj = this.deserializer(config.objects[i]);
+				objects.push(obj);
+			} catch (e) {
+				console.error('[CanvasRenderer] Failed to deserialize object at index', i, ':', e);
+			}
+		}
+		return objects;
+	}
+
+	/**
+	 * Update all objects (called before render)
+	 * Returns deserialized objects for interaction handling
+	 */
+	update(config: OmniConfig, delta: number): CanvasObject[] {
+		const objects = this.deserializeObjects(config);
 		let updateScreen = false;
 
-		// Update all objects
 		for (let i = 0; i < objects.length; i++) {
-			const object = objects[i];
-			if (object.update(delta) === true) {
+			if (objects[i].update(delta) === true) {
 				updateScreen = true;
 			}
 		}
 
-		return updateScreen;
+		return objects;
 	}
 
 	/**
-	 * Render all objects to canvas
+	 * Render all objects to canvas from config (pure MVC)
 	 */
 	render(objects: CanvasObject[]): void {
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		// Draw all objects
 		for (let i = 0; i < objects.length; i++) {
 			const object = objects[i];
 			this.ctx.setTransform(
