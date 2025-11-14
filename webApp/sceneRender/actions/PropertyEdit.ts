@@ -11,10 +11,11 @@ class PropertyEdit {
 	className: string = "PropertyEdit";
 
 	targetObject: unknown = null;
+	targetObjectId: string | null = null;  // NEW: Track object by ID
+	configManager: any = null;  // NEW: ConfigManager reference
 	targetScene: any = null;
 	applySceneConfig: ((config: any) => void) | null = null;
 	deleteCallback: (() => void) | null = null;
-	sceneConfigModified: boolean = false;
 
 	constructor() {
 	}
@@ -26,27 +27,17 @@ class PropertyEdit {
 
 		if (!propertyTable || !leftPanel) return;
 
-		// CRITICAL: Only apply scene config if it was actually modified by the user
-		// Otherwise we'd apply stale config and lose recently spawned objects
-		if (sceneConfigText && !sceneConfigText.hidden && this.applySceneConfig && this.sceneConfigModified) {
-			console.log('[PropertyEdit] Scene config was modified, applying changes');
+		// Scene config editor: always apply current config
+		// (No stale config issue anymore - config is always current via ConfigManager)
+		if (sceneConfigText && !sceneConfigText.hidden && this.applySceneConfig) {
 			try {
 				const config = JSON.parse(sceneConfigText.value);
-				try {
-					this.applySceneConfig(config);
-					this.sceneConfigModified = false;
-				} catch (applyError) {
-					console.error('Error applying scene config:', applyError);
-					alert(`Failed to apply configuration: ${applyError instanceof Error ? applyError.message : String(applyError)}`);
-					return; // Don't close editor if apply fails
-				}
+				this.applySceneConfig(config);
 			} catch (parseError) {
 				console.error('Invalid JSON in scene config:', parseError);
 				alert('Invalid JSON syntax. Please fix the configuration.');
 				return; // Don't close editor if JSON is invalid
 			}
-		} else if (sceneConfigText && !sceneConfigText.hidden) {
-			console.log('[PropertyEdit] Scene config NOT modified, skipping stale config apply');
 		}
 
 		while (propertyTable.firstChild !== null) {
@@ -58,16 +49,20 @@ class PropertyEdit {
 			sceneConfigText.value = '';
 		}
 		if (propertyTable) {
-			propertyTable.hidden = true;  // Hide both when closing
+			propertyTable.hidden = true;
 		}
 
 		this.targetObject = null;
+		this.targetObjectId = null;
+		this.configManager = null;
 		this.targetScene = null;
 		this.applySceneConfig = null;
 	}
 
-	showPropertyEdit(defaultProperties: any, targetObject: any, deleteCallback?: () => void): void {
+	showPropertyEdit(defaultProperties: any, targetObject: any, objectId: string, configManager: any, deleteCallback?: () => void): void {
 		this.targetObject = targetObject;
+		this.targetObjectId = objectId;
+		this.configManager = configManager;
 		this.deleteCallback = deleteCallback || null;
 
 		const unifiedEditor = document.getElementById("unifiedEditor");
@@ -150,7 +145,6 @@ class PropertyEdit {
 	showSceneConfig(scene: any, canvas: HTMLCanvasElement, applyCallback: (config: any) => void): void {
 		this.targetScene = scene;
 		this.applySceneConfig = applyCallback;
-		this.sceneConfigModified = false;  // Reset flag for fresh config
 
 		const unifiedEditor = document.getElementById("unifiedEditor");
 		const propertyTable = document.getElementById("propertyTable");
@@ -169,12 +163,6 @@ class PropertyEdit {
 
 		const config = this.serializeScene(scene, canvas);
 		sceneConfigText.value = JSON.stringify(config, null, 2);
-
-		// Track when user edits the config
-		sceneConfigText.addEventListener('input', () => {
-			this.sceneConfigModified = true;
-			console.log('[PropertyEdit] Scene config modified by user');
-		});
 
 		// Note: unifiedEditor visibility is managed by caller (showBothPanels)
 	}
@@ -243,11 +231,20 @@ class PropertyEdit {
 		input.addEventListener('input', () => {
 			try {
 				const parsed = this.parseValue(input.value);
-				this.setNestedValue(targetObj, path, parsed);
-				input.style.borderColor = '';
 
-				if (typeof targetObj.syncProperties === 'function') {
-					targetObj.syncProperties();
+				// NEW: Dispatch action to ConfigManager (single source of truth)
+				if (this.configManager && this.targetObjectId) {
+					this.configManager.updateObjectProperty(this.targetObjectId, path, parsed);
+					input.style.borderColor = '';
+				} else {
+					// Fallback: direct mutation (should not happen in refactored code)
+					console.warn('[PropertyEdit] ConfigManager not available, using direct mutation');
+					this.setNestedValue(targetObj, path, parsed);
+					input.style.borderColor = '';
+
+					if (typeof targetObj.syncProperties === 'function') {
+						targetObj.syncProperties();
+					}
 				}
 			} catch (e) {
 				input.style.borderColor = 'red';

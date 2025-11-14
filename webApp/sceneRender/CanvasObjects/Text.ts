@@ -36,6 +36,7 @@ class Text extends CanvasObject {
     shouldStroke: boolean;
 
     constructor(
+        id: string,
         pxFromCanvasTop: number,
         pxFromCanvasLeft: number,
         widthInPx: number,
@@ -44,6 +45,7 @@ class Text extends CanvasObject {
         layerLevel?: number
     ) {
         super(
+            id,
             { pxFromCanvasTop, pxFromCanvasLeft },
             { widthInPx, lengthInPx },
             "text",

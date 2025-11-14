@@ -9,6 +9,7 @@ export interface CanvasConfig {
 
 // Base config - all canvas objects have position, hitbox, and layer order
 interface BaseCanvasObjectConfig {
+	id: string;  // Unique identifier (UUID) for stable object identity
 	positionOnCanvas: CanvasObjectPosition;
 	hitboxSize: CanvasObjectHitbox;
 	layerLevel: number;  // Z-index for rendering order (lower = behind, higher = front)

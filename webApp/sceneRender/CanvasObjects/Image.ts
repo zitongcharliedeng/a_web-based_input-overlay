@@ -19,6 +19,7 @@ class ImageObject extends CanvasObject {
     imageElement: HTMLImageElement;
 
     constructor(
+        id: string,
         pxFromCanvasTop: number,
         pxFromCanvasLeft: number,
         widthInPx: number,
@@ -27,6 +28,7 @@ class ImageObject extends CanvasObject {
         layerLevel?: number
     ) {
         super(
+            id,
             { pxFromCanvasTop, pxFromCanvasLeft },
             { widthInPx, lengthInPx },
             "image",

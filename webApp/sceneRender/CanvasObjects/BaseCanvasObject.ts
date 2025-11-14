@@ -16,6 +16,7 @@ interface CanvasObjectHitbox {
 }
 
 abstract class CanvasObject {
+    id: string;  // Unique identifier (UUID) matching config ID
     positionOnCanvas: CanvasObjectPosition;
     hitboxSize: CanvasObjectHitbox;
     layerLevel: number;  // Z-index for rendering order (lower = behind, higher = front)
@@ -23,11 +24,13 @@ abstract class CanvasObject {
     abstract defaultProperties: any;
 
     constructor(
+        id: string,
         positionOnCanvas: CanvasObjectPosition,
         hitboxSize: CanvasObjectHitbox,
         canvasObjectType: CanvasObjectType,
         layerLevel: number = 10
     ) {
+        this.id = id;
         this.positionOnCanvas = positionOnCanvas;
         this.hitboxSize = hitboxSize;
         this.layerLevel = layerLevel;

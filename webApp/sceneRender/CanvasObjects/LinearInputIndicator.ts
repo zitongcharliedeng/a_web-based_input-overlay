@@ -192,8 +192,9 @@ class LinearInputIndicator extends CanvasObject {
 	processing: ProcessingConfigDefaults = defaultLinearInputIndicatorProperties.processing;
 	display: DisplayConfigDefaults = defaultLinearInputIndicatorProperties.display;
 
-	constructor(x: number, y: number, width: number, height: number, properties?: LinearInputIndicatorProperties, layerLevel?: number) {
+	constructor(id: string, x: number, y: number, width: number, height: number, properties?: LinearInputIndicatorProperties, layerLevel?: number) {
 		super(
+			id,
 			{ pxFromCanvasTop: y, pxFromCanvasLeft: x },
 			{ widthInPx: width, lengthInPx: height },
 			"linearInputIndicator",

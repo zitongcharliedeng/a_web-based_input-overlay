@@ -43,6 +43,7 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 				createConfig: (x: number, y: number) => ({
 					linearInputIndicator: {
 						...defaultTemplateFor_LinearInputIndicator,
+						id: crypto.randomUUID(),
 						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
 						hitboxSize: { widthInPx: 100, lengthInPx: 100 }
 					}
@@ -61,6 +62,7 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 				createConfig: (x: number, y: number) => ({
 					planarInputIndicator: {
 						...defaultTemplateFor_PlanarInputIndicator,
+						id: crypto.randomUUID(),
 						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
 						hitboxSize: { widthInPx: 200, lengthInPx: 200 }
 					}
@@ -79,6 +81,7 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 				createConfig: (x: number, y: number) => ({
 					text: {
 						...defaultTemplateFor_Text,
+						id: crypto.randomUUID(),
 						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
 						hitboxSize: { widthInPx: 200, lengthInPx: 30 },
 						text: "New Text"
@@ -98,6 +101,7 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 				createConfig: (x: number, y: number) => ({
 					image: {
 						...defaultTemplateFor_Image,
+						id: crypto.randomUUID(),
 						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
 						hitboxSize: { widthInPx: 200, lengthInPx: 200 },
 						src: "https://via.placeholder.com/200"
@@ -117,6 +121,7 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 				createConfig: (x: number, y: number) => ({
 					webEmbed: {
 						...defaultTemplateFor_WebEmbed,
+						id: crypto.randomUUID(),
 						positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
 						hitboxSize: { widthInPx: 560, lengthInPx: 315 },
 						layerLevel: 10,

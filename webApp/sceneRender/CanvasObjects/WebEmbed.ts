@@ -28,8 +28,9 @@ class WebEmbed extends CanvasObject {
 	opacity: number = 1.0;
 	iframe: HTMLIFrameElement | null = null;
 
-	constructor(x: number, y: number, width: number, height: number, properties?: WebEmbedProperties, layerLevel?: number) {
+	constructor(id: string, x: number, y: number, width: number, height: number, properties?: WebEmbedProperties, layerLevel?: number) {
 		super(
+			id,
 			{ pxFromCanvasTop: y, pxFromCanvasLeft: x },
 			{ widthInPx: width, lengthInPx: height },
 			"webEmbed",

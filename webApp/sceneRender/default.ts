@@ -272,6 +272,7 @@ import { defaultTemplateFor_Text } from './CanvasObjects/Text.js';
 
 function createLinearIndicatorFromConfig(config: LinearInputIndicatorConfig): LinearInputIndicator {
 	return new LinearInputIndicator(
+		config.id,
 		config.positionOnCanvas.pxFromCanvasLeft,
 		config.positionOnCanvas.pxFromCanvasTop,
 		config.hitboxSize.widthInPx,
@@ -287,6 +288,7 @@ function createLinearIndicatorFromConfig(config: LinearInputIndicatorConfig): Li
 
 function createPlanarIndicatorFromConfig(config: PlanarInputIndicatorConfig): PlanarInputIndicator_Radial {
 	return new PlanarInputIndicator_Radial(
+		config.id,
 		config.positionOnCanvas.pxFromCanvasLeft,
 		config.positionOnCanvas.pxFromCanvasTop,
 		config.hitboxSize.widthInPx,
@@ -302,6 +304,7 @@ function createPlanarIndicatorFromConfig(config: PlanarInputIndicatorConfig): Pl
 
 function createTextFromConfig(config: TextConfig): Text {
 	return new Text(
+		config.id,
 		config.positionOnCanvas.pxFromCanvasTop,
 		config.positionOnCanvas.pxFromCanvasLeft,
 		config.hitboxSize.widthInPx,
@@ -323,6 +326,7 @@ function createTextFromConfig(config: TextConfig): Text {
 
 function createImageFromConfig(config: import('../persistentData/OmniConfig.js').ImageConfig): ImageObject {
 	return new ImageObject(
+		config.id,
 		config.positionOnCanvas.pxFromCanvasTop,
 		config.positionOnCanvas.pxFromCanvasLeft,
 		config.hitboxSize.widthInPx,
@@ -337,6 +341,7 @@ function createImageFromConfig(config: import('../persistentData/OmniConfig.js')
 
 function createWebEmbedFromConfig(config: import('../persistentData/OmniConfig.js').WebEmbedConfig): WebEmbed {
 	return new WebEmbed(
+		config.id,
 		config.positionOnCanvas.pxFromCanvasLeft,
 		config.positionOnCanvas.pxFromCanvasTop,
 		config.hitboxSize.widthInPx,
@@ -795,6 +800,27 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		console.log("Deleted object at index", index);
 	}
 
+	function deleteObjectById(objectId: string) {
+		// Find object by ID
+		const obj = objects.find(o => o.id === objectId);
+		if (!obj) {
+			console.error(`[Delete] Object with id ${objectId} not found`);
+			return;
+		}
+
+		const objType = (obj as any).className || 'Object';
+
+		// Call cleanup if it exists (for WebEmbed iframe removal)
+		if ('cleanup' in obj && typeof (obj as any).cleanup === 'function') {
+			(obj as any).cleanup();
+		}
+
+		// Use ConfigManager to update config (single source of truth)
+		// ConfigManager.onChange() will automatically rebuild objects[]
+		console.log('[Delete] Removing from ConfigManager by ID (SoT) - onChange will sync objects[]');
+		configManager.deleteObjectById(objectId);
+	}
+
 	// Populate creation panel from registry (DRY)
 	populateCreationPanel();
 
@@ -899,12 +925,13 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			// Right-click object - show PropertyEdit
 			if (mouse.clicks[2] === true && clickedObject !== null && !editingProperties && !creationPanelActive) {
 				console.log("Right-clicked object - showing PropertyEdit");
-				const objectIndex = objects.indexOf(clickedObject);
 				propertyEditor.showPropertyEdit(
 					clickedObject.defaultProperties,
 					clickedObject,
+					clickedObject.id,
+					configManager,
 					() => {
-						deleteObjectAtIndex(objectIndex);
+						deleteObjectById(clickedObject.id);
 						clickedObject = null;
 					}
 				);
