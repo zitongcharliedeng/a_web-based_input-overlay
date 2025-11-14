@@ -32,10 +32,9 @@ interface CanvasObject {
 	defaultProperties: unknown;
 }
 
+// CL5: Scene now only returns initial objects for config generation
 interface Scene {
-	objects: CanvasObject[];
-	draw: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => void;
-	update: (delta: number) => boolean;
+	objects: CanvasObject[];  // Only used for initial config - runtime uses cachedObjects
 }
 
 window.gamepads = null;
@@ -70,8 +69,12 @@ window.addEventListener("load", function (): void {
 		objects: []
 	});
 
-	// STEP 2: Create scene (can now reference configManager in closures)
-	const activeScene = createScene(canvas, ctx, configManager);
+	// CL5: cachedObjects is declared below, so use forward reference via getter
+	let cachedObjects: CanvasObject[] = [];
+
+	// STEP 2: Create scene (initial objects for default config)
+	// Pass getter so callbacks can access runtime cachedObjects
+	const activeScene = createScene(canvas, ctx, configManager, () => cachedObjects);
 
 	// STEP 3: Serialize scene to config
 	console.log('[Init] Serializing scene to config');
@@ -97,17 +100,18 @@ window.addEventListener("load", function (): void {
 		showToast('Saved');
 	});
 
-	// ENFORCEMENT: Synchronize objects[] from ConfigManager on any config change
+	// CL5: Rebuild cache when config changes
+	// Config is source of truth, objects[] is cached view for performance
 	configManager.onChange((newConfig) => {
-		console.log('[ConfigManager] Config changed, syncing', newConfig.objects.length, 'objects');
-		activeScene.objects.length = 0;
+		console.log('[ConfigManager] Config changed, rebuilding object cache:', newConfig.objects.length, 'objects');
+		cachedObjects = [];
 		let successCount = 0;
 		let failCount = 0;
 		for (let i = 0; i < newConfig.objects.length; i++) {
 			try {
 				const objData = newConfig.objects[i];
 				const obj = deserializeObject(objData);
-				activeScene.objects.push(obj);
+				cachedObjects.push(obj);
 				successCount++;
 			} catch (e) {
 				console.error('[ConfigManager] Failed to deserialize object at index', i, ':', e);
@@ -115,7 +119,7 @@ window.addEventListener("load", function (): void {
 				failCount++;
 			}
 		}
-		console.log('[ConfigManager] Sync complete:', successCount, 'succeeded,', failCount, 'failed');
+		console.log('[ConfigManager] Cache rebuilt:', successCount, 'succeeded,', failCount, 'failed');
 	});
 
 	// STEP 7: Update ConfigManager with actual config (triggers onChange to rebuild objects[])
@@ -124,8 +128,12 @@ window.addEventListener("load", function (): void {
 
 	// CL2: Replaced with CanvasRenderer.render()
 	// CL4: Now passes objects[] and scene separately
+	// CL5: Render from cachedObjects (rebuilt from config)
 	function frameUpdate(): void {
-		canvasRenderer.render(activeScene.objects, activeScene);
+		canvasRenderer.render(cachedObjects);
+		canvasRenderer.renderOverlay((canvas, ctx) => {
+			interactionController.drawHitboxes(canvas, ctx, cachedObjects);
+		});
 	}
 
 	let previousTime = 0;
@@ -156,9 +164,14 @@ window.addEventListener("load", function (): void {
 
 		// CL2: Replaced with CanvasRenderer.update()
 		// CL4: Now passes objects[] and scene separately
-		if (canvasRenderer.update(activeScene.objects, activeScene, delta)) {
+		// CL5: Update cachedObjects (rebuilt from config)
+		if (canvasRenderer.update(cachedObjects, delta)) {
 			updateScreen = true;
 		}
+
+		// CL5: InteractionController updates (handles dragging, clicks, etc.)
+		interactionController.update(cachedObjects);
+		// Note: InteractionController doesn't affect updateScreen since it's handled via ConfigManager callbacks
 
 		if (updateScreen) {
 			frameUpdate();
@@ -359,7 +372,8 @@ function createLabel(x: number, y: number, text: string): Text {
 	});
 }
 
-function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager): Scene {
+// CL5: Pass getCachedObjects function so callbacks can access runtime state
+function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager, getCachedObjects: () => CanvasObject[]): Scene {
 	let yOffset = 20;
 	const sectionSpacing = 280;
 
@@ -654,13 +668,13 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	function showBothPanels() {
 		interactionController.setCreationPanelActive(true);
 
-		// Show scene config on left panel
+		// CL5: Show scene config on left panel (from cachedObjects)
 		propertyEditor.showSceneConfig(
-			{ objects },
+			{ objects: getCachedObjects() },
 			canvas,
 			(config) => {
 				console.log('[Scene] Applying updated config from editor');
-				// ConfigManager.onChange() will automatically rebuild objects[]
+				// CL5: ConfigManager.onChange() will automatically rebuild cachedObjects
 				configManager.setConfig(config);
 			}
 		);
@@ -759,21 +773,21 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		const objectConfig = templateObj.createConfig();
 		console.log('[Create] Created config:', JSON.stringify(objectConfig, null, 2));
 
-		// 2. Add to ConfigManager (single source of truth)
-		// ConfigManager.onChange() will automatically rebuild objects[]
-		console.log('[Create] Current objects[] length:', objects.length);
+		// CL5: Add to ConfigManager (single source of truth)
+		// ConfigManager.onChange() will automatically rebuild cachedObjects
+		console.log('[Create] Current cachedObjects length:', getCachedObjects().length);
 		console.log('[Create] Current ConfigManager objects:', configManager.config.objects.length);
-		console.log('[Create] Adding to ConfigManager (SoT) - onChange will sync objects[]');
+		console.log('[Create] Adding to ConfigManager (SoT) - onChange will rebuild cache');
 		configManager.addObject(objectConfig);
 		console.log('[Create] After addObject - ConfigManager objects:', configManager.config.objects.length);
-		console.log('[Create] After addObject - objects[] length:', objects.length);
 	}
 
-	// Helper: Delete object by index
+	// CL5: Delete object by index (from cachedObjects)
 	function deleteObjectAtIndex(index: number) {
-		if (index < 0 || index >= objects.length) return;
+		const runtimeObjects = getCachedObjects();
+		if (index < 0 || index >= runtimeObjects.length) return;
 
-		const obj = objects[index];
+		const obj = runtimeObjects[index];
 		const objType = (obj as any).className || 'Object';
 
 		// Call cleanup if it exists (for WebEmbed iframe removal)
@@ -781,16 +795,17 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			(obj as any).cleanup();
 		}
 
-		// Use ConfigManager to update config (single source of truth)
-		// ConfigManager.onChange() will automatically rebuild objects[]
-		console.log('[Delete] Removing from ConfigManager (SoT) - onChange will sync objects[]');
+		// CL5: Use ConfigManager to update config (single source of truth)
+		// ConfigManager.onChange() will automatically rebuild cachedObjects
+		console.log('[Delete] Removing from ConfigManager (SoT) - onChange will rebuild cache');
 		configManager.deleteObject(index);
 		console.log("Deleted object at index", index);
 	}
 
 	function deleteObjectById(objectId: string) {
-		// Find object by ID
-		const obj = objects.find(o => o.id === objectId);
+		// CL5: Find object by ID in cachedObjects
+		const runtimeObjects = getCachedObjects();
+		const obj = runtimeObjects.find(o => o.id === objectId);
 		if (!obj) {
 			console.error(`[Delete] Object with id ${objectId} not found`);
 			return;
@@ -803,9 +818,9 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			(obj as any).cleanup();
 		}
 
-		// Use ConfigManager to update config (single source of truth)
-		// ConfigManager.onChange() will automatically rebuild objects[]
-		console.log('[Delete] Removing from ConfigManager by ID (SoT) - onChange will sync objects[]');
+		// CL5: Use ConfigManager to update config (single source of truth)
+		// ConfigManager.onChange() will automatically rebuild cachedObjects
+		console.log('[Delete] Removing from ConfigManager by ID (SoT) - onChange will rebuild cache');
 		configManager.deleteObjectById(objectId);
 	}
 
@@ -835,9 +850,10 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			console.log('[Done] Unified Editor - saving and closing');
 			hideBothPanels();
 
-			// Save updated scene to localStorage
-			console.log('[Done] Serializing', objects.length, 'objects to config');
-			const updatedConfig = sceneToConfig(objects, canvas);
+			// CL5: Save updated scene from cachedObjects (runtime state)
+			const runtimeObjects = getCachedObjects();
+			console.log('[Done] Serializing', runtimeObjects.length, 'objects to config');
+			const updatedConfig = sceneToConfig(runtimeObjects, canvas);
 			console.log('[Done] Serialized', updatedConfig.objects.length, 'objects');
 			console.log('[Done] Syncing config to ConfigManager');
 			configManager.setConfig(updatedConfig);
@@ -873,23 +889,16 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 
 	interactionController.setOnCloseEditors(() => {
 		hideBothPanels();
-		// Save updated scene to localStorage
-		const updatedConfig = sceneToConfig(objects, canvas);
+		// CL5: Save updated scene from cachedObjects (runtime state)
+		const runtimeObjects = getCachedObjects();
+		const updatedConfig = sceneToConfig(runtimeObjects, canvas);
 		console.log('[ClickAway] Syncing config to ConfigManager');
 		configManager.setConfig(updatedConfig);
 	});
 
+	// CL5: Scene only returns initial objects for config generation
+	// Runtime uses cachedObjects (rebuilt from ConfigManager)
 	return {
-		objects,
-
-		// CL3: Replaced with InteractionController.drawHitboxes()
-		draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-			interactionController.drawHitboxes(canvas, ctx, objects);
-		},
-
-		// CL3: Replaced with InteractionController.update()
-		update(delta: number): boolean {
-			return interactionController.update(objects);
-		}
+		objects
 	};
 }

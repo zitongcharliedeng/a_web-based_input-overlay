@@ -2,13 +2,14 @@
  * CanvasRenderer: Pure rendering utility
  *
  * Responsibilities:
- * - Render from CanvasObject array and Scene interface
+ * - Render canvas objects from provided array
  * - Call update() on objects
- * - NO state management (reads from objects passed as parameters)
+ * - NO state management (stateless - reads from parameters)
  * - NO input handling
  *
  * CL2: Extracted from default.ts render logic without behavior change
  * CL4: Simplified to render from objects[] + scene.draw() without ConfigManager dependency
+ * CL5: Further simplified to just render objects[] - scene overlays handled externally
  */
 
 interface CanvasObject {
@@ -16,11 +17,6 @@ interface CanvasObject {
 	hitboxSize: { widthInPx: number; lengthInPx: number };
 	update: (delta: number) => boolean;
 	draw: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => void;
-}
-
-interface Scene {
-	draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void;
-	update(delta: number): boolean;
 }
 
 export class CanvasRenderer {
@@ -35,16 +31,11 @@ export class CanvasRenderer {
 	}
 
 	/**
-	 * Update all objects and scene
+	 * Update all objects
 	 * Returns true if any object needs redraw
 	 */
-	update(objects: CanvasObject[], scene: Scene, delta: number): boolean {
+	update(objects: CanvasObject[], delta: number): boolean {
 		let updateScreen = false;
-
-		// Update scene itself
-		if (scene.update(delta) === true) {
-			updateScreen = true;
-		}
 
 		// Update all objects
 		for (let i = 0; i < objects.length; i++) {
@@ -58,15 +49,11 @@ export class CanvasRenderer {
 	}
 
 	/**
-	 * Render objects and scene overlays to canvas
+	 * Render all objects to canvas
 	 */
-	render(objects: CanvasObject[], scene: Scene): void {
+	render(objects: CanvasObject[]): void {
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-		// Draw scene overlays (hitboxes, etc.)
-		scene.draw(this.canvas, this.ctx);
-		this.ctx.closePath();
 
 		// Draw all objects
 		for (let i = 0; i < objects.length; i++) {
@@ -79,5 +66,12 @@ export class CanvasRenderer {
 			object.draw(this.canvas, this.ctx);
 			this.ctx.closePath();
 		}
+	}
+
+	/**
+	 * Draw overlay (like hitboxes) on top of objects
+	 */
+	renderOverlay(drawFn: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => void): void {
+		drawFn(this.canvas, this.ctx);
 	}
 }
