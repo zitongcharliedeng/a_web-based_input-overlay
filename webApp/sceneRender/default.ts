@@ -709,7 +709,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			// Create buttons for each template
 			entry.templates.forEach(template => {
 				const button = document.createElement('button');
-				button.className = 'createObjectBtn actionBtn';  // White action button with italic text
+				button.className = 'createObjectBtn ButtonWhichUserCanPressToUpdateState';
 				button.setAttribute('data-type', entry.type);
 				button.setAttribute('data-template', template.displayName);
 				button.textContent = template.name;

@@ -1,2 +1,2 @@
-export const CONFIG_VERSION = '7433eac';
-export const BUILD_TIME = '2025-11-14T14:23:31.201Z';
+export const CONFIG_VERSION = '930d011';
+export const BUILD_TIME = '2025-11-14T14:27:57.729Z';

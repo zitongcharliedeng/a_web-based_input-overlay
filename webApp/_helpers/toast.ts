@@ -11,7 +11,7 @@ export function showToast(message: string, duration: number = 2000): void {
 	}
 
 	const toast = document.createElement('div');
-	toast.className = 'toast';
+	toast.className = 'BoxWhichNotifiesUserOfStatusUpdates';
 	toast.textContent = message;
 
 	container.appendChild(toast);

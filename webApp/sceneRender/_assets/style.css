@@ -79,11 +79,11 @@
 	text-shadow: 2px 2px #000;
 }
 
-/* Action buttons (Done, spawn buttons) - white, italic */
-.actionBtn {
-	color: #000;
-	background-color: rgba(255, 255, 255, 0.9);
-	border: 1px solid #B4B4B4;
+/* Buttons which user can press to update state (Done, spawn) - pure white background, pure black text */
+.ButtonWhichUserCanPressToUpdateState {
+	color: #000000;
+	background-color: #FFFFFF;
+	border: 2px solid #000000;
 	padding: 0.8em 1.5em;
 	font-size: 1em;
 	font-family: 'Lucida Console', monospace;
@@ -94,8 +94,8 @@
 	text-align: center;
 }
 
-.actionBtn:hover {
-	background-color: rgba(255, 255, 255, 1.0);
+.ButtonWhichUserCanPressToUpdateState:hover {
+	background-color: #EEEEEE;
 }
 
 #doneUnifiedEditor {
@@ -127,7 +127,7 @@
 	margin-bottom: 0.3em;
 }
 
-/* Toast notifications */
+/* Toast notifications - status update boxes */
 #toastContainer {
 	position: fixed;
 	bottom: 20px;
@@ -139,14 +139,15 @@
 	pointer-events: none;
 }
 
-.toast {
-	background-color: rgba(40, 80, 40, 0.95);
-	color: #cdc1c1;
+.BoxWhichNotifiesUserOfStatusUpdates {
+	color: #FFFFFF;
+	background-color: #000000;
+	border: 2px solid #FFFFFF;
 	padding: 12px 20px;
-	border: 1px solid #B4B4B4;
 	border-radius: 4px;
 	font-family: 'Lucida Console', monospace;
 	font-size: 1em;
+	font-style: italic;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 	opacity: 0;
 	transform: translateX(100px);
