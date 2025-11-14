@@ -80,6 +80,25 @@ class PropertyEdit {
 			propertyTable.removeChild(propertyTable.firstChild);
 		}
 
+		// Render base properties first (position, size)
+		const basePropertiesHeader = this.createPropertyHeader('Base Properties', 0);
+		propertyTable.appendChild(basePropertiesHeader);
+
+		const baseProperties = {
+			positionOnCanvas: {
+				pxFromCanvasLeft: targetObject.positionOnCanvas.pxFromCanvasLeft,
+				pxFromCanvasTop: targetObject.positionOnCanvas.pxFromCanvasTop
+			},
+			hitboxSize: {
+				widthInPx: targetObject.hitboxSize.widthInPx,
+				lengthInPx: targetObject.hitboxSize.lengthInPx
+			}
+		};
+		this.renderProperties(propertyTable, [], baseProperties, targetObject);
+
+		// Render object-specific properties
+		const specificPropertiesHeader = this.createPropertyHeader('Object Properties', 0);
+		propertyTable.appendChild(specificPropertiesHeader);
 		this.renderProperties(propertyTable, [], defaultProperties, targetObject);
 
 		// Add Delete button at the bottom

@@ -12,6 +12,7 @@
 	top: 5%; left: 15%;
 	overflow-y: scroll;
 	overflow-x: hidden;
+	z-index: 100;
 }
 #propertyTable {
 	width: 100%;
@@ -82,7 +83,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 0;
-	z-index: 1000;
+	z-index: 200;
 }
 
 .contextMenuBtn {
@@ -115,6 +116,7 @@
 	padding: 1em;
 	padding-bottom: 4em;
 	overflow-y: auto;
+	z-index: 100;
 }
 
 .objectTypeSection {
@@ -146,6 +148,46 @@
 
 .createObjectBtn:hover {
 	background-color: rgba(80, 80, 90, 0.9);
+}
+
+/* Toast notifications */
+#toastContainer {
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	z-index: 300;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	pointer-events: none;
+}
+
+.toast {
+	background-color: rgba(40, 80, 40, 0.95);
+	color: #cdc1c1;
+	padding: 12px 20px;
+	border: 1px solid #B4B4B4;
+	border-radius: 4px;
+	font-family: 'Lucida Console', monospace;
+	font-size: 1em;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+	opacity: 0;
+	transform: translateX(100px);
+	animation: toastSlideIn 0.3s ease-out forwards, toastFadeOut 0.3s ease-in 1.7s forwards;
+}
+
+@keyframes toastSlideIn {
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes toastFadeOut {
+	to {
+		opacity: 0;
+		transform: translateX(100px);
+	}
 }
 
 body {

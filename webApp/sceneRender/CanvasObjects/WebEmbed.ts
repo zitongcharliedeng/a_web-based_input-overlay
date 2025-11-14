@@ -56,7 +56,8 @@ class WebEmbed extends CanvasObject {
 		this.iframe.style.height = this.hitboxSize.lengthInPx + 'px';
 		this.iframe.style.opacity = this.opacity.toString();
 		this.iframe.style.border = 'none';
-		this.iframe.style.pointerEvents = 'auto';
+		this.iframe.style.pointerEvents = 'none'; // Pass clicks through to canvas
+		this.iframe.style.zIndex = '1'; // Below UI windows (which use z-index 100+)
 		this.iframe.setAttribute('allowfullscreen', '');
 
 		document.body.appendChild(this.iframe);

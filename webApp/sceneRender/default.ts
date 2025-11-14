@@ -11,6 +11,8 @@ import { canvas_properties } from '../_helpers/draw.js';
 import { sceneToConfig, loadConfigFromLocalStorage } from '../persistentData/sceneSerializer.js';
 import { ConfigManager } from '../persistentData/ConfigManager.js';
 import { CONFIG_VERSION } from '../_helpers/version.js';
+import { showToast } from '../_helpers/toast.js';
+import { CANVAS_OBJECT_REGISTRY } from './CanvasObjects/registry.js';
 
 declare global {
 	interface Window {
@@ -686,36 +688,70 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		return null;
 	}
 
-	// Helper: Create object at click position
-	function createObjectAt(x: number, y: number, type: string) {
-		let newObject: CanvasObject | null = null;
+	// Helper: Populate creation panel from registry (DRY)
+	function populateCreationPanel() {
+		const content = document.getElementById('objectCreationContent');
+		if (!content) return;
 
-		console.log('[Create] Creating new object:', type, 'at', x, y);
+		// Clear existing content
+		content.innerHTML = '';
 
-		if (type === "LinearInputIndicator") {
-			newObject = new LinearInputIndicator(x, y, 100, 100);
-		} else if (type === "PlanarInputIndicator_Radial") {
-			newObject = new PlanarInputIndicator_Radial(x, y, 200, 200);
-		} else if (type === "Text") {
-			newObject = new Text(x, y, 200, 30, { text: "New Text" });
-		} else if (type === "Image") {
-			newObject = new ImageObject(y, x, 200, 200, { src: "https://via.placeholder.com/200" });
-		} else if (type === "WebEmbed") {
-			newObject = new WebEmbed(x, y, 400, 300, { url: "https://www.twitch.tv/" });
+		// Iterate through registry and create sections
+		CANVAS_OBJECT_REGISTRY.forEach(entry => {
+			const section = document.createElement('div');
+			section.className = 'objectTypeSection';
+
+			const header = document.createElement('p');
+			header.className = 'sectionHeader';
+			header.textContent = entry.displayName;
+			section.appendChild(header);
+
+			// Create buttons for each template
+			entry.templates.forEach(template => {
+				const button = document.createElement('button');
+				button.className = 'createObjectBtn';
+				button.setAttribute('data-type', entry.type);
+				button.setAttribute('data-template', template.displayName);
+				button.textContent = template.name;
+				section.appendChild(button);
+			});
+
+			content.appendChild(section);
+		});
+	}
+
+	// Helper: Create object at click position (uses registry)
+	function createObjectAt(x: number, y: number, type: string, template: string = 'DEFAULT') {
+		console.log('[Create] Creating new object:', type, template, 'at', x, y);
+
+		// Find the registry entry
+		const entry = CANVAS_OBJECT_REGISTRY.find(e => e.type === type);
+		if (!entry) {
+			console.error('[Create] Unknown object type:', type);
+			return;
 		}
 
-		if (newObject) {
-			// Add to objects array (for immediate rendering)
-			objects.push(newObject);
+		// Find the template
+		const templateObj = entry.templates.find(t => t.displayName === template);
+		if (!templateObj) {
+			console.error('[Create] Unknown template:', template);
+			return;
+		}
 
-			// Use ConfigManager.addObject() - single source of truth
-			const objectConfig = serializeObjectToConfig(newObject);
-			console.log('[Create] Serialized config:', objectConfig);
-			if (objectConfig) {
-				console.log('[Create] Calling configManager.addObject()');
-				configManager.addObject(objectConfig);
-				console.log('[Create] Object added to ConfigManager');
-			}
+		// Create the object using the template factory
+		const newObject = templateObj.create(x, y);
+
+		// Add to objects array (for immediate rendering)
+		objects.push(newObject);
+
+		// Use ConfigManager.addObject() - single source of truth
+		const objectConfig = serializeObjectToConfig(newObject);
+		console.log('[Create] Serialized config:', objectConfig);
+		if (objectConfig) {
+			console.log('[Create] Calling configManager.addObject()');
+			configManager.addObject(objectConfig);
+			console.log('[Create] Object added to ConfigManager');
+			showToast(`Created ${type}`);
 		}
 	}
 
@@ -724,6 +760,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		if (index < 0 || index >= objects.length) return;
 
 		const obj = objects[index];
+		const objType = (obj as any).className || 'Object';
 
 		// Call cleanup if it exists (for WebEmbed iframe removal)
 		if ('cleanup' in obj && typeof (obj as any).cleanup === 'function') {
@@ -736,6 +773,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		// Use ConfigManager to update config (single source of truth)
 		configManager.deleteObject(index);
 		console.log("Deleted object at index", index);
+		showToast(`Deleted ${objType}`);
 	}
 
 	// Setup context menu button listeners
@@ -753,18 +791,24 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		});
 	}
 
-	// Setup creation panel button listeners (use data attributes)
-	const createObjectBtns = document.querySelectorAll('.createObjectBtn');
-	createObjectBtns.forEach(btn => {
-		btn.addEventListener("click", (e) => {
+	// Populate creation panel from registry (DRY)
+	populateCreationPanel();
+
+	// Setup creation panel button listeners (use event delegation)
+	const objectCreationContent = document.getElementById('objectCreationContent');
+	if (objectCreationContent) {
+		objectCreationContent.addEventListener('click', (e) => {
 			const target = e.target as HTMLElement;
-			const type = target.getAttribute('data-type');
-			if (type) {
-				createObjectAt(creationClickX, creationClickY, type);
-				hideCreationPanel();
+			if (target.classList.contains('createObjectBtn')) {
+				const type = target.getAttribute('data-type');
+				const template = target.getAttribute('data-template');
+				if (type) {
+					createObjectAt(creationClickX, creationClickY, type, template || 'DEFAULT');
+					hideCreationPanel();
+				}
 			}
 		});
-	});
+	}
 
 	// Setup Done button listeners (DRY logic)
 	const donePropertyEditorBtn = document.getElementById("donePropertyEditor");
@@ -780,6 +824,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			const updatedConfig = sceneToConfig(objects, canvas);
 			console.log('[Done] Syncing config to ConfigManager');
 			configManager.setConfig(updatedConfig);
+			showToast('Saved');
 		});
 	}
 	if (doneCreationPanelBtn) {
@@ -846,6 +891,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 			if (mouse.clicks[2] === true || mouse.clicks[0] === true) {
 				if (clickedObject === null && (editingProperties === true || creationPanelActive === true || contextMenuActive === true)) {
 					console.log("clicked away from editor/panel/menu - saving changes and closing");
+					const wasEditing = editingProperties;
 					propertyEditor.hidePropertyEdit();
 					hideCreationPanel();
 					hideContextMenu();
@@ -855,6 +901,9 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 					const updatedConfig = sceneToConfig(objects, canvas);
 					console.log('[ClickAway] Syncing config to ConfigManager');
 					configManager.setConfig(updatedConfig);
+					if (wasEditing) {
+						showToast('Saved');
+					}
 				}
 			}
 

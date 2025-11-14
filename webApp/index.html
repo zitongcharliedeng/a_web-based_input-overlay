@@ -14,6 +14,9 @@
 	<canvas id="canvas" width="1600" height="600" oncontextmenu="return false">
 		Your browser does not support the HTML5 canvas tag.
 	</canvas>
+
+	<!-- Toast notification container -->
+	<div id="toastContainer"></div>
 	<div id="propertyEditor" hidden oncontextmenu="return false">
 		<p id="propertyEditorTitle" class="windowTitle">Window title text</p>
 		<table id="propertyTable">
@@ -32,29 +35,10 @@
 		<button id="menuEditSceneConfig" class="contextMenuBtn">Edit Scene Configuration</button>
 	</div>
 
-	<!-- Object creation panel (organized by type) -->
+	<!-- Object creation panel (programmatically populated from registry) -->
 	<div id="objectCreationPanel" hidden oncontextmenu="return false">
 		<p class="windowTitle">Create New Object</p>
-		<div class="objectTypeSection">
-			<p class="sectionHeader">LinearInputIndicator</p>
-			<button class="createObjectBtn" data-type="LinearInputIndicator" data-template="DEFAULT">DEFAULT_LinearInputIndicator</button>
-		</div>
-		<div class="objectTypeSection">
-			<p class="sectionHeader">PlanarInputIndicator_Radial</p>
-			<button class="createObjectBtn" data-type="PlanarInputIndicator_Radial" data-template="DEFAULT">DEFAULT_PlanarInputIndicator_Radial</button>
-		</div>
-		<div class="objectTypeSection">
-			<p class="sectionHeader">Text</p>
-			<button class="createObjectBtn" data-type="Text" data-template="DEFAULT">DEFAULT_Text</button>
-		</div>
-		<div class="objectTypeSection">
-			<p class="sectionHeader">Image</p>
-			<button class="createObjectBtn" data-type="Image" data-template="DEFAULT">DEFAULT_Image</button>
-		</div>
-		<div class="objectTypeSection">
-			<p class="sectionHeader">WebEmbed</p>
-			<button class="createObjectBtn" data-type="WebEmbed" data-template="DEFAULT">DEFAULT_WebEmbed</button>
-		</div>
+		<div id="objectCreationContent"></div>
 		<button id="doneCreationPanel" class="windowDoneBtn">Done</button>
 	</div>
 
