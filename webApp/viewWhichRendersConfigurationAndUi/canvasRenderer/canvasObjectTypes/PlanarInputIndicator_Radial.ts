@@ -1,6 +1,6 @@
 import { CanvasObject } from './BaseCanvasObject.js';
-import { Vector } from '../../_helpers/Vector.js';
-import { canvas_properties, canvas_arc, canvas_line, canvas_arrow } from '../../_helpers/draw.js';
+import { Vector } from '../../../_helpers/Vector.js';
+import { canvas_properties, canvas_arc, canvas_line, canvas_arrow } from '../../../_helpers/draw.js';
 
 interface AxisMapping {
 	[axisIndex: number]: boolean;
@@ -216,7 +216,7 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 
 export { PlanarInputIndicator_Radial };
 
-import type { PlanarInputIndicatorTemplate } from '../../persistentData/OmniConfig.js';
+import type { PlanarInputIndicatorTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 export const defaultTemplateFor_PlanarInputIndicator: PlanarInputIndicatorTemplate = {
 	input: {

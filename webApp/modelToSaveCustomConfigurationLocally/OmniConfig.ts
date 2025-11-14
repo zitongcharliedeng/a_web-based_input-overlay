@@ -1,4 +1,4 @@
-import type { CanvasObjectPosition, CanvasObjectHitbox } from '../sceneRender/CanvasObjects/BaseCanvasObject.js';
+import type { CanvasObjectPosition, CanvasObjectHitbox } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/BaseCanvasObject.js';
 
 // Canvas configuration
 export interface CanvasConfig {

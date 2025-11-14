@@ -1,9 +1,9 @@
 import type { OmniConfig, CanvasConfig, LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from './OmniConfig.js';
-import { defaultTemplateFor_LinearInputIndicator } from '../sceneRender/CanvasObjects/LinearInputIndicator.js';
-import { defaultTemplateFor_PlanarInputIndicator } from '../sceneRender/CanvasObjects/PlanarInputIndicator_Radial.js';
-import { defaultTemplateFor_Text } from '../sceneRender/CanvasObjects/Text.js';
-import { defaultTemplateFor_Image } from '../sceneRender/CanvasObjects/Image.js';
-import { defaultTemplateFor_WebEmbed } from '../sceneRender/CanvasObjects/WebEmbed.js';
+import { defaultTemplateFor_LinearInputIndicator } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/LinearInputIndicator.js';
+import { defaultTemplateFor_PlanarInputIndicator } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/PlanarInputIndicator_Radial.js';
+import { defaultTemplateFor_Text } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/Text.js';
+import { defaultTemplateFor_Image } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/Image.js';
+import { defaultTemplateFor_WebEmbed } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/WebEmbed.js';
 import { validateOmniConfig } from './configSchema.js';
 
 // Type for objects we're serializing (avoid circular dependencies)

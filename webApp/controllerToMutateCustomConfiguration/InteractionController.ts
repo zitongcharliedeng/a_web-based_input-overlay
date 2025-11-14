@@ -11,10 +11,10 @@
  * CL3: Extracted from default.ts interaction logic without behavior change
  */
 
-import { Vector } from '../../_helpers/Vector.js';
-import type { CanvasObject } from '../CanvasObjects/index.js';
-import { mouse } from '../../inputListeners/mouse.js';
-import { keyboard } from '../../inputListeners/keyboard.js';
+import { Vector } from '../_helpers/Vector.js';
+import type { CanvasObject } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/index.js';
+import { mouse } from '../inputListeners/mouse.js';
+import { keyboard } from '../inputListeners/keyboard.js';
 
 export class InteractionController {
 	private clickedObject: CanvasObject | null = null;

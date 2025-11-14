@@ -1,5 +1,5 @@
 import { CanvasObject } from './BaseCanvasObject.js';
-import { canvas_text } from '../../_helpers/draw.js';
+import { canvas_text } from '../../../_helpers/draw.js';
 
 interface TextStyle {
     textAlign?: CanvasTextAlign;
@@ -78,7 +78,7 @@ class Text extends CanvasObject {
 
 export { Text };
 
-import type { TextTemplate } from '../../persistentData/OmniConfig.js';
+import type { TextTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 export const defaultTemplateFor_Text: TextTemplate = {
 	text: "",

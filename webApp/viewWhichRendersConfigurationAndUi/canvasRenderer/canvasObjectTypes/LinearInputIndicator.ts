@@ -1,6 +1,6 @@
 
 import { CanvasObject } from './BaseCanvasObject.js';
-import { canvas_fill_rec, canvas_text, canvas_properties } from '../../_helpers/draw.js';
+import { canvas_fill_rec, canvas_text, canvas_properties } from '../../../_helpers/draw.js';
 
 // Type definitions
 interface Position {
@@ -415,7 +415,7 @@ class LinearInputIndicator extends CanvasObject {
 
 export { LinearInputIndicator };
 
-import type { LinearInputIndicatorTemplate } from '../../persistentData/OmniConfig.js';
+import type { LinearInputIndicatorTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorTemplate = {
 	input: {
