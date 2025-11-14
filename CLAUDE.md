@@ -996,9 +996,9 @@ Extend to VR gaming:
 
 ---
 
-**Last Updated:** 2025-11-06
+**Last Updated:** 2025-11-14
 **Author:** [@zitongcharliedeng](https://github.com/zitongcharliedeng)
-**Status:** 🚧 In Planning Phase
+**Status:** ✅ Foundation Complete - Active Development
 
 ---
 
@@ -1271,7 +1271,7 @@ Before adding new features, need to:
 1. Remove non-DRY logic (consolidate duplicated patterns)
 2. Improve variable naming (linkedAxis → radialCompensationAxis)
 3. Complete any remaining cleanup from TypeScript migration
-4. Then proceed to Priority 1: Fade-out duration implementation
+4. Then proceed to Priority 2: Configuration Management System (Priority 1 fade-out already done)
 
 ---
 
@@ -1310,12 +1310,12 @@ Before adding new features, need to:
 
 ## 🔮 Pending Features & Refactoring (DO NOT IMPLEMENT YET)
 
-### Priority -1: Foundation (Critical - Do First)
+### Priority -1: Foundation (Critical - Do First) ✅ COMPLETE
 
 **Analysis Date:** 2025-11-13
-**Status:** NOT STARTED - Requires user approval to begin
+**Status:** ✅ COMPLETED 2025-11-14
 
-These are architectural improvements that prevent bugs and improve maintainability. Do these before any feature work.
+These architectural improvements prevent bugs and improve maintainability.
 
 #### 1. Enable TypeScript Strict Mode ⭐ HIGHEST PRIORITY
 - **Current:** `strict: false` in tsconfig.json
@@ -1391,28 +1391,27 @@ These are architectural improvements that prevent bugs and improve maintainabili
 
 ---
 
-### Priority 1: Visual Feedback Enhancement
+### Priority 1: Visual Feedback Enhancement ✅ COMPLETE
+
+**Status:** ✅ COMPLETED 2025-11-13 (Implemented before Priority -1 work)
 
 **Problem:** Fast events (scroll, clicks) complete faster than 60fps frame time, making them invisible
 
-**Solution: Global Fade-Out Duration Parameter**
+**Solution: Fade-Out Duration Parameter (IMPLEMENTED)**
 
-1. **Add Global Fade Configuration**
-   - New parameter: `fadeOutDuration` (default: 0 = current instant behavior)
-   - Measured in seconds (e.g., 0.2 = 200ms fade)
-   - Applied to all LinearInputIndicator objects
+**What was implemented:**
+1. ✅ `fadeOutDuration` parameter (default: 0.2 seconds)
+2. ✅ Opacity-based fade (not fill-based) - differentiates digital vs analog inputs
+3. ✅ Exponential decay algorithm (audio reverb-style signal processing)
+4. ✅ Instant-on behavior (no fade-in delay)
+5. ✅ Color opacity helper to apply fade to any fillStyle
+6. ✅ Works for all input types (keyboard, mouse, scroll wheel, gamepad buttons)
 
-2. **Implementation Details**
-   - When input becomes inactive, indicator value fades from 1.0 → 0.0 over X seconds
-   - Linear or eased fade curve (configurable)
-   - Maintains current instant-on behavior (no fade-in delay)
-   - Only fades when ALL input sources become inactive
-
-3. **Benefits**
-   - Makes scroll wheel events visible (they stay lit for fade duration)
-   - Makes fast mouse clicks more visible
-   - Gives users feedback on input registration
-   - Configurable per user preference (0 for instant, 0.2+ for visibility)
+**Results:**
+- ✅ Scroll wheel events are visible (stay lit for 200ms)
+- ✅ Fast mouse clicks more visible
+- ✅ Per-object configurable (can disable by setting to 0)
+- ✅ Digital inputs (keyboard/mouse) fade opacity, analog inputs (stick) vary fill height
 
 **Example:**
 ```typescript
