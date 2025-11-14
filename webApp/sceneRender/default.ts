@@ -13,6 +13,7 @@ import { ConfigManager } from '../persistentData/ConfigManager.js';
 import { CONFIG_VERSION } from '../_helpers/version.js';
 import { showToast } from '../_helpers/toast.js';
 import { CANVAS_OBJECT_REGISTRY } from './CanvasObjects/registry.js';
+import { CanvasRenderer } from './view/CanvasRenderer.js';
 
 declare global {
 	interface Window {
@@ -56,6 +57,9 @@ window.addEventListener("load", function (): void {
 
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
+
+	// CL2: Create CanvasRenderer (extracted render logic)
+	const canvasRenderer = new CanvasRenderer(canvas);
 
 	// STEP 1: Create ConfigManager FIRST (must exist before createScene)
 	console.log('[Init] Creating ConfigManager (empty initially)');
@@ -116,19 +120,9 @@ window.addEventListener("load", function (): void {
 	console.log('[Init] Updating ConfigManager with', configToUse.objects.length, 'objects');
 	configManager.setConfig(configToUse);
 
+	// CL2: Replaced with CanvasRenderer.render()
 	function frameUpdate(): void {
-		ctx.setTransform(1, 0, 0, 1, 0, 0);
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-		activeScene.draw(canvas, ctx);
-		ctx.closePath();
-
-		for (let i = 0; i < activeScene.objects.length; i++) {
-			const object = activeScene.objects[i];
-			ctx.setTransform(1, 0, 0, 1, object.positionOnCanvas.pxFromCanvasLeft, object.positionOnCanvas.pxFromCanvasTop);
-			object.draw(canvas, ctx);
-			ctx.closePath();
-		}
+		canvasRenderer.render(activeScene);
 	}
 
 	let previousTime = 0;
@@ -157,15 +151,9 @@ window.addEventListener("load", function (): void {
 			}
 		}
 
-		if (activeScene.update(delta) === true) {
+		// CL2: Replaced with CanvasRenderer.update()
+		if (canvasRenderer.update(activeScene, delta)) {
 			updateScreen = true;
-		}
-
-		for (let i = 0; i < activeScene.objects.length; i++) {
-			const object = activeScene.objects[i];
-			if (object.update(delta) === true) {
-				updateScreen = true;
-			}
 		}
 
 		if (updateScreen) {
