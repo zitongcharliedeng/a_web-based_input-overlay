@@ -6,7 +6,7 @@ import { Text } from './canvasRenderer/canvasObjectTypes/Text.js';
 import { ImageObject } from './canvasRenderer/canvasObjectTypes/Image.js';
 import { WebEmbed } from './canvasRenderer/canvasObjectTypes/WebEmbed.js';
 import { PropertyEdit } from './uiComponents/PropertyEdit.js';
-import { sceneToConfig, loadConfigFromLocalStorage } from '../model/sceneSerializer.js';
+import { objectsToConfig, loadConfigFromLocalStorage } from '../model/configSerializer.js';
 import { ConfigManager } from '../model/ConfigManager.js';
 import { CONFIG_VERSION } from '../_helpers/version.js';
 import { showToast } from './uiComponents/toast.js';
@@ -32,8 +32,8 @@ interface CanvasObject {
 	defaultProperties: unknown;
 }
 
-// CL5: Scene now only returns initial objects for config generation
-interface Scene {
+// CL5: CanvasObjectCollection now only returns initial objects for config generation
+interface CanvasObjectCollection {
 	objects: CanvasObject[];  // Only used for initial config - runtime uses cachedObjects
 }
 
@@ -69,48 +69,48 @@ window.addEventListener("load", function (): void {
 	// CL3: Create InteractionController (extracted interaction logic)
 	const interactionController = new InteractionController();
 
-	// STEP 2: Create scene (initial objects for default config)
-	const activeScene = createScene(canvas, ctx, configManager, interactionController);
+	// STEP 2: Create canvas (initial objects for default config)
+	const activeCanvasObjects = createCanvasObjectCollection(canvas, ctx, configManager, interactionController);
 
-	// CL5: Set up InteractionController callbacks (now that we have helper functions from createScene)
+	// CL5: Set up InteractionController callbacks (now that we have helper functions from createCanvasObjectCollection)
 	interactionController.setOnMoveObject((objectIndex, x, y) => {
 		configManager.moveObject(objectIndex, x, y);
 	});
 
 	interactionController.setOnDeleteObject((objectIndex) => {
-		activeScene.deleteObjectAtIndex(objectIndex);
+		activeCanvasObjects.deleteObjectAtIndex(objectIndex);
 	});
 
 	interactionController.setOnShowPropertyEdit((obj) => {
 		const objectId = obj.id;
-		activeScene.propertyEditor.showPropertyEdit(
+		activeCanvasObjects.propertyEditor.showPropertyEdit(
 			obj.defaultProperties,
 			obj,
 			obj.id,
 			configManager,
 			() => {
-				activeScene.deleteObjectById(objectId);
+				activeCanvasObjects.deleteObjectById(objectId);
 			}
 		);
 		interactionController.setEditingProperties(true);
 	});
 
 	interactionController.setOnShowCreationPanel(() => {
-		activeScene.showBothPanels();
+		activeCanvasObjects.showBothPanels();
 	});
 
 	interactionController.setOnCloseEditors(() => {
-		activeScene.hideBothPanels();
-		// Save updated scene from cachedObjects (runtime state)
+		activeCanvasObjects.hideBothPanels();
+		// Save updated canvas from cachedObjects (runtime state)
 		const runtimeObjects = cachedObjects;
-		const updatedConfig = sceneToConfig(runtimeObjects, canvas);
+		const updatedConfig = objectsToConfig(runtimeObjects, canvas);
 		console.log('[ClickAway] Syncing config to ConfigManager');
 		configManager.setConfig(updatedConfig);
 	});
 
-	// STEP 3: Serialize scene to config
-	console.log('[Init] Serializing scene to config');
-	const initialConfig = sceneToConfig(activeScene.objects, canvas);
+	// STEP 3: Serialize canvas to config
+	console.log('[Init] Serializing canvas to config');
+	const initialConfig = objectsToConfig(activeCanvasObjects.objects, canvas);
 
 	// STEP 4: Try to load saved config from localStorage
 	const savedConfig = loadSceneConfig();
@@ -384,7 +384,7 @@ function createLabel(x: number, y: number, text: string): Text {
 }
 
 // CL5: Pass getCachedObjects function and interactionController so callbacks can access runtime state
-function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager, interactionController: any): Scene {
+function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, configManager: ConfigManager, interactionController: any): CanvasObjectCollection {
 	let yOffset = 20;
 	const sectionSpacing = 280;
 
@@ -679,12 +679,12 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 	function showBothPanels() {
 		interactionController.setCreationPanelActive(true);
 
-		// Phase2: Show scene config (from ConfigManager - no cache)
-		propertyEditor.showSceneConfig(
+		// Phase2: Show canvas config (from ConfigManager - no cache)
+		propertyEditor.showCanvasConfig(
 			configManager.getConfig(),
 			canvas,
 			(config) => {
-				console.log('[Scene] Applying updated config from editor');
+				console.log('[Canvas] Applying updated config from editor');
 				configManager.setConfig(config);
 			}
 		);
@@ -721,7 +721,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 
 	// Helper: Serialize single object to CanvasObjectConfig format
 	function serializeObjectToConfig(obj: CanvasObject): import('../model/OmniConfig.js').CanvasObjectConfig | null {
-		const allObjectsConfig = sceneToConfig([obj], canvas);
+		const allObjectsConfig = objectsToConfig([obj], canvas);
 		if (allObjectsConfig.objects.length > 0) {
 			return allObjectsConfig.objects[0];
 		}
@@ -870,7 +870,7 @@ function createScene(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, c
 		});
 	}
 
-	// CL5: Scene returns initial objects + helper functions for external callback setup
+	// CL5: CanvasObjectCollection returns initial objects + helper functions for external callback setup
 	return {
 		objects,
 		propertyEditor,

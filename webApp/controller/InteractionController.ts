@@ -5,7 +5,7 @@
  * - Handle mouse clicks, dragging, keyboard input
  * - Manage selection state (clickedObject)
  * - Trigger UI actions (PropertyEdit, creation panel)
- * - NO rendering (delegates to scene.draw)
+ * - NO rendering (delegates to canvas.draw)
  * - NO state persistence (delegates to ConfigManager callbacks)
  *
  * CL3: Extracted from default.ts interaction logic without behavior change
@@ -95,7 +95,7 @@ export class InteractionController {
 
 	/**
 	 * Update interaction state
-	 * Returns true if scene needs redraw
+	 * Returns true if canvas needs redraw
 	 */
 	update(objects: CanvasObject[]): boolean {
 		// Click detection: find which object was clicked
@@ -153,7 +153,7 @@ export class InteractionController {
 			}
 		}
 
-		// Right-click background - show both panels (scene editor + creation)
+		// Right-click background - show both panels (canvas editor + creation)
 		if (mouse.clicks[2] === true && this.clickedObject === null && !this.editingProperties && !this.creationPanelActive) {
 			console.log("Right-clicked background - showing both panels");
 			if (this.onShowCreationPanel) {

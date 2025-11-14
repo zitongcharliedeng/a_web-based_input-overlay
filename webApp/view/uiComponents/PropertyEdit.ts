@@ -1,4 +1,4 @@
-import { sceneToConfig } from '../../model/sceneSerializer.js';
+import { objectsToConfig } from '../../model/configSerializer.js';
 
 interface PropertyEditProperties {
 }
@@ -28,14 +28,14 @@ class PropertyEdit {
 
 		if (!propertyTable || !leftPanel) return;
 
-		// Scene config editor: always apply current config
+		// Canvas config editor: always apply current config
 		// (No stale config issue anymore - config is always current via ConfigManager)
 		if (sceneConfigText && !sceneConfigText.hidden && this.applySceneConfig) {
 			try {
 				const config = JSON.parse(sceneConfigText.value);
 				this.applySceneConfig(config);
 			} catch (parseError) {
-				console.error('Invalid JSON in scene config:', parseError);
+				console.error('Invalid JSON in canvas config:', parseError);
 				alert('Invalid JSON syntax. Please fix the configuration.');
 				return; // Don't close editor if JSON is invalid
 			}
@@ -82,7 +82,7 @@ class PropertyEdit {
 
 		if (!unifiedEditor || !propertyTable || !editorTitle || !leftPanel) return;
 
-		// Show left panel with property table, hide scene config text
+		// Show left panel with property table, hide canvas config text
 		leftPanel.hidden = false;
 		if (sceneConfigText) sceneConfigText.hidden = true;
 		propertyTable.hidden = false;
@@ -152,8 +152,8 @@ class PropertyEdit {
 		unifiedEditor.hidden = false;
 	}
 
-	showSceneConfig(scene: any, canvas: HTMLCanvasElement, applyCallback: (config: any) => void): void {
-		this.targetScene = scene;
+	showCanvasConfig(canvasObjectCollection: any, canvas: HTMLCanvasElement, applyCallback: (config: any) => void): void {
+		this.targetScene = canvasObjectCollection;
 		this.applySceneConfig = applyCallback;
 
 		const unifiedEditor = document.getElementById("unifiedEditor");
@@ -164,22 +164,22 @@ class PropertyEdit {
 
 		if (!unifiedEditor || !propertyTable || !sceneConfigText || !editorTitle || !leftPanel) return;
 
-		// Show left panel with scene config text, hide property table
+		// Show left panel with canvas config text, hide property table
 		leftPanel.hidden = false;
 		propertyTable.hidden = true;
 		sceneConfigText.hidden = false;
 
-		editorTitle.innerHTML = "Scene Configuration";
+		editorTitle.innerHTML = "Canvas Configuration";
 
-		const config = this.serializeScene(scene, canvas);
+		const config = this.serializeCanvas(canvasObjectCollection, canvas);
 		sceneConfigText.value = JSON.stringify(config, null, 2);
 
 		// Note: unifiedEditor visibility is managed by caller (showBothPanels)
 	}
 
-	public serializeScene(scene: any, canvas: HTMLCanvasElement): any {
+	public serializeCanvas(canvasObjectCollection: any, canvas: HTMLCanvasElement): any {
 		// Delegate to pure function
-		return sceneToConfig(scene.objects, canvas);
+		return objectsToConfig(canvasObjectCollection.objects, canvas);
 	}
 
 	private renderProperties(container: HTMLElement, path: string[], schema: any, targetObj: any): void {

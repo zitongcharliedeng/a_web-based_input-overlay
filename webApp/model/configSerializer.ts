@@ -23,12 +23,12 @@ interface SerializableObject {
 
 
 /**
- * Pure function: Serialize scene objects to OmniConfig
+ * Pure function: Serialize canvas objects to OmniConfig
  * @param objects - Array of canvas objects to serialize
  * @param canvas - Canvas element for dimensions
  * @returns Serialized OmniConfig (ready for localStorage or sharing)
  */
-export function sceneToConfig(objects: SerializableObject[], canvas: HTMLCanvasElement): OmniConfig {
+export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanvasElement): OmniConfig {
 	const canvasConfig: CanvasConfig = {
 		width: canvas.width,
 		height: canvas.height,

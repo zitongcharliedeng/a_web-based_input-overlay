@@ -1,15 +1,15 @@
-// ConfigManager: Single Source of Truth for scene state
+// ConfigManager: Single Source of Truth for canvas state
 // Manages OmniConfig with pure functional updates
 
 import type { OmniConfig, CanvasObjectConfig } from './OmniConfig.js';
 import { updateObjectPosition, updateObjectPropertyById, updateCanvasDimensions, addObject, removeObject, removeObjectById } from './configUpdaters.js';
-import { sceneToConfig } from './sceneSerializer.js';
+import { objectsToConfig } from './configSerializer.js';
 
 // Callback type for when config changes
 type ConfigChangeCallback = (newConfig: OmniConfig) => void;
 
 /**
- * ConfigManager: Single source of truth for scene configuration
+ * ConfigManager: Single source of truth for canvas configuration
  *
  * Functional principles:
  * - Config is immutable (updates create new config)
