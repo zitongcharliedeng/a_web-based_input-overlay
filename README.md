@@ -25,58 +25,47 @@ cd a_web-based_input-overlay
 
 ### Development
 
-**Launch Electron overlay (recommended):**
+**Single unified script:**
 
 ```powershell
-.\forDevelopment_buildAndLaunchWebapp.ps1
+.\SourceCode\_devTools\buildForWindowsDevelopment.ps1
 ```
 
-This script will:
-1. Install webApp dependencies
-2. Compile TypeScript
-3. Install Electron wrapper dependencies
-4. Launch Electron with DevTools
-
-**Launch web version (browser-based testing):**
-
-```powershell
-.\forDevelopment_buildAndLaunchWebsite.ps1
-```
-
-Opens http://localhost:8080 in your browser.
-
-**Launch in readonly/overlay mode (streaming use):**
-
-```powershell
-.\forDevelopment_launchInReadonlyMode.ps1
-```
-
-Launches Electron with click-through enabled. Overlay stays on top, no editing UI. Close with Alt+F4.
+Interactive menu with 4 options:
+1. Build only
+2. Build and launch website version
+3. Build and launch webapp (interactive mode)
+4. Build and launch webapp (clickthrough-readonly mode)
 
 ### Project Structure
 
 ```
-webApp/                          # Web application code
-  ├── browserInputListeners/     # Pure input system (keyboard, mouse, gamepad)
-  ├── browserInputOverlayView/   # Main overlay application
-  │   ├── objects/               # Visual components (LinearInputIndicator, etc.)
-  │   ├── actions/               # Scene modifiers (PropertyEdit)
-  │   ├── _helpers/              # Utilities (Vector, draw helpers)
-  │   └── _compiled/             # TypeScript output (gitignored)
-  ├── index.html
-  ├── package.json               # Web dependencies (TypeScript, http-server)
-  └── tsconfig.json
+SourceCode/
+  ├── _devTools/                 # Build configs and scripts
+  │   ├── tsconfig.json          # Base TypeScript config
+  │   ├── tsconfig.webapp.json   # WebApp config (ES2022 modules)
+  │   ├── tsconfig.desktop.json  # Desktop config (CommonJS)
+  │   ├── .eslintrc.cjs          # ESLint config
+  │   └── buildForWindowsDevelopment.ps1
+  │
+  ├── WebApp/                    # Web application (browser + Electron renderer)
+  │   ├── viewWhichRendersConfigurationAndUi/
+  │   │   ├── canvasRenderer/    # Rendering engine
+  │   │   ├── inputReaders/      # Input listeners (keyboard, mouse, gamepad)
+  │   │   └── uiComponents/      # UI (PropertyEdit, toast)
+  │   ├── modelToSaveCustomConfigurationLocally/  # Config management
+  │   ├── _helpers/              # Utilities (Vector, version)
+  │   └── index.html
+  │
+  └── DesktopWrappedWebapp/      # Electron wrapper (main process)
+      ├── main.ts                # Window management, native input hooks
+      └── preload.ts             # IPC bridge
 
-wrapWebAppAsStandaloneProgram/   # Electron wrapper
-  ├── main.js                    # Electron main process
-  ├── preload.js                 # Secure IPC bridge
-  └── package.json               # Electron dependencies
-
-forDevelopment_build.ps1                    # Shared build script (DRY)
-forDevelopment_buildAndLaunchWebapp.ps1     # Build & launch Electron (dev mode)
-forDevelopment_buildAndLaunchWebsite.ps1    # Build & launch web version
-forDevelopment_launchInReadonlyMode.ps1     # Build & launch overlay mode
+package.json                     # Root dependencies (all merged)
+.gitignore                       # Ignores: **/*.js, **/*.js.map, **/*.d.ts
 ```
+
+All `.js` files are gitignored build artifacts. TypeScript compiles to sibling `.js` files.
 
 See [CLAUDE.md](CLAUDE.md) for full technical details and architecture.
 
