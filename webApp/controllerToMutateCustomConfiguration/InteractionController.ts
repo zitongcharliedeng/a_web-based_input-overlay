@@ -17,7 +17,7 @@ import { mouse } from '../viewWhichRendersConfigurationAndUi/inputReaders/mouse.
 import { keyboard } from '../viewWhichRendersConfigurationAndUi/inputReaders/keyboard.js';
 
 export class InteractionController {
-	private clickedObject: CanvasObject | null = null;
+	private clickedObjectId: string | null = null;  // Track by ID, not reference
 	private draggingOffset = new Vector(0, 0);
 	private gridsize = 10;
 	private editingProperties = false;
@@ -80,17 +80,17 @@ export class InteractionController {
 	}
 
 	/**
-	 * Get currently selected object
+	 * Get currently selected object ID
 	 */
-	getClickedObject(): CanvasObject | null {
-		return this.clickedObject;
+	getClickedObjectId(): string | null {
+		return this.clickedObjectId;
 	}
 
 	/**
 	 * Clear selection state (called when objects are rebuilt from config)
 	 */
 	clearSelection(): void {
-		this.clickedObject = null;
+		this.clickedObjectId = null;
 	}
 
 	/**
@@ -98,46 +98,49 @@ export class InteractionController {
 	 * Returns true if canvas needs redraw
 	 */
 	update(objects: CanvasObject[]): boolean {
-		// Click detection: find which object was clicked
+		// Click detection: find which object was clicked (track by ID)
 		if (mouse.clicks[0] === true || mouse.clicks[2] === true) {
-			this.clickedObject = null;
+			this.clickedObjectId = null;
 			for (let i = 0; i < objects.length; i++) {
 				const object = objects[i];
 				if ((mouse.x > object.positionOnCanvas.pxFromCanvasLeft && mouse.y > object.positionOnCanvas.pxFromCanvasTop)
 				&& (mouse.x < object.positionOnCanvas.pxFromCanvasLeft + object.hitboxSize.widthInPx && mouse.y < object.positionOnCanvas.pxFromCanvasTop + object.hitboxSize.lengthInPx)) {
 					this.draggingOffset.x = object.positionOnCanvas.pxFromCanvasLeft - mouse.x;
 					this.draggingOffset.y = object.positionOnCanvas.pxFromCanvasTop - mouse.y;
-					this.clickedObject = object;
-					console.log("Clicked on object:", object);
+					this.clickedObjectId = object.id;  // Store ID, not reference
+					console.log("Clicked on object:", object.id);
 					break;
 				}
 			}
 		}
 
+		// Find clicked object in current frame's objects (by ID)
+		const clickedObject = this.clickedObjectId ? objects.find(o => o.id === this.clickedObjectId) : null;
+
 		// Drag release: save position
-		if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && this.clickedObject !== null) {
+		if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && clickedObject !== null) {
 			console.log("Released mouse - saving position via ConfigManager");
-			const objectIndex = objects.indexOf(this.clickedObject);
+			const objectIndex = objects.indexOf(clickedObject);
 			if (objectIndex >= 0 && this.onMoveObject) {
 				this.onMoveObject(
 					objectIndex,
-					this.clickedObject.positionOnCanvas.pxFromCanvasLeft,
-					this.clickedObject.positionOnCanvas.pxFromCanvasTop
+					clickedObject.positionOnCanvas.pxFromCanvasLeft,
+					clickedObject.positionOnCanvas.pxFromCanvasTop
 				);
 			}
-			this.clickedObject = null;
+			this.clickedObjectId = null;
 		}
 
 		// Dragging: update position with grid snapping
-		if (this.clickedObject !== null && mouse.buttons[0] === true) {
+		if (clickedObject !== null && mouse.buttons[0] === true) {
 			console.log("Dragging");
-			this.clickedObject.positionOnCanvas.pxFromCanvasLeft = Math.round((mouse.x + this.draggingOffset.x)/this.gridsize)*this.gridsize;
-			this.clickedObject.positionOnCanvas.pxFromCanvasTop = Math.round((mouse.y + this.draggingOffset.y)/this.gridsize)*this.gridsize;
+			clickedObject.positionOnCanvas.pxFromCanvasLeft = Math.round((mouse.x + this.draggingOffset.x)/this.gridsize)*this.gridsize;
+			clickedObject.positionOnCanvas.pxFromCanvasTop = Math.round((mouse.y + this.draggingOffset.y)/this.gridsize)*this.gridsize;
 		}
 
 		// Click away from any active UI - close all
 		if (mouse.clicks[2] === true || mouse.clicks[0] === true) {
-			if (this.clickedObject === null && (this.editingProperties === true || this.creationPanelActive === true)) {
+			if (clickedObject === null && (this.editingProperties === true || this.creationPanelActive === true)) {
 				console.log("clicked away from editor/panel - saving changes and closing");
 				if (this.onCloseEditors) {
 					this.onCloseEditors();
@@ -146,15 +149,15 @@ export class InteractionController {
 		}
 
 		// Right-click object - show PropertyEdit
-		if (mouse.clicks[2] === true && this.clickedObject !== null && !this.editingProperties && !this.creationPanelActive) {
+		if (mouse.clicks[2] === true && clickedObject !== null && !this.editingProperties && !this.creationPanelActive) {
 			console.log("Right-clicked object - showing PropertyEdit");
 			if (this.onShowPropertyEdit) {
-				this.onShowPropertyEdit(this.clickedObject);
+				this.onShowPropertyEdit(clickedObject);
 			}
 		}
 
 		// Right-click background - show both panels (canvas editor + creation)
-		if (mouse.clicks[2] === true && this.clickedObject === null && !this.editingProperties && !this.creationPanelActive) {
+		if (mouse.clicks[2] === true && clickedObject === null && !this.editingProperties && !this.creationPanelActive) {
 			console.log("Right-clicked background - showing both panels");
 			if (this.onShowCreationPanel) {
 				this.onShowCreationPanel();
@@ -162,11 +165,11 @@ export class InteractionController {
 		}
 
 		// Handle delete key (Delete or Backspace)
-		if ((keyboard['Delete'] || keyboard['Backspace']) && this.clickedObject !== null) {
-			const objectIndex = objects.indexOf(this.clickedObject);
+		if ((keyboard['Delete'] || keyboard['Backspace']) && clickedObject !== null) {
+			const objectIndex = objects.indexOf(clickedObject);
 			if (objectIndex >= 0 && this.onDeleteObject) {
 				this.onDeleteObject(objectIndex);
-				this.clickedObject = null;
+				this.clickedObjectId = null;
 			}
 		}
 
@@ -177,6 +180,6 @@ export class InteractionController {
 	 * Check if any object is selected (for View to decide whether to render hitboxes)
 	 */
 	hasSelection(): boolean {
-		return this.clickedObject !== null;
+		return this.clickedObjectId !== null;
 	}
 }
