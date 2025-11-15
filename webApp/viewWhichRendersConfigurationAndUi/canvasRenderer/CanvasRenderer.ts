@@ -29,8 +29,7 @@ export class CanvasRenderer {
 	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
 	private deserializer: (objData: CanvasObjectConfig) => CanvasObject;
-	private cachedConfig: OmniConfig | null = null;
-	private cachedObjects: CanvasObject[] = [];
+	private cache: { config: OmniConfig; objects: CanvasObject[] } | null = null;
 
 	constructor(canvas: HTMLCanvasElement, deserializer: (objData: CanvasObjectConfig) => CanvasObject) {
 		this.canvas = canvas;
@@ -60,18 +59,21 @@ export class CanvasRenderer {
 	 * Update all objects (called before render)
 	 * Returns deserialized objects for interaction handling
 	 * Caches objects - only rebuilds when config reference changes (preserves runtime state like opacity for fades)
+	 * Contract: ConfigManager must return new config reference on mutation (immutability)
 	 */
-	update(config: OmniConfig, delta: number): CanvasObject[] {
-		if (config !== this.cachedConfig) {
-			this.cachedObjects = this.deserializeObjects(config);
-			this.cachedConfig = config;
+	update(config: OmniConfig, delta: number): readonly CanvasObject[] {
+		if (this.cache?.config !== config) {
+			this.cache = {
+				config,
+				objects: this.deserializeObjects(config)
+			};
 		}
 
-		for (let i = 0; i < this.cachedObjects.length; i++) {
-			this.cachedObjects[i].update(delta);
+		for (let i = 0; i < this.cache.objects.length; i++) {
+			this.cache.objects[i].update(delta);
 		}
 
-		return this.cachedObjects;
+		return this.cache.objects;
 	}
 
 	/**
