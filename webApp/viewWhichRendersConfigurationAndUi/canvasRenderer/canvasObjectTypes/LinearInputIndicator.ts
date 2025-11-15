@@ -7,42 +7,39 @@ import type { LinearInputIndicatorConfig, LinearInputIndicatorTemplate, CanvasOb
 // Commercial joysticks have 0.5-2% center drift: Xbox/PS ~0.01, Switch ~0.015, cheap ~0.03.
 // antiDeadzone compensates for analog stick resting position drift due to manufacturing tolerances.
 
-const defaultLinearInputIndicatorProperties: LinearInputIndicatorTemplate = {
+const SMART_DEFAULTS = {
+	id: '',  // Will be overridden by UUID or user config
+	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
+	hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+	layerLevel: 10,
 	input: {
-		keyboard: {
-			keyCode: null
-		},
-		mouse: {
-			button: null,
-			wheel: null
-		},
+		keyboard: { keyCode: null },
+		mouse: { button: null, wheel: null },
 		gamepad: {
-			stick: {
-				type: null,
-				axis: null,
-				direction: null
-			},
-			button: {
-				index: null
-			}
+			stick: { type: null, axis: null, direction: null },
+			button: { index: null }
 		}
 	},
-
 	processing: {
 		radialCompensationAxis: -1,
 		multiplier: 1,
 		antiDeadzone: 0.01,
-		fadeOutDuration: 0.2,
+		fadeOutDuration: 0.2
 	},
-
 	display: {
-		text: "SampleText",
-		reverseFillDirection: false,
-		fillStyle: "rgba(255, 255, 255, 0.5)",
-		fillStyleBackground: "rgba(37, 37, 37, 0.43)",
-		fontStyle: { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 },
+		text: "",
+		fillStyle: "#00ff00",
+		fillStyleBackground: "#222222",
+		fontStyle: {
+			textAlign: "center" satisfies CanvasTextAlign,
+			fillStyle: "black",
+			font: "30px Lucida Console",
+			strokeStyle: "white",
+			strokeWidth: 3
+		},
+		reverseFillDirection: false
 	}
-}
+};
 
 type GamepadStickInput = {
 	type: 'left' | 'right' | null;
@@ -66,164 +63,146 @@ class LinearInputIndicator extends CanvasObject {
 	static readonly TYPE = 'linearInputIndicator' as const;
 	static readonly DISPLAY_NAME = 'LinearInputIndicator';
 	static readonly DEFAULT_TEMPLATE: LinearInputIndicatorTemplate = {
-		input: {
-			keyboard: { keyCode: null },
-			mouse: { button: null, wheel: null },
-			gamepad: {
-				stick: { type: null, axis: null, direction: null },
-				button: { index: null }
-			}
-		},
-		processing: {
-			radialCompensationAxis: -1,
-			multiplier: 1,
-			antiDeadzone: 0.01,
-			fadeOutDuration: 0.2
-		},
+		input: SMART_DEFAULTS.input,
+		processing: SMART_DEFAULTS.processing,
 		display: {
-			text: "",
-			fillStyle: "#00ff00",
-			fillStyleBackground: "#222222",
+			...SMART_DEFAULTS.display,
 			fontStyle: {
-				textAlign: "center",
-				fillStyle: "black",
-				font: "30px Lucida Console",
-				strokeStyle: "white",
-				strokeWidth: 3
-			},
-			reverseFillDirection: false
+				...SMART_DEFAULTS.display.fontStyle,
+				textAlign: SMART_DEFAULTS.display.fontStyle.textAlign as CanvasTextAlign
+			}
 		}
 	};
+
+	static readonly TEMPLATES = {
+		W: {
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "W" }
+		},
+		A: {
+			input: { keyboard: { keyCode: "KeyA" } },
+			display: { text: "A" }
+		},
+		S: {
+			input: { keyboard: { keyCode: "KeyS" } },
+			display: { text: "S", reverseFillDirection: true }
+		},
+		D: {
+			input: { keyboard: { keyCode: "KeyD" } },
+			display: { text: "D" }
+		},
+		SPACE: {
+			input: { keyboard: { keyCode: "Space" } },
+			display: { text: "␣" }
+		},
+		MOUSE_LEFT: {
+			input: { mouse: { button: 0 } },
+			display: { text: "LMB" }
+		},
+		MOUSE_RIGHT: {
+			input: { mouse: { button: 2 } },
+			display: { text: "RMB" }
+		},
+		GAMEPAD_A: {
+			input: { gamepad: { button: { index: 0 } } },
+			display: { text: "A" }
+		}
+	};
+
+	static spawn(templateName: keyof typeof LinearInputIndicator.TEMPLATES, overrides?: Partial<LinearInputIndicatorConfig>): LinearInputIndicator {
+		const template = LinearInputIndicator.TEMPLATES[templateName];
+
+		// Deep merge template with overrides using explicit spreading
+		const merged: Partial<LinearInputIndicatorConfig> = {
+			...template as any,
+			...overrides,
+			input: {
+				keyboard: { ...(template as any).input?.keyboard, ...overrides?.input?.keyboard },
+				mouse: { ...(template as any).input?.mouse, ...overrides?.input?.mouse },
+				gamepad: {
+					stick: { ...(template as any).input?.gamepad?.stick, ...overrides?.input?.gamepad?.stick },
+					button: { ...(template as any).input?.gamepad?.button, ...overrides?.input?.gamepad?.button }
+				}
+			},
+			processing: { ...(template as any).processing, ...overrides?.processing },
+			display: {
+				...(template as any).display,
+				...overrides?.display,
+				fontStyle: { ...(template as any).display?.fontStyle, ...overrides?.display?.fontStyle }
+			}
+		};
+
+		return new LinearInputIndicator(merged);
+	}
 
 	static fromConfig(config: CanvasObjectConfig): LinearInputIndicator {
 		if (config.type !== 'linearInputIndicator') {
 			throw new Error(`Invalid config type: expected linearInputIndicator, got ${config.type}`);
 		}
-		return new LinearInputIndicator(
-			config.id,
-			config.positionOnCanvas.pxFromCanvasLeft,
-			config.positionOnCanvas.pxFromCanvasTop,
-			config.hitboxSize.widthInPx,
-			config.hitboxSize.lengthInPx,
-			{
-				input: config.input,
-				processing: config.processing,
-				display: config.display
-			},
-			config.layerLevel
-		);
+		return new LinearInputIndicator(config);
 	}
 
-	defaultProperties: LinearInputIndicatorTemplate = defaultLinearInputIndicatorProperties;
 	className: string = "LinearInputIndicator";
 
-	// Internal properties from input config
-	keyCode: string | null = null;
-	mouseButton: number | null = null;
-	mouseWheel: "up" | "down" | null = null;
-	hasStickInput: boolean = false;
-	axis: number | null = null;
-	invertedAxis: boolean = false;
-	hasButtonInput: boolean = false;
-	button: number | null = null;
-
-	// Internal properties from processing config
-	radialCompensationAxis: number = -1;
-	multiplier: number = 1;
-	antiDeadzone: number = 0.0;
-	fadeOutDuration: number = 0.0;
-
-	// No fade state needed - pure signal processing
-
-	// Internal properties from display config
-	keyText: string = "SampleText";
-	reverseFillDirection: boolean = false;
-	fillStyle: string = "rgba(255, 255, 255, 0.5)";
-	fillStyleBackground: string = "rgba(37, 37, 37, 0.43)";
-	fontStyle: { textAlign: CanvasTextAlign; fillStyle: string; font: string; strokeStyle: string; strokeWidth: number } = { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
+	// Nested config properties (NO flattening)
+	input: LinearInputIndicatorTemplate['input'];
+	processing: LinearInputIndicatorTemplate['processing'];
+	display: LinearInputIndicatorTemplate['display'];
 
 	// Runtime values
 	value: number = 0;
 	_previousValue: number = 0;
 	opacity: number = 1.0; // Fade opacity instead of value
 
-	// Config properties (before flattening)
-	input: LinearInputIndicatorTemplate['input'] = defaultLinearInputIndicatorProperties.input;
-	processing: LinearInputIndicatorTemplate['processing'] = defaultLinearInputIndicatorProperties.processing;
-	display: LinearInputIndicatorTemplate['display'] = defaultLinearInputIndicatorProperties.display;
-
-	constructor(id: string, x: number, y: number, width: number, height: number, properties?: Partial<LinearInputIndicatorTemplate>, layerLevel?: number) {
-		super(
-			id,
-			{ pxFromCanvasTop: y, pxFromCanvasLeft: x },
-			{ widthInPx: width, lengthInPx: height },
-			"linearInputIndicator",
-			layerLevel ?? 10
-		);
-
-		const props = properties ?? {};
-		const defaults = defaultLinearInputIndicatorProperties;
-
-		this.input = {
-			keyboard: { ...defaults.input.keyboard, ...props.input?.keyboard },
-			mouse: { ...defaults.input.mouse, ...props.input?.mouse },
-			gamepad: {
-				stick: { ...defaults.input.gamepad.stick, ...props.input?.gamepad?.stick },
-				button: { ...defaults.input.gamepad.button, ...props.input?.gamepad?.button }
-			}
+	constructor(config?: Partial<LinearInputIndicatorConfig>) {
+		// Deep merge config with SMART_DEFAULTS
+		const merged: LinearInputIndicatorConfig = {
+			...SMART_DEFAULTS,
+			...config,
+			input: {
+				keyboard: { ...SMART_DEFAULTS.input.keyboard, ...config?.input?.keyboard },
+				mouse: { ...SMART_DEFAULTS.input.mouse, ...config?.input?.mouse },
+				gamepad: {
+					stick: { ...SMART_DEFAULTS.input.gamepad.stick, ...config?.input?.gamepad?.stick },
+					button: { ...SMART_DEFAULTS.input.gamepad.button, ...config?.input?.gamepad?.button }
+				}
+			},
+			processing: { ...SMART_DEFAULTS.processing, ...config?.processing },
+			display: {
+				...SMART_DEFAULTS.display,
+				...config?.display,
+				fontStyle: {
+					...SMART_DEFAULTS.display.fontStyle,
+					...config?.display?.fontStyle,
+					textAlign: (config?.display?.fontStyle?.textAlign || SMART_DEFAULTS.display.fontStyle.textAlign) as CanvasTextAlign
+				}
+			},
+			positionOnCanvas: { ...SMART_DEFAULTS.positionOnCanvas, ...config?.positionOnCanvas },
+			hitboxSize: { ...SMART_DEFAULTS.hitboxSize, ...config?.hitboxSize }
 		};
 
-		this.processing = { ...defaults.processing, ...props.processing };
-		this.display = { ...defaults.display, ...props.display };
+		// Generate UUID if id not provided
+		const finalId = merged.id || self.crypto?.randomUUID?.() || `linear-${Date.now()}-${Math.random()}`;
 
+		super(
+			finalId,
+			merged.positionOnCanvas,
+			merged.hitboxSize,
+			"linearInputIndicator",
+			merged.layerLevel
+		);
+
+		// Store nested config (NO flattening to top-level this.keyCode etc.)
+		this.input = merged.input;
+		this.processing = merged.processing;
+		this.display = merged.display;
+
+		// Initialize runtime values
 		this.value = 0;
 		this._previousValue = 0;
-
-		this.syncProperties();
+		this.opacity = 1.0;
 	}
 
-	override syncProperties(): void {
-		if (this.input) {
-			this.keyCode = this.input.keyboard?.keyCode ?? null;
-			this.mouseButton = this.input.mouse?.button ?? null;
-			this.mouseWheel = this.input.mouse?.wheel ?? null;
-
-			const stick = this.input.gamepad?.stick;
-			this.hasStickInput = stick ? (asConventionalGamepadAxisNumber(stick) !== null) : false;
-			if (this.hasStickInput && stick) {
-				this.axis = asConventionalGamepadAxisNumber(stick);
-				this.invertedAxis = (stick.direction === "negative");
-			} else {
-				this.hasStickInput = false;
-				this.axis = null;
-				this.invertedAxis = false;
-			}
-
-			const buttonIndex = this.input.gamepad?.button?.index;
-			this.hasButtonInput = (buttonIndex !== null && buttonIndex !== undefined);
-			if (this.hasButtonInput) {
-				this.button = buttonIndex ?? null;
-			} else {
-				this.hasButtonInput = false;
-				this.button = null;
-			}
-		}
-
-		if (this.processing) {
-			this.radialCompensationAxis = this.processing.radialCompensationAxis ?? -1;
-			this.multiplier = this.processing.multiplier ?? 1;
-			this.antiDeadzone = this.processing.antiDeadzone ?? 0.0;
-			this.fadeOutDuration = this.processing.fadeOutDuration ?? 0.0;
-		}
-
-		if (this.display) {
-			this.keyText = this.display.text ?? "SampleText";
-			this.reverseFillDirection = this.display.reverseFillDirection ?? false;
-			this.fillStyle = this.display.fillStyle ?? "rgba(255, 255, 255, 0.5)";
-			this.fillStyleBackground = this.display.fillStyleBackground ?? "rgba(37, 37, 37, 0.43)";
-			this.fontStyle = this.display.fontStyle ?? { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
-		}
-	}
 
 	private applyOpacityToColor(color: string, opacity: number): string {
 		// Parse rgba(r, g, b, a) or rgb(r, g, b)
@@ -261,26 +240,29 @@ class LinearInputIndicator extends CanvasObject {
 
 		// Get keyboard input
 		const keyboard = window.keyboard;
-		value += (this.keyCode && keyboard[this.keyCode]) ? 1 : 0;
+		const keyCode = this.input.keyboard.keyCode;
+		value += (keyCode && keyboard[keyCode]) ? 1 : 0;
 
 		// Get mouse input
 		const mouse = window.mouse;
-		if (this.mouseButton !== null && mouse.buttons[this.mouseButton]) {
+		const mouseButton = this.input.mouse.button;
+		if (mouseButton !== null && mouse.buttons[mouseButton]) {
 			value += 1;
 		}
 
-		// Get mouse wheel input (single-frame events like clicks)
-		if (this.mouseWheel !== null && mouse.wheelEvents) {
-			if (this.mouseWheel === "up" && mouse.wheelEvents.up) {
+		// Get mouse wheel input (single-frame events)
+		const mouseWheel = this.input.mouse.wheel;
+		if (mouseWheel !== null && mouse.wheelEvents) {
+			if (mouseWheel === "up" && mouse.wheelEvents.up) {
 				value += 1;
-			} else if (this.mouseWheel === "down" && mouse.wheelEvents.down) {
+			} else if (mouseWheel === "down" && mouse.wheelEvents.down) {
 				value += 1;
 			}
 		}
 
-		// Key antiDeadzone has to be lowered when a compensation axis surpasses the antiDeadzone for better directional indications
-		// This is a lazy way to achieve this, but works for now
-		let newAntiDeadzone = Math.max(0, this.antiDeadzone - compensationAxisValue * 0.5)
+		// Compute antiDeadzone (adjusted by compensation axis)
+		const antiDeadzone = this.processing.antiDeadzone;
+		let newAntiDeadzone = Math.max(0, antiDeadzone - compensationAxisValue * 0.5);
 
 		// Get gamepad input
 		const gamepads = window.gamepads;
@@ -288,59 +270,62 @@ class LinearInputIndicator extends CanvasObject {
 			for (let i = 0; i < gamepads.length; i++) {
 				const gamepad = gamepads[i];
 				if (!gamepad) continue;
-			if (gamepad.axes && this.hasStickInput && this.axis !== null) {
-				const axisValue = gamepad.axes[this.axis];
-				const compensationValue = this.radialCompensationAxis >= 0 ? gamepad.axes[this.radialCompensationAxis] : undefined;
 
-				if (axisValue !== null && axisValue !== undefined
-				&& ((this.invertedAxis === true && axisValue < 0)
-				|| (this.invertedAxis === false && axisValue > 0))) {
-					if (this.radialCompensationAxis >= 0 && compensationValue !== undefined) {
+				// Gamepad stick input
+				const stick = this.input.gamepad.stick;
+				const axisNumber = asConventionalGamepadAxisNumber(stick);
+				if (gamepad.axes && axisNumber !== null) {
+					const axisValue = gamepad.axes[axisNumber];
+					const invertedAxis = (stick.direction === "negative");
+					const radialCompensationAxis = this.processing.radialCompensationAxis;
+					const compensationValue = radialCompensationAxis >= 0 ? gamepad.axes[radialCompensationAxis] : undefined;
 
-						//Converts circular back to square coordinates
-						value += Math.abs(axisValue) * Math.sqrt(1 + 2 * Math.pow(Math.abs(compensationValue), 2))
+					if (axisValue !== null && axisValue !== undefined
+						&& ((invertedAxis === true && axisValue < 0)
+						|| (invertedAxis === false && axisValue > 0))) {
+						if (radialCompensationAxis >= 0 && compensationValue !== undefined) {
+							// Converts circular back to square coordinates
+							value += Math.abs(axisValue) * Math.sqrt(1 + 2 * Math.pow(Math.abs(compensationValue), 2));
+						} else if (radialCompensationAxis < 0) {
+							value += (Math.abs(axisValue) - newAntiDeadzone) / (1 - newAntiDeadzone);
+						}
+					}
 
-					} else if (this.radialCompensationAxis < 0) {
-
-						value += (Math.abs(axisValue) - newAntiDeadzone) / (1 - newAntiDeadzone)
+					if (radialCompensationAxis >= 0 && compensationValue !== undefined) {
+						compensationAxisValue += Math.abs(compensationValue);
 					}
 				}
 
-
-				if (this.radialCompensationAxis >= 0 && compensationValue !== undefined) {
-
-					compensationAxisValue += Math.abs(compensationValue)
+				// Gamepad button input
+				const buttonIndex = this.input.gamepad.button.index;
+				if (gamepad.buttons && buttonIndex !== null) {
+					const button = gamepad.buttons[buttonIndex];
+					if (button) {
+						value += button.value;
+					}
 				}
-			}
-			if (gamepad.buttons && this.hasButtonInput && this.button !== null) {
-				const button = gamepad.buttons[this.button];
-				if (button) {
-					value += button.value
-				}
-			}
 			}
 		}
 
 		// Calculate raw input value (clamped 0-1)
-		// Guard against divide-by-zero
 		if (newAntiDeadzone >= 1.0) newAntiDeadzone = 0.999;
-		const rawValue = Math.max(Math.min((value - newAntiDeadzone) / (1 - newAntiDeadzone) * this.multiplier, 1), 0);
+		const multiplier = this.processing.multiplier;
+		const rawValue = Math.max(Math.min((value - newAntiDeadzone) / (1 - newAntiDeadzone) * multiplier, 1), 0);
 
-		// Signal processing approach: fade opacity, not fill amount
+		// Signal processing: fade opacity, not fill amount
+		const fadeOutDuration = this.processing.fadeOutDuration;
 		if (rawValue > 0) {
 			// Input active - instant response, full opacity
 			this.value = rawValue;
 			this.opacity = 1.0;
-		} else if (this.fadeOutDuration > 0 && this.value > 0) {
+		} else if (fadeOutDuration > 0 && this.value > 0) {
 			// Input inactive - keep fill at current value, fade opacity to 0
-			// Decay rate: higher fadeOutDuration = slower decay
-			const decayRate = 1.0 / this.fadeOutDuration;
+			const decayRate = 1.0 / fadeOutDuration;
 			this.opacity = this.opacity * Math.exp(-decayRate * delta);
 
-			// Clamp to 0 when very small (prevent floating point drift)
 			if (this.opacity < 0.001) {
 				this.opacity = 0;
-				this.value = 0; // Clear value when fade complete
+				this.value = 0;
 			}
 		} else {
 			// No fade - instant off
@@ -353,58 +338,36 @@ class LinearInputIndicator extends CanvasObject {
 
 	draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
 		// Fill background
+		const fillStyleBackground = this.display.fillStyleBackground;
 		ctx.beginPath();
-		canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx, {fillStyle:this.fillStyleBackground});
+		canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx, { fillStyle: fillStyleBackground });
 
 		// Fill value (vertical fill from bottom or top)
 		// Apply opacity to fillStyle for fade effect
-		const fillStyleWithOpacity = this.applyOpacityToColor(this.fillStyle, this.opacity);
+		const fillStyle = this.display.fillStyle;
+		const fillStyleWithOpacity = this.applyOpacityToColor(fillStyle, this.opacity);
 
+		const reverseFillDirection = this.display.reverseFillDirection;
 		ctx.beginPath();
-		if (this.reverseFillDirection == true)
+		if (reverseFillDirection === true)
 			canvas_fill_rec(ctx, 0, this.hitboxSize.lengthInPx, this.hitboxSize.widthInPx, -this.hitboxSize.lengthInPx * this.value, { fillStyle: fillStyleWithOpacity });
 		else
 			canvas_fill_rec(ctx, 0, 0, this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx * this.value, { fillStyle: fillStyleWithOpacity });
 
 		// Print key text centered with configurable stroke outline
+		const keyText = this.display.text;
+		const fontStyle = this.display.fontStyle;
 		const textX = this.hitboxSize.widthInPx * 0.5;
 		const textY = this.hitboxSize.lengthInPx * 0.5;
-		canvas_properties(ctx, this.fontStyle);
-		ctx.strokeStyle = this.fontStyle.strokeStyle ?? "white";
-		ctx.lineWidth = this.fontStyle.strokeWidth ?? 3;
-		ctx.strokeText(this.keyText, textX, textY);
-		canvas_text(ctx, textX, textY, this.keyText, this.fontStyle);
+		canvas_properties(ctx, fontStyle);
+		ctx.strokeStyle = fontStyle.strokeStyle ?? "white";
+		ctx.lineWidth = fontStyle.strokeWidth ?? 3;
+		ctx.strokeText(keyText, textX, textY);
+		canvas_text(ctx, textX, textY, keyText, fontStyle);
 	}
 }
 
 export { LinearInputIndicator };
 
-export const defaultTemplateFor_LinearInputIndicator = {
-	input: {
-		keyboard: { keyCode: null },
-		mouse: { button: null, wheel: null },
-		gamepad: {
-			stick: { type: null, axis: null, direction: null },
-			button: { index: null }
-		}
-	},
-	processing: {
-		radialCompensationAxis: -1,
-		multiplier: 1,
-		antiDeadzone: 0.01,
-		fadeOutDuration: 0.2
-	},
-	display: {
-		text: "",
-		fillStyle: "#00ff00",
-		fillStyleBackground: "#222222",
-		fontStyle: {
-			textAlign: "center" satisfies CanvasTextAlign,
-			fillStyle: "black",
-			font: "30px Lucida Console",
-			strokeStyle: "white",
-			strokeWidth: 3
-		},
-		reverseFillDirection: false
-	}
-} satisfies LinearInputIndicatorTemplate;
+// Deprecated: Use LinearInputIndicator.DEFAULT_TEMPLATE instead
+export const defaultTemplateFor_LinearInputIndicator = LinearInputIndicator.DEFAULT_TEMPLATE;
