@@ -50,7 +50,7 @@ const LinearInputIndicatorConfigSchema = BaseCanvasObjectConfigSchema.extend({
 		fillStyle: z.string(),
 		fillStyleBackground: z.string(),
 		fontStyle: z.object({
-			textAlign: z.string(),
+			textAlign: z.enum(['left', 'right', 'center', 'start', 'end']),
 			fillStyle: z.string(),
 			font: z.string(),
 			strokeStyle: z.string(),
@@ -95,7 +95,7 @@ const PlanarInputIndicatorConfigSchema = BaseCanvasObjectConfigSchema.extend({
 const TextConfigSchema = BaseCanvasObjectConfigSchema.extend({
 	text: z.string(),
 	textStyle: z.object({
-		textAlign: z.string(),
+		textAlign: z.enum(['left', 'right', 'center', 'start', 'end']),
 		fillStyle: z.string(),
 		font: z.string(),
 		strokeStyle: z.string(),
