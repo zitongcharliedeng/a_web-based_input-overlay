@@ -22,6 +22,7 @@ export class InteractionController {
 	private gridsize = 10;
 	private editingProperties = false;
 	private creationPanelActive = false;
+	private dragStartPosition: { x: number, y: number } | null = null;  // Track if object actually moved
 
 	// Callbacks
 	private onMoveObject: ((objectIndex: number, x: number, y: number) => void) | null = null;
@@ -101,6 +102,7 @@ export class InteractionController {
 		// Click detection: find which object was clicked (track by ID)
 		if (mouse.clicks[0] === true || mouse.clicks[2] === true) {
 			this.clickedObjectId = null;
+			this.dragStartPosition = null;
 			for (let i = 0; i < objects.length; i++) {
 				const object = objects[i];
 				if ((mouse.x > object.positionOnCanvas.pxFromCanvasLeft && mouse.y > object.positionOnCanvas.pxFromCanvasTop)
@@ -108,6 +110,10 @@ export class InteractionController {
 					this.draggingOffset.x = object.positionOnCanvas.pxFromCanvasLeft - mouse.x;
 					this.draggingOffset.y = object.positionOnCanvas.pxFromCanvasTop - mouse.y;
 					this.clickedObjectId = object.id;  // Store ID, not reference
+					this.dragStartPosition = {
+						x: object.positionOnCanvas.pxFromCanvasLeft,
+						y: object.positionOnCanvas.pxFromCanvasTop
+					};
 					console.log("Clicked on object:", object.id);
 					break;
 				}
@@ -117,18 +123,21 @@ export class InteractionController {
 		// Find clicked object in current frame's objects (by ID)
 		const clickedObject = this.clickedObjectId ? objects.find(o => o.id === this.clickedObjectId) : null;
 
-		// Drag release: save position
-		if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && clickedObject !== null) {
-			console.log("Released mouse - saving position via ConfigManager");
-			const objectIndex = objects.indexOf(clickedObject);
-			if (objectIndex >= 0 && this.onMoveObject) {
-				this.onMoveObject(
-					objectIndex,
-					clickedObject.positionOnCanvas.pxFromCanvasLeft,
-					clickedObject.positionOnCanvas.pxFromCanvasTop
-				);
+		// Drag release: save position only if it actually changed
+		if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && clickedObject !== null && this.dragStartPosition !== null) {
+			const currentX = clickedObject.positionOnCanvas.pxFromCanvasLeft;
+			const currentY = clickedObject.positionOnCanvas.pxFromCanvasTop;
+			const positionChanged = currentX !== this.dragStartPosition.x || currentY !== this.dragStartPosition.y;
+
+			if (positionChanged) {
+				console.log("Released mouse - saving position via ConfigManager");
+				const objectIndex = objects.indexOf(clickedObject);
+				if (objectIndex >= 0 && this.onMoveObject) {
+					this.onMoveObject(objectIndex, currentX, currentY);
+				}
 			}
-			this.clickedObjectId = null;
+			// Don't clear clickedObjectId - keep selection active until next click
+			this.dragStartPosition = null;
 		}
 
 		// Dragging: update position with grid snapping
@@ -170,6 +179,7 @@ export class InteractionController {
 			if (objectIndex >= 0 && this.onDeleteObject) {
 				this.onDeleteObject(objectIndex);
 				this.clickedObjectId = null;
+				this.dragStartPosition = null;
 			}
 		}
 
