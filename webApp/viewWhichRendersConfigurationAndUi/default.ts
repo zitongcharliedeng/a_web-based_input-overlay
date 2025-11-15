@@ -94,9 +94,13 @@ window.addEventListener("load", function (): void {
 			return;
 		}
 
-		// Config is already flat - no unwrapping needed!
+		// Strip base config fields (id, type, positionOnCanvas, hitboxSize, layerLevel)
+		// PropertyEdit expects only object-specific properties (input, processing, display, etc.)
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { id, type, positionOnCanvas, hitboxSize, layerLevel, ...objectSpecificProps } = objConfig;
+
 		activeCanvasObjects.propertyEditor.showPropertyEdit(
-			objConfig as Record<string, unknown>,
+			objectSpecificProps,
 			obj,
 			obj.id,
 			configManager,
