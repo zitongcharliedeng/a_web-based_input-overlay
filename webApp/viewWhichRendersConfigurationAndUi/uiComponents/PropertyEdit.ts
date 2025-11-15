@@ -22,6 +22,7 @@ class PropertyEdit {
 	targetScene: OmniConfig | null = null;
 	applySceneConfig: ((config: OmniConfig) => void) | null = null;
 	deleteCallback: (() => void) | null = null;
+	pendingChanges: Map<string, { path: string[], value: unknown }> = new Map();  // Accumulate changes until Done
 
 	hidePropertyEdit(): void {
 		const propertyTable = document.getElementById("propertyTable");
@@ -30,6 +31,15 @@ class PropertyEdit {
 		const unifiedEditor = document.getElementById("unifiedEditor");
 
 		if (!propertyTable || !leftPanel) return;
+
+		// Apply all pending property changes to ConfigManager
+		if (this.configManager && this.targetObjectId && this.pendingChanges.size > 0) {
+			console.log(`[PropertyEdit] Applying ${this.pendingChanges.size} pending changes`);
+			for (const change of this.pendingChanges.values()) {
+				this.configManager.updateObjectProperty(this.targetObjectId, change.path, change.value);
+			}
+			this.pendingChanges.clear();
+		}
 
 		// Canvas config editor: always apply current config
 		// (No stale config issue anymore - config is always current via ConfigManager)
@@ -68,6 +78,7 @@ class PropertyEdit {
 		this.configManager = null;
 		this.targetScene = null;
 		this.applySceneConfig = null;
+		this.pendingChanges.clear();
 	}
 
 	showPropertyEdit(config: CanvasObjectConfig, targetObject: CanvasObject, objectId: string, configManager: ConfigManager, deleteCallback?: () => void): void {
@@ -75,6 +86,7 @@ class PropertyEdit {
 		this.targetObjectId = objectId;
 		this.configManager = configManager;
 		this.deleteCallback = deleteCallback || null;
+		this.pendingChanges.clear();  // Clear any stale changes from previous edit session
 
 		const unifiedEditor = document.getElementById("unifiedEditor");
 		const propertyTable = document.getElementById("propertyTable");
@@ -223,20 +235,13 @@ class PropertyEdit {
 			try {
 				const parsed = this.parseValue(input.value);
 
-				// NEW: Dispatch action to ConfigManager (single source of truth)
-				if (this.configManager && this.targetObjectId) {
-					this.configManager.updateObjectProperty(this.targetObjectId, path, parsed);
-					input.style.borderColor = '';
-				} else {
-					// Fallback: direct mutation (should not happen in refactored code)
-					console.warn('[PropertyEdit] ConfigManager not available, using direct mutation');
-					this.setNestedValue(targetObj, path, parsed);
-					input.style.borderColor = '';
+				// Accumulate changes locally, apply on hidePropertyEdit (when user clicks Done)
+				const pathKey = path.join('.');
+				this.pendingChanges.set(pathKey, { path, value: parsed });
+				input.style.borderColor = '';
 
-					if (typeof targetObj.syncProperties === 'function') {
-						targetObj.syncProperties();
-					}
-				}
+				// Also update targetObject locally for immediate visual feedback (no config save)
+				this.setNestedValue(targetObj, path, parsed);
 			} catch (error) {
 				console.error('[PropertyEdit] Failed to parse input:', error);
 				input.style.borderColor = 'red';
