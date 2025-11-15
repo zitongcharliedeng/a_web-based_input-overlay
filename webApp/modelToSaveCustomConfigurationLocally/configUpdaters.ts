@@ -49,42 +49,11 @@ export function updateObjectPosition(
 	const newObjects = [...config.objects];
 	const targetObject = newObjects[objectIndex];
 
-	if ('linearInputIndicator' in targetObject) {
-		newObjects[objectIndex] = {
-			linearInputIndicator: {
-				...targetObject.linearInputIndicator,
-				positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y }
-			}
-		};
-	} else if ('planarInputIndicator' in targetObject) {
-		newObjects[objectIndex] = {
-			planarInputIndicator: {
-				...targetObject.planarInputIndicator,
-				positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y }
-			}
-		};
-	} else if ('text' in targetObject) {
-		newObjects[objectIndex] = {
-			text: {
-				...targetObject.text,
-				positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y }
-			}
-		};
-	} else if ('image' in targetObject) {
-		newObjects[objectIndex] = {
-			image: {
-				...targetObject.image,
-				positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y }
-			}
-		};
-	} else if ('webEmbed' in targetObject) {
-		newObjects[objectIndex] = {
-			webEmbed: {
-				...targetObject.webEmbed,
-				positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y }
-			}
-		};
-	}
+	// Flat format: just spread and update position directly
+	newObjects[objectIndex] = {
+		...targetObject,
+		positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y }
+	};
 
 	return { ...config, objects: newObjects };
 }
