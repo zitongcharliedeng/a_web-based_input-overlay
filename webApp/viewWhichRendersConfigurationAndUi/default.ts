@@ -769,31 +769,39 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 	// Helper: Create object with default position (uses registry)
 	// ARCHITECTURE: Config-first approach - ConfigManager is single source of truth
 	function createObject(type: string, template: string = 'DEFAULT') {
-		console.log('[Create] Creating new object:', type, template);
+		console.error('=== SPAWN DEBUG START ===');
+		console.error('Type:', type, 'Template:', template);
 
 		// Find the registry entry
 		const entry = CANVAS_OBJECT_REGISTRY.find(e => e.type === type);
+		console.error('Registry entry found:', !!entry);
 		if (!entry) {
-			console.error('[Create] Unknown object type:', type);
+			console.error('FAIL: Unknown object type:', type);
+			console.error('Available types:', CANVAS_OBJECT_REGISTRY.map(e => e.type));
 			return;
 		}
 
 		// Find the template
 		const templateObj = entry.templates.find(t => t.displayName === template);
+		console.error('Template found:', !!templateObj);
 		if (!templateObj) {
-			console.error('[Create] Unknown template:', template);
+			console.error('FAIL: Unknown template:', template);
+			console.error('Available templates:', entry.templates.map(t => t.displayName));
 			return;
 		}
 
 		// 1. Create OmniConfig object (not runtime object) - uses idempotent default position
 		const objectConfig = templateObj.createConfig();
-		console.log('[Create] Created config:', JSON.stringify(objectConfig, null, 2));
+		console.error('Config created:', JSON.stringify(objectConfig, null, 2));
 
 		// Phase2: Add to ConfigManager (single source of truth)
-		console.log('[Create] Current config objects:', configManager.config.objects.length);
-		console.log('[Create] Adding to ConfigManager');
+		const beforeCount = configManager.config.objects.length;
+		console.error('Before addObject:', beforeCount);
 		configManager.addObject(objectConfig);
-		console.log('[Create] After addObject:', configManager.config.objects.length);
+		const afterCount = configManager.config.objects.length;
+		console.error('After addObject:', afterCount);
+		console.error('Success:', afterCount > beforeCount);
+		console.error('=== SPAWN DEBUG END ===');
 	}
 
 	// Phase2: Delete object by index
