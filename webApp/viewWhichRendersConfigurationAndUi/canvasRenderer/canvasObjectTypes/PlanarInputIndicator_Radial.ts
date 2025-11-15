@@ -1,6 +1,7 @@
 import { CanvasObject } from './BaseCanvasObject.js';
 import { Vector } from '../../../_helpers/Vector.js';
 import { canvas_properties, canvas_arc, canvas_line, canvas_arrow } from '../canvasDrawingHelpers.js';
+import type { PlanarInputIndicatorConfig, PlanarInputIndicatorTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 interface AxisMapping {
 	[axisIndex: number]: boolean;
@@ -91,6 +92,50 @@ const defaultPlanarInputIndicator_RadialProperties: PlanarInputIndicatorDefaults
 };
 
 class PlanarInputIndicator_Radial extends CanvasObject {
+	static readonly TYPE = 'planarInputIndicator' as const;
+	static readonly DISPLAY_NAME = 'PlanarInputIndicator_Radial';
+	static readonly DEFAULT_TEMPLATE: PlanarInputIndicatorTemplate = {
+		input: {
+			xAxes: {},
+			yAxes: {},
+			invertX: false,
+			invertY: false
+		},
+		processing: {
+			deadzone: 0.01,
+			antiDeadzone: 0
+		},
+		display: {
+			radius: 100,
+			stickRadius: 40,
+			fillStyle: "#00ff00",
+			fillStyleStick: "#ffffff",
+			fillStyleBackground: "rgba(0, 0, 0, 0.5)",
+			backgroundStyle: { lineWidth: 2, strokeStyle: "#B4B4B4", fillStyle: "rgba(0, 0, 0, 0)" },
+			xLineStyle: { strokeStyle: "#FF0000", lineWidth: 2 },
+			yLineStyle: { strokeStyle: "#00FF00", lineWidth: 2 },
+			deadzoneStyle: { fillStyle: "#524d4d" },
+			inputVectorStyle: { strokeStyle: "#FFFF00", lineWidth: 2 },
+			unitVectorStyle: { strokeStyle: "#0000FF", lineWidth: 2 }
+		}
+	};
+
+	static fromConfig(config: PlanarInputIndicatorConfig): PlanarInputIndicator_Radial {
+		return new PlanarInputIndicator_Radial(
+			config.id,
+			config.positionOnCanvas.pxFromCanvasLeft,
+			config.positionOnCanvas.pxFromCanvasTop,
+			config.hitboxSize.widthInPx,
+			config.hitboxSize.lengthInPx,
+			{
+				input: config.input,
+				processing: config.processing,
+				display: config.display
+			},
+			config.layerLevel
+		);
+	}
+
 	defaultProperties: PlanarInputIndicator_RadialProperties = defaultPlanarInputIndicator_RadialProperties;
 	className: string = "PlanarInputIndicator_Radial";
 

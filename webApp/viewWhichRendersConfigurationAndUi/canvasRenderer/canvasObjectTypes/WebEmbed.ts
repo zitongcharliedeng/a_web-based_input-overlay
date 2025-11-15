@@ -1,4 +1,5 @@
 import { CanvasObject } from './BaseCanvasObject.js';
+import type { WebEmbedConfig, WebEmbedTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 interface WebEmbedProperties {
 	url?: string;
@@ -11,6 +12,28 @@ const defaultWebEmbedProperties: { url: string; opacity: number } = {
 };
 
 class WebEmbed extends CanvasObject {
+	static readonly TYPE = 'webEmbed' as const;
+	static readonly DISPLAY_NAME = 'WebEmbed';
+	static readonly DEFAULT_TEMPLATE: WebEmbedTemplate = {
+		url: "https://www.twitch.tv/",
+		opacity: 1.0
+	};
+
+	static fromConfig(config: WebEmbedConfig): WebEmbed {
+		return new WebEmbed(
+			config.id,
+			config.positionOnCanvas.pxFromCanvasLeft,
+			config.positionOnCanvas.pxFromCanvasTop,
+			config.hitboxSize.widthInPx,
+			config.hitboxSize.lengthInPx,
+			{
+				url: config.url,
+				opacity: config.opacity
+			},
+			config.layerLevel
+		);
+	}
+
 	defaultProperties: WebEmbedProperties = defaultWebEmbedProperties;
 	className: string = "WebEmbed";
 

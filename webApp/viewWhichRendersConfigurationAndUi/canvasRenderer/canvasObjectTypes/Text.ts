@@ -1,5 +1,6 @@
 import { CanvasObject } from './BaseCanvasObject.js';
 import { canvas_text } from '../canvasDrawingHelpers.js';
+import type { TextConfig, TextTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 interface TextStyle {
     textAlign?: CanvasTextAlign;
@@ -28,6 +29,36 @@ const defaultTextProperties: TextProperties = {
 };
 
 class Text extends CanvasObject {
+    static readonly TYPE = 'text' as const;
+    static readonly DISPLAY_NAME = 'Text';
+    static readonly DEFAULT_TEMPLATE: TextTemplate = {
+        text: "",
+        textStyle: {
+            textAlign: "left",
+            fillStyle: "black",
+            font: "20px Lucida Console",
+            strokeStyle: "white",
+            strokeWidth: 3
+        },
+        shouldStroke: true
+    };
+
+    static fromConfig(config: TextConfig): Text {
+        return new Text(
+            config.id,
+            config.positionOnCanvas.pxFromCanvasTop,
+            config.positionOnCanvas.pxFromCanvasLeft,
+            config.hitboxSize.widthInPx,
+            config.hitboxSize.lengthInPx,
+            {
+                text: config.text,
+                textStyle: config.textStyle,
+                shouldStroke: config.shouldStroke
+            },
+            config.layerLevel
+        );
+    }
+
     defaultProperties: TextProperties = defaultTextProperties;
     className: string = "Text";
 

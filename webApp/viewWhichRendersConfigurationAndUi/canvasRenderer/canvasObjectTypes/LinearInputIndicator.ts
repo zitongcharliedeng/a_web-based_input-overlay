@@ -1,6 +1,7 @@
 
 import { CanvasObject } from './BaseCanvasObject.js';
 import { canvas_fill_rec, canvas_text, canvas_properties } from '../canvasDrawingHelpers.js';
+import type { LinearInputIndicatorConfig, LinearInputIndicatorTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 interface GamepadStickInput {
 	type?: "left" | "right" | null;
@@ -143,6 +144,54 @@ function asConventionalGamepadAxisNumber(stick: GamepadStickInput): number | nul
 }
 
 class LinearInputIndicator extends CanvasObject {
+	static readonly TYPE = 'linearInputIndicator' as const;
+	static readonly DISPLAY_NAME = 'LinearInputIndicator';
+	static readonly DEFAULT_TEMPLATE: LinearInputIndicatorTemplate = {
+		input: {
+			keyboard: { keyCode: null },
+			mouse: { button: null, wheel: null },
+			gamepad: {
+				stick: { type: null, axis: null, direction: null },
+				button: { index: null }
+			}
+		},
+		processing: {
+			radialCompensationAxis: -1,
+			multiplier: 1,
+			antiDeadzone: 0.01,
+			fadeOutDuration: 0.2
+		},
+		display: {
+			text: "",
+			fillStyle: "#00ff00",
+			fillStyleBackground: "#222222",
+			fontStyle: {
+				textAlign: "center",
+				fillStyle: "black",
+				font: "30px Lucida Console",
+				strokeStyle: "white",
+				strokeWidth: 3
+			},
+			reverseFillDirection: false
+		}
+	};
+
+	static fromConfig(config: LinearInputIndicatorConfig): LinearInputIndicator {
+		return new LinearInputIndicator(
+			config.id,
+			config.positionOnCanvas.pxFromCanvasLeft,
+			config.positionOnCanvas.pxFromCanvasTop,
+			config.hitboxSize.widthInPx,
+			config.hitboxSize.lengthInPx,
+			{
+				input: config.input,
+				processing: config.processing,
+				display: config.display
+			},
+			config.layerLevel
+		);
+	}
+
 	defaultProperties: LinearInputIndicatorProperties = defaultLinearInputIndicatorProperties;
 	className: string = "LinearInputIndicator";
 

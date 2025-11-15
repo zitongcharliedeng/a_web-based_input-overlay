@@ -1,4 +1,5 @@
 import { CanvasObject } from './BaseCanvasObject.js';
+import type { ImageConfig, ImageTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 interface ImageProperties {
     src?: string;
@@ -11,6 +12,28 @@ const defaultImageProperties: ImageProperties = {
 };
 
 class ImageObject extends CanvasObject {
+    static readonly TYPE = 'image' as const;
+    static readonly DISPLAY_NAME = 'Image';
+    static readonly DEFAULT_TEMPLATE: ImageTemplate = {
+        src: "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png",
+        opacity: 1.0
+    };
+
+    static fromConfig(config: ImageConfig): ImageObject {
+        return new ImageObject(
+            config.id,
+            config.positionOnCanvas.pxFromCanvasTop,
+            config.positionOnCanvas.pxFromCanvasLeft,
+            config.hitboxSize.widthInPx,
+            config.hitboxSize.lengthInPx,
+            {
+                src: config.src,
+                opacity: config.opacity
+            },
+            config.layerLevel
+        );
+    }
+
     defaultProperties: ImageProperties = defaultImageProperties;
     className: string = "Image";
 
