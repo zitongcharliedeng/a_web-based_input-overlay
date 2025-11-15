@@ -6,7 +6,7 @@
 /* Unified Editor Window - FULLSCREEN */
 #unifiedEditor {
 	color: #cdc1c1;
-	background-color: rgba(111, 110, 122, 0.98);
+	background-color: rgba(111, 110, 122, 0.85);
 	border: none;
 	position: fixed;
 	width: 100vw;
@@ -17,7 +17,7 @@
 	flex-direction: row;
 	gap: 1em;
 	padding: 1em;
-	padding-bottom: 5em;
+	padding-bottom: 6em;
 	z-index: 100;
 	overflow: hidden;
 }
@@ -112,12 +112,13 @@
 }
 
 #doneUnifiedEditor {
-	position: absolute;
-	bottom: 1em;
-	right: 1em;
+	position: fixed;
+	bottom: 2em;
+	right: 2em;
 	font-size: 1.1em;
 	padding: 1em 2em;
 	width: auto;
+	z-index: 101;
 }
 
 /* Object type sections in creation panel */

@@ -115,7 +115,6 @@ export class InteractionController {
 						x: object.positionOnCanvas.pxFromCanvasLeft,
 						y: object.positionOnCanvas.pxFromCanvasTop
 					};
-					console.log("Clicked on object:", object.id);
 					break;
 				}
 			}
@@ -126,24 +125,29 @@ export class InteractionController {
 
 		// Dragging: update position with grid snapping and track last position
 		if (clickedObject !== null && mouse.buttons[0] === true) {
-			console.log("Dragging");
 			const newX = Math.round((mouse.x + this.draggingOffset.x)/this.gridsize)*this.gridsize;
 			const newY = Math.round((mouse.y + this.draggingOffset.y)/this.gridsize)*this.gridsize;
 			clickedObject.positionOnCanvas.pxFromCanvasLeft = newX;
 			clickedObject.positionOnCanvas.pxFromCanvasTop = newY;
-			// Track last dragged position for release frame
 			this.lastDragPosition = { x: newX, y: newY };
 		}
 
 		// Drag release: save position using lastDragPosition (since objects are fresh from config)
-		if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && clickedObject !== null && this.dragStartPosition !== null) {
+		if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && clickedObject && this.dragStartPosition) {
 			// Use lastDragPosition if available (was dragged), otherwise use current position (just clicked)
-			const finalX = this.lastDragPosition?.x ?? clickedObject.positionOnCanvas.pxFromCanvasLeft;
-			const finalY = this.lastDragPosition?.y ?? clickedObject.positionOnCanvas.pxFromCanvasTop;
+			const finalX = this.lastDragPosition?.x ?? clickedObject.positionOnCanvas?.pxFromCanvasLeft;
+			const finalY = this.lastDragPosition?.y ?? clickedObject.positionOnCanvas?.pxFromCanvasTop;
+
+			if (finalX === undefined || finalY === undefined) {
+				console.warn('[InteractionController] Object missing positionOnCanvas on release');
+				this.dragStartPosition = null;
+				this.lastDragPosition = null;
+				return false;
+			}
+
 			const positionChanged = finalX !== this.dragStartPosition.x || finalY !== this.dragStartPosition.y;
 
 			if (positionChanged) {
-				console.log("Released mouse - saving position via ConfigManager");
 				const objectIndex = objects.indexOf(clickedObject);
 				if (objectIndex >= 0 && this.onMoveObject) {
 					this.onMoveObject(objectIndex, finalX, finalY);
@@ -156,7 +160,6 @@ export class InteractionController {
 
 		// Right-click object - show PropertyEdit (only when no editors open)
 		if (mouse.clicks[2] === true && clickedObject !== null && !this.editingProperties && !this.creationPanelActive) {
-			console.log("Right-clicked object - showing PropertyEdit");
 			if (this.onShowPropertyEdit) {
 				this.onShowPropertyEdit(clickedObject);
 			}
@@ -164,7 +167,6 @@ export class InteractionController {
 
 		// Right-click background - show both panels (only when no editors open)
 		if (mouse.clicks[2] === true && clickedObject === null && !this.editingProperties && !this.creationPanelActive) {
-			console.log("Right-clicked background - showing both panels");
 			if (this.onShowCreationPanel) {
 				this.onShowCreationPanel();
 			}

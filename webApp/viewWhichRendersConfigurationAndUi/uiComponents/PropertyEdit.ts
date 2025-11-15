@@ -34,7 +34,6 @@ class PropertyEdit {
 
 		// Apply all pending property changes to ConfigManager
 		if (this.configManager && this.targetObjectId && this.pendingChanges.size > 0) {
-			console.log(`[PropertyEdit] Applying ${this.pendingChanges.size} pending changes`);
 			for (const change of this.pendingChanges.values()) {
 				this.configManager.updateObjectProperty(this.targetObjectId, change.path, change.value);
 			}
