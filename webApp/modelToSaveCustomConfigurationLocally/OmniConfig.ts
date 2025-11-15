@@ -138,13 +138,30 @@ export interface WebEmbedConfig extends BaseCanvasObjectConfig {
 	opacity: WebEmbedTemplate['opacity'];
 }
 
-// Discriminated union for all object types
+// Discriminated union for all object types (flat with type tag)
 export type CanvasObjectConfig =
-	| { linearInputIndicator: LinearInputIndicatorConfig }
-	| { planarInputIndicator: PlanarInputIndicatorConfig }
-	| { text: TextConfig }
-	| { image: ImageConfig }
-	| { webEmbed: WebEmbedConfig };
+	| ({ type: 'linearInputIndicator' } & LinearInputIndicatorConfig)
+	| ({ type: 'planarInputIndicator' } & PlanarInputIndicatorConfig)
+	| ({ type: 'text' } & TextConfig)
+	| ({ type: 'image' } & ImageConfig)
+	| ({ type: 'webEmbed' } & WebEmbedConfig);
+
+// Exhaustive type checking helper (compiler enforces all cases handled)
+export function assertNever(value: never): never {
+	throw new Error(`Unhandled discriminated union member: ${JSON.stringify(value)}`);
+}
+
+// Type-safe config property access (replaces all the if-else unwrapping)
+export function getConfigId(config: CanvasObjectConfig): string {
+	switch (config.type) {
+		case 'linearInputIndicator': return config.id;
+		case 'planarInputIndicator': return config.id;
+		case 'text': return config.id;
+		case 'image': return config.id;
+		case 'webEmbed': return config.id;
+		default: return assertNever(config);
+	}
+}
 
 export interface OmniConfig {
 	canvas: CanvasConfig;

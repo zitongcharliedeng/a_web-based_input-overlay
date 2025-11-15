@@ -41,13 +41,12 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 				name: 'DEFAULT_LinearInputIndicator',
 				displayName: 'DEFAULT',
 				createConfig: () => ({
-					linearInputIndicator: {
-						id: crypto.randomUUID(),
-						positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
-						hitboxSize: { widthInPx: 100, lengthInPx: 100 },
-						layerLevel: 10,
-						...defaultTemplateFor_LinearInputIndicator
-					}
+					type: 'linearInputIndicator',
+					id: crypto.randomUUID(),
+					positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
+					hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+					layerLevel: 10,
+					...defaultTemplateFor_LinearInputIndicator
 				})
 			}
 		]
@@ -61,13 +60,12 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 				name: 'DEFAULT_PlanarInputIndicator_Radial',
 				displayName: 'DEFAULT',
 				createConfig: () => ({
-					planarInputIndicator: {
-						id: crypto.randomUUID(),
-						positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
-						hitboxSize: { widthInPx: 200, lengthInPx: 200 },
-						layerLevel: 10,
-						...defaultTemplateFor_PlanarInputIndicator
-					}
+					type: 'planarInputIndicator',
+					id: crypto.randomUUID(),
+					positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
+					hitboxSize: { widthInPx: 200, lengthInPx: 200 },
+					layerLevel: 10,
+					...defaultTemplateFor_PlanarInputIndicator
 				})
 			}
 		]
@@ -81,13 +79,12 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 				name: 'DEFAULT_Text',
 				displayName: 'DEFAULT',
 				createConfig: () => ({
-					text: {
-						id: crypto.randomUUID(),
-						positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
-						hitboxSize: { widthInPx: 200, lengthInPx: 30 },
-						layerLevel: 20,
-						...defaultTemplateFor_Text
-					}
+					type: 'text',
+					id: crypto.randomUUID(),
+					positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
+					hitboxSize: { widthInPx: 200, lengthInPx: 30 },
+					layerLevel: 20,
+					...defaultTemplateFor_Text
 				})
 			}
 		]
@@ -101,13 +98,12 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 				name: 'DEFAULT_Image',
 				displayName: 'DEFAULT',
 				createConfig: () => ({
-					image: {
-						id: crypto.randomUUID(),
-						positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
-						hitboxSize: { widthInPx: 200, lengthInPx: 200 },
-						layerLevel: 0,
-						...defaultTemplateFor_Image
-					}
+					type: 'image',
+					id: crypto.randomUUID(),
+					positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
+					hitboxSize: { widthInPx: 200, lengthInPx: 200 },
+					layerLevel: 0,
+					...defaultTemplateFor_Image
 				})
 			}
 		]
@@ -121,13 +117,12 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 				name: 'DEFAULT_WebEmbed',
 				displayName: 'DEFAULT',
 				createConfig: () => ({
-					webEmbed: {
-						id: crypto.randomUUID(),
-						positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
-						hitboxSize: { widthInPx: 560, lengthInPx: 315 },
-						layerLevel: 10,
-						...defaultTemplateFor_WebEmbed
-					}
+					type: 'webEmbed',
+					id: crypto.randomUUID(),
+					positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
+					hitboxSize: { widthInPx: 560, lengthInPx: 315 },
+					layerLevel: 10,
+					...defaultTemplateFor_WebEmbed
 				})
 			}
 		]

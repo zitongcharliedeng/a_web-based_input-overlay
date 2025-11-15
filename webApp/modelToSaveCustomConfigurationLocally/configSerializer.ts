@@ -76,7 +76,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 					fontStyle: { ...defaultTemplateFor_LinearInputIndicator.display.fontStyle, ...objDisplay.fontStyle }
 				}
 			};
-			return { linearInputIndicator: linearConfig };
+			return { type: 'linearInputIndicator', ...linearConfig };
 		} else if (type === 'PlanarInputIndicator_Radial') {
 			const objInput = (obj.input && typeof obj.input === 'object' ? obj.input : {}) as Partial<PlanarInputIndicatorConfig['input']>;
 			const objProcessing = (obj.processing && typeof obj.processing === 'object' ? obj.processing : {}) as Partial<PlanarInputIndicatorConfig['processing']>;
@@ -91,7 +91,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 				processing: { ...defaultTemplateFor_PlanarInputIndicator.processing, ...objProcessing },
 				display: { ...defaultTemplateFor_PlanarInputIndicator.display, ...objDisplay }
 			};
-			return { planarInputIndicator: planarConfig };
+			return { type: 'planarInputIndicator', ...planarConfig };
 		} else if (type === 'Text') {
 			const objTextStyle = (obj.textStyle && typeof obj.textStyle === 'object' ? obj.textStyle : {}) as Partial<TextConfig['textStyle']>;
 
@@ -104,7 +104,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 				textStyle: { ...defaultTemplateFor_Text.textStyle, ...objTextStyle },
 				shouldStroke: obj.shouldStroke ?? true
 			};
-			return { text: textConfig };
+			return { type: 'text', ...textConfig };
 		} else if (type === 'Image') {
 			const imageConfig: import('./OmniConfig.js').ImageConfig = {
 				id: obj.id,
@@ -114,7 +114,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 				src: (obj as { src?: string }).src || defaultTemplateFor_Image.src,
 				opacity: (obj as { opacity?: number }).opacity ?? defaultTemplateFor_Image.opacity
 			};
-			return { image: imageConfig };
+			return { type: 'image', ...imageConfig };
 		} else if (type === 'WebEmbed') {
 			const webEmbedConfig: import('./OmniConfig.js').WebEmbedConfig = {
 				id: obj.id,
@@ -124,7 +124,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 				url: (obj as { url?: string }).url || defaultTemplateFor_WebEmbed.url,
 				opacity: (obj as { opacity?: number }).opacity ?? defaultTemplateFor_WebEmbed.opacity
 			};
-			return { webEmbed: webEmbedConfig };
+			return { type: 'webEmbed', ...webEmbedConfig };
 		}
 
 		// Unknown type - shouldn't happen, but return Text as fallback
@@ -136,7 +136,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 			...defaultTemplateFor_Text,
 			text: "Unknown object"
 		};
-		return { text: fallbackConfig };
+		return { type: 'text', ...fallbackConfig };
 	});
 
 	return {

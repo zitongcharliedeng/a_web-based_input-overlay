@@ -85,22 +85,16 @@ window.addEventListener("load", function (): void {
 
 	interactionController.setOnShowPropertyEdit((obj) => {
 		const objectId = obj.id;
-		// Find the config for this object
+		// Find the config for this object using type-safe access
 		const config = configManager.config;
-		const objConfig = config.objects.find(o => {
-			if ('linearInputIndicator' in o) return o.linearInputIndicator.id === objectId;
-			if ('planarInputIndicator' in o) return o.planarInputIndicator.id === objectId;
-			if ('text' in o) return o.text.id === objectId;
-			if ('image' in o) return o.image.id === objectId;
-			if ('webEmbed' in o) return o.webEmbed.id === objectId;
-			return false;
-		});
+		const objConfig = config.objects.find(o => o.id === objectId);
 
 		if (!objConfig) {
 			console.error('[PropertyEdit] Could not find config for object', objectId);
 			return;
 		}
 
+		// Config is already flat - no unwrapping needed!
 		activeCanvasObjects.propertyEditor.showPropertyEdit(
 			objConfig as Record<string, unknown>,
 			obj,
@@ -276,21 +270,22 @@ function loadSceneConfig() {
 import type { CanvasObjectConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 function deserializeObject(objData: CanvasObjectConfig): CanvasObject {
-	// Handle OmniConfig discriminated union format
-	if ('linearInputIndicator' in objData) {
-		return createLinearIndicatorFromConfig(objData.linearInputIndicator);
-	} else if ('planarInputIndicator' in objData) {
-		return createPlanarIndicatorFromConfig(objData.planarInputIndicator);
-	} else if ('text' in objData) {
-		return createTextFromConfig(objData.text);
-	} else if ('image' in objData) {
-		return createImageFromConfig(objData.image);
-	} else if ('webEmbed' in objData) {
-		return createWebEmbedFromConfig(objData.webEmbed);
+	// Exhaustive type switch on flat discriminated union
+	switch (objData.type) {
+		case 'linearInputIndicator':
+			return createLinearIndicatorFromConfig(objData);
+		case 'planarInputIndicator':
+			return createPlanarIndicatorFromConfig(objData);
+		case 'text':
+			return createTextFromConfig(objData);
+		case 'image':
+			return createImageFromConfig(objData);
+		case 'webEmbed':
+			return createWebEmbedFromConfig(objData);
+		default:
+			// TypeScript enforces exhaustiveness - this line ensures we handle all cases
+			return ((x: never) => { throw new Error(`Unhandled object type: ${JSON.stringify(x)}`); })(objData);
 	}
-
-	// All formats should use discriminated union - this should never happen
-	throw new Error('Invalid object data format - expected discriminated union');
 }
 
 import { defaultTemplateFor_Text } from './canvasRenderer/canvasObjectTypes/Text.js';
@@ -817,16 +812,9 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 	}
 
 	function deleteObjectById(objectId: string) {
-		// Phase2: Delete by ID directly from config
+		// Phase2: Delete by ID directly from config (now simple!)
 		const config = configManager.config;
-		const index = config.objects.findIndex(obj => {
-			if ('linearInputIndicator' in obj) return obj.linearInputIndicator.id === objectId;
-			if ('planarInputIndicator' in obj) return obj.planarInputIndicator.id === objectId;
-			if ('text' in obj) return obj.text.id === objectId;
-			if ('image' in obj) return obj.image.id === objectId;
-			if ('webEmbed' in obj) return obj.webEmbed.id === objectId;
-			return false;
-		});
+		const index = config.objects.findIndex(obj => obj.id === objectId);
 
 		if (index === -1) {
 			console.error(`[Delete] Object with id ${objectId} not found`);

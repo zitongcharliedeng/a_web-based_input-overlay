@@ -183,13 +183,6 @@ export function removeObjectById(
 ): OmniConfig {
 	return {
 		...config,
-		objects: config.objects.filter(obj => {
-			if ('linearInputIndicator' in obj) return obj.linearInputIndicator.id !== objectId;
-			if ('planarInputIndicator' in obj) return obj.planarInputIndicator.id !== objectId;
-			if ('text' in obj) return obj.text.id !== objectId;
-			if ('image' in obj) return obj.image.id !== objectId;
-			if ('webEmbed' in obj) return obj.webEmbed.id !== objectId;
-			return true;  // Unknown type, keep it
-		})
+		objects: config.objects.filter(obj => obj.id !== objectId)
 	};
 }

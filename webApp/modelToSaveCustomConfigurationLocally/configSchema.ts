@@ -114,12 +114,13 @@ const WebEmbedConfigSchema = BaseCanvasObjectConfigSchema.extend({
 	opacity: z.number().min(0).max(1)
 });
 
-const CanvasObjectConfigSchema = z.union([
-	z.object({ linearInputIndicator: LinearInputIndicatorConfigSchema }),
-	z.object({ planarInputIndicator: PlanarInputIndicatorConfigSchema }),
-	z.object({ text: TextConfigSchema }),
-	z.object({ image: ImageConfigSchema }),
-	z.object({ webEmbed: WebEmbedConfigSchema })
+// Discriminated union with type tag (flat format)
+const CanvasObjectConfigSchema = z.discriminatedUnion('type', [
+	LinearInputIndicatorConfigSchema.extend({ type: z.literal('linearInputIndicator') }),
+	PlanarInputIndicatorConfigSchema.extend({ type: z.literal('planarInputIndicator') }),
+	TextConfigSchema.extend({ type: z.literal('text') }),
+	ImageConfigSchema.extend({ type: z.literal('image') }),
+	WebEmbedConfigSchema.extend({ type: z.literal('webEmbed') })
 ]);
 
 export const OmniConfigSchema = z.object({
