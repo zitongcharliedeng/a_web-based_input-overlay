@@ -16,17 +16,17 @@ interface TextProperties {
     shouldStroke?: boolean;
 }
 
-const defaultTextProperties: TextProperties = {
+const defaultTextProperties = {
     text: "Sample text",
     textStyle: {
-        textAlign: "center",
+        textAlign: "center" satisfies CanvasTextAlign,
         fillStyle: "black",
         font: "30px Lucida Console",
         strokeStyle: "white",
         strokeWidth: 3
     },
     shouldStroke: true,
-};
+} satisfies TextProperties;
 
 class Text extends CanvasObject {
     static readonly TYPE = 'text' as const;
@@ -112,15 +112,15 @@ class Text extends CanvasObject {
 
 export { Text };
 
-export const defaultTemplateFor_Text: TextTemplate = {
+export const defaultTemplateFor_Text = {
 	text: "",
 	textStyle: {
-		textAlign: "left",
+		textAlign: "left" satisfies CanvasTextAlign,
 		fillStyle: "black",
 		font: "20px Lucida Console",
 		strokeStyle: "white",
 		strokeWidth: 3
 	},
 	shouldStroke: true
-};
+} satisfies TextTemplate;
 export type { TextProperties, TextStyle };

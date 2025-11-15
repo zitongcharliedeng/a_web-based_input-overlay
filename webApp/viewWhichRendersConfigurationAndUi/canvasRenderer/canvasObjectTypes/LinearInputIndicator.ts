@@ -379,7 +379,7 @@ class LinearInputIndicator extends CanvasObject {
 
 export { LinearInputIndicator };
 
-export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorTemplate = {
+export const defaultTemplateFor_LinearInputIndicator = {
 	input: {
 		keyboard: { keyCode: null },
 		mouse: { button: null, wheel: null },
@@ -399,7 +399,7 @@ export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorTempla
 		fillStyle: "#00ff00",
 		fillStyleBackground: "#222222",
 		fontStyle: {
-			textAlign: "center",
+			textAlign: "center" satisfies CanvasTextAlign,
 			fillStyle: "black",
 			font: "30px Lucida Console",
 			strokeStyle: "white",
@@ -407,4 +407,4 @@ export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorTempla
 		},
 		reverseFillDirection: false
 	}
-};
+} satisfies LinearInputIndicatorTemplate;

@@ -175,7 +175,7 @@ class PropertyEdit {
 	}
 
 	private renderProperties(container: HTMLElement, path: string[], schema: unknown, targetObj: unknown): void {
-		if (!this.isPlainObject(schema)) return;
+		if (!this.isRecord(schema)) return;
 
 		for (const key in schema) {
 			const currentPath = [...path, key];
@@ -191,6 +191,10 @@ class PropertyEdit {
 				container.appendChild(row);
 			}
 		}
+	}
+
+	private isRecord(value: unknown): value is Record<string, unknown> {
+		return this.isPlainObject(value);
 	}
 
 	private createPropertyHeader(label: string, depth: number): HTMLElement {
@@ -224,7 +228,7 @@ class PropertyEdit {
 		return row;
 	}
 
-	private createInput(currentValue: unknown, path: string[], targetObj: Record<string, unknown>): HTMLInputElement {
+	private createInput(currentValue: unknown, path: string[], targetObj: unknown): HTMLInputElement {
 		const input = document.createElement('input');
 		input.type = 'text';
 		input.value = this.valueToString(currentValue);
@@ -286,18 +290,27 @@ class PropertyEdit {
 		}
 	}
 
-	private getNestedValue(obj: Record<string, unknown>, path: string[]): unknown {
-		let current = obj;
+	private getNestedValue(obj: unknown, path: string[]): unknown {
+		if (!this.isRecord(obj)) return undefined;
+
+		let current: Record<string, unknown> = obj;
 		// Skip grouping headers like "Base Properties" that don't exist on the object
 		const actualPath = path.filter(key => key !== "Base Properties");
 		for (const key of actualPath) {
 			if (current === null || current === undefined) return undefined;
-			current = current[key];
+			const next = current[key];
+			if (this.isRecord(next)) {
+				current = next;
+			} else {
+				return next;
+			}
 		}
 		return current;
 	}
 
-	private setNestedValue(obj: Record<string, unknown>, path: string[], value: unknown): void {
+	private setNestedValue(obj: unknown, path: string[], value: unknown): void {
+		if (!this.isRecord(obj)) return;
+
 		let current: Record<string, unknown> = obj;
 		// Skip grouping headers like "Base Properties" that don't exist on the object
 		const actualPath = path.filter(key => key !== "Base Properties");
@@ -310,11 +323,14 @@ class PropertyEdit {
 			}
 
 			const next = current[key];
-			if (typeof next !== 'object' || next === null) {
-				current[key] = {};
-				current = current[key] as Record<string, unknown>;
+			if (this.isRecord(next)) {
+				current = next;
 			} else {
-				current = next as Record<string, unknown>;
+				current[key] = {};
+				const newObj = current[key];
+				if (this.isRecord(newObj)) {
+					current = newObj;
+				}
 			}
 		}
 
