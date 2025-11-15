@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2020", "DOM"],
+    "rootDir": "../WebApp",
+    "outDir": "../WebApp"
+  },
+  "include": ["../WebApp/**/*.ts"],
+  "exclude": ["../WebApp/node_modules", "../WebApp/dist"]
+}

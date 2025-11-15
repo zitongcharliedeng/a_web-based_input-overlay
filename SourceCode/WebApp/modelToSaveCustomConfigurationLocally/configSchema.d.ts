@@ -1,0 +1,199 @@
+import { z } from 'zod';
+export declare const OmniConfigSchema: z.ZodObject<{
+    canvas: z.ZodObject<{
+        width: z.ZodNumber;
+        height: z.ZodNumber;
+        backgroundColor: z.ZodString;
+    }, z.core.$strip>;
+    objects: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+        id: z.ZodString;
+        positionOnCanvas: z.ZodObject<{
+            pxFromCanvasLeft: z.ZodNumber;
+            pxFromCanvasTop: z.ZodNumber;
+        }, z.core.$strip>;
+        hitboxSize: z.ZodObject<{
+            widthInPx: z.ZodNumber;
+            lengthInPx: z.ZodNumber;
+        }, z.core.$strip>;
+        layerLevel: z.ZodNumber;
+        input: z.ZodObject<{
+            keyboard: z.ZodObject<{
+                keyCode: z.ZodNullable<z.ZodString>;
+            }, z.core.$strip>;
+            mouse: z.ZodObject<{
+                button: z.ZodNullable<z.ZodNumber>;
+                wheel: z.ZodNullable<z.ZodEnum<{
+                    up: "up";
+                    down: "down";
+                }>>;
+            }, z.core.$strip>;
+            gamepad: z.ZodObject<{
+                stick: z.ZodObject<{
+                    type: z.ZodNullable<z.ZodEnum<{
+                        left: "left";
+                        right: "right";
+                    }>>;
+                    axis: z.ZodNullable<z.ZodEnum<{
+                        Y: "Y";
+                        X: "X";
+                    }>>;
+                    direction: z.ZodNullable<z.ZodEnum<{
+                        negative: "negative";
+                        positive: "positive";
+                    }>>;
+                }, z.core.$strip>;
+                button: z.ZodObject<{
+                    index: z.ZodNullable<z.ZodNumber>;
+                }, z.core.$strip>;
+            }, z.core.$strip>;
+        }, z.core.$strip>;
+        processing: z.ZodObject<{
+            radialCompensationAxis: z.ZodNumber;
+            multiplier: z.ZodNumber;
+            antiDeadzone: z.ZodNumber;
+            fadeOutDuration: z.ZodNumber;
+        }, z.core.$strip>;
+        display: z.ZodObject<{
+            text: z.ZodString;
+            fillStyle: z.ZodString;
+            fillStyleBackground: z.ZodString;
+            fontStyle: z.ZodObject<{
+                textAlign: z.ZodEnum<{
+                    left: "left";
+                    right: "right";
+                    center: "center";
+                    end: "end";
+                    start: "start";
+                }>;
+                fillStyle: z.ZodString;
+                font: z.ZodString;
+                strokeStyle: z.ZodString;
+                strokeWidth: z.ZodNumber;
+            }, z.core.$strip>;
+            reverseFillDirection: z.ZodBoolean;
+        }, z.core.$strip>;
+        type: z.ZodLiteral<"linearInputIndicator">;
+    }, z.core.$strip>, z.ZodObject<{
+        id: z.ZodString;
+        positionOnCanvas: z.ZodObject<{
+            pxFromCanvasLeft: z.ZodNumber;
+            pxFromCanvasTop: z.ZodNumber;
+        }, z.core.$strip>;
+        hitboxSize: z.ZodObject<{
+            widthInPx: z.ZodNumber;
+            lengthInPx: z.ZodNumber;
+        }, z.core.$strip>;
+        layerLevel: z.ZodNumber;
+        input: z.ZodObject<{
+            xAxes: z.ZodRecord<z.ZodString, z.ZodBoolean>;
+            yAxes: z.ZodRecord<z.ZodString, z.ZodBoolean>;
+            invertX: z.ZodBoolean;
+            invertY: z.ZodBoolean;
+        }, z.core.$strip>;
+        processing: z.ZodObject<{
+            deadzone: z.ZodNumber;
+            antiDeadzone: z.ZodNumber;
+        }, z.core.$strip>;
+        display: z.ZodObject<{
+            radius: z.ZodNumber;
+            stickRadius: z.ZodOptional<z.ZodNumber>;
+            fillStyle: z.ZodOptional<z.ZodString>;
+            fillStyleStick: z.ZodOptional<z.ZodString>;
+            fillStyleBackground: z.ZodOptional<z.ZodString>;
+            backgroundStyle: z.ZodObject<{
+                strokeStyle: z.ZodOptional<z.ZodString>;
+                fillStyle: z.ZodOptional<z.ZodString>;
+                lineWidth: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strip>;
+            xLineStyle: z.ZodObject<{
+                strokeStyle: z.ZodOptional<z.ZodString>;
+                fillStyle: z.ZodOptional<z.ZodString>;
+                lineWidth: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strip>;
+            yLineStyle: z.ZodObject<{
+                strokeStyle: z.ZodOptional<z.ZodString>;
+                fillStyle: z.ZodOptional<z.ZodString>;
+                lineWidth: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strip>;
+            deadzoneStyle: z.ZodObject<{
+                strokeStyle: z.ZodOptional<z.ZodString>;
+                fillStyle: z.ZodOptional<z.ZodString>;
+                lineWidth: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strip>;
+            inputVectorStyle: z.ZodObject<{
+                strokeStyle: z.ZodOptional<z.ZodString>;
+                fillStyle: z.ZodOptional<z.ZodString>;
+                lineWidth: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strip>;
+            unitVectorStyle: z.ZodObject<{
+                strokeStyle: z.ZodOptional<z.ZodString>;
+                fillStyle: z.ZodOptional<z.ZodString>;
+                lineWidth: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strip>;
+        }, z.core.$strip>;
+        type: z.ZodLiteral<"planarInputIndicator">;
+    }, z.core.$strip>, z.ZodObject<{
+        id: z.ZodString;
+        positionOnCanvas: z.ZodObject<{
+            pxFromCanvasLeft: z.ZodNumber;
+            pxFromCanvasTop: z.ZodNumber;
+        }, z.core.$strip>;
+        hitboxSize: z.ZodObject<{
+            widthInPx: z.ZodNumber;
+            lengthInPx: z.ZodNumber;
+        }, z.core.$strip>;
+        layerLevel: z.ZodNumber;
+        text: z.ZodString;
+        textStyle: z.ZodObject<{
+            textAlign: z.ZodEnum<{
+                left: "left";
+                right: "right";
+                center: "center";
+                end: "end";
+                start: "start";
+            }>;
+            fillStyle: z.ZodString;
+            font: z.ZodString;
+            strokeStyle: z.ZodString;
+            strokeWidth: z.ZodNumber;
+        }, z.core.$strip>;
+        shouldStroke: z.ZodBoolean;
+        type: z.ZodLiteral<"text">;
+    }, z.core.$strip>, z.ZodObject<{
+        id: z.ZodString;
+        positionOnCanvas: z.ZodObject<{
+            pxFromCanvasLeft: z.ZodNumber;
+            pxFromCanvasTop: z.ZodNumber;
+        }, z.core.$strip>;
+        hitboxSize: z.ZodObject<{
+            widthInPx: z.ZodNumber;
+            lengthInPx: z.ZodNumber;
+        }, z.core.$strip>;
+        layerLevel: z.ZodNumber;
+        src: z.ZodString;
+        opacity: z.ZodNumber;
+        type: z.ZodLiteral<"image">;
+    }, z.core.$strip>, z.ZodObject<{
+        id: z.ZodString;
+        positionOnCanvas: z.ZodObject<{
+            pxFromCanvasLeft: z.ZodNumber;
+            pxFromCanvasTop: z.ZodNumber;
+        }, z.core.$strip>;
+        hitboxSize: z.ZodObject<{
+            widthInPx: z.ZodNumber;
+            lengthInPx: z.ZodNumber;
+        }, z.core.$strip>;
+        layerLevel: z.ZodNumber;
+        url: z.ZodString;
+        opacity: z.ZodNumber;
+        type: z.ZodLiteral<"webEmbed">;
+    }, z.core.$strip>], "type">>;
+    version: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export declare function validateOmniConfig(data: unknown): {
+    success: true;
+    data: z.infer<typeof OmniConfigSchema>;
+} | {
+    success: false;
+    error: z.ZodError;
+};

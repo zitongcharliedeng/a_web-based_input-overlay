@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "lib": ["ES2020"],
+    "rootDir": "../DesktopWrappedWebapp",
+    "outDir": "../DesktopWrappedWebapp"
+  },
+  "include": ["../DesktopWrappedWebapp/**/*.ts"],
+  "exclude": ["../DesktopWrappedWebapp/node_modules"]
+}

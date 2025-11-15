@@ -1,2 +1,0 @@
-export const CONFIG_VERSION = '0141216';
-export const BUILD_TIME = '2025-11-15T01:47:02.495Z';
