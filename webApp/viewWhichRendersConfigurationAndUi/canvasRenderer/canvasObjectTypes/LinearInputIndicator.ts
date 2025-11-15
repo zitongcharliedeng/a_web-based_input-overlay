@@ -44,6 +44,12 @@ const defaultLinearInputIndicatorProperties: LinearInputIndicatorTemplate = {
 	}
 }
 
+type GamepadStickInput = {
+	type: 'left' | 'right' | null;
+	axis: 'X' | 'Y' | null;
+	direction: 'positive' | 'negative' | null;
+};
+
 /**
  * Converts stick configuration to standard gamepad API axis index
  * Maps: left X=0, left Y=1, right X=2, right Y=3
@@ -105,7 +111,7 @@ class LinearInputIndicator extends CanvasObject {
 		);
 	}
 
-	defaultProperties: LinearInputIndicatorProperties = defaultLinearInputIndicatorProperties;
+	defaultProperties: LinearInputIndicatorTemplate = defaultLinearInputIndicatorProperties;
 	className: string = "LinearInputIndicator";
 
 	// Internal properties from input config
@@ -173,7 +179,7 @@ class LinearInputIndicator extends CanvasObject {
 		this.syncProperties();
 	}
 
-	syncProperties(): void {
+	override syncProperties(): void {
 		if (this.input) {
 			this.keyCode = this.input.keyboard?.keyCode ?? null;
 			this.mouseButton = this.input.mouse?.button ?? null;
@@ -212,7 +218,7 @@ class LinearInputIndicator extends CanvasObject {
 			this.reverseFillDirection = this.display.reverseFillDirection ?? false;
 			this.fillStyle = this.display.fillStyle ?? "rgba(255, 255, 255, 0.5)";
 			this.fillStyleBackground = this.display.fillStyleBackground ?? "rgba(37, 37, 37, 0.43)";
-			this.fontStyle = this.display.fontStyle ?? { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
+			this.fontStyle = this.display.fontStyle ?? { textAlign: "center" as CanvasTextAlign, fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
 		}
 	}
 
@@ -230,7 +236,7 @@ class LinearInputIndicator extends CanvasObject {
 
 		// Parse hex colors (#RRGGBB or #RGB)
 		const hexMatch = color.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
-		if (hexMatch) {
+		if (hexMatch && hexMatch[1]) {
 			let hex = hexMatch[1];
 			// Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
 			if (hex.length === 3) {
@@ -279,32 +285,33 @@ class LinearInputIndicator extends CanvasObject {
 			for (let i = 0; i < gamepads.length; i++) {
 				const gamepad = gamepads[i];
 			if (gamepad !== null && gamepad.axes && this.hasStickInput && this.axis !== null) {
+				const axisValue = gamepad.axes[this.axis];
+				const compensationValue = this.radialCompensationAxis >= 0 ? gamepad.axes[this.radialCompensationAxis] : undefined;
 
-				if (gamepad.axes[this.axis] !== null && gamepad.axes[this.axis] !== undefined
-				&& ((this.invertedAxis === true && gamepad.axes[this.axis] < 0)
-				|| (this.invertedAxis === false && gamepad.axes[this.axis] > 0))) {
-					if (this.radialCompensationAxis >= 0 && gamepad.axes[this.radialCompensationAxis]) {
+				if (axisValue !== null && axisValue !== undefined
+				&& ((this.invertedAxis === true && axisValue < 0)
+				|| (this.invertedAxis === false && axisValue > 0))) {
+					if (this.radialCompensationAxis >= 0 && compensationValue !== undefined) {
 
 						//Converts circular back to square coordinates
-						value += Math.abs(gamepad.axes[this.axis]) * Math.sqrt(1 + 2 * Math.pow(Math.abs(gamepad.axes[this.radialCompensationAxis]), 2))
+						value += Math.abs(axisValue) * Math.sqrt(1 + 2 * Math.pow(Math.abs(compensationValue), 2))
 
 					} else if (this.radialCompensationAxis < 0) {
 
-						value += (Math.abs(gamepad.axes[this.axis]) - newAntiDeadzone) / (1 - newAntiDeadzone)
+						value += (Math.abs(axisValue) - newAntiDeadzone) / (1 - newAntiDeadzone)
 					}
 				}
 
 
-				if (this.radialCompensationAxis >= 0 && gamepad.axes[this.radialCompensationAxis]) {
+				if (this.radialCompensationAxis >= 0 && compensationValue !== undefined) {
 
-					compensationAxisValue += Math.abs(gamepad.axes[this.radialCompensationAxis])
+					compensationAxisValue += Math.abs(compensationValue)
 				}
 			}
 			if (gamepad !== null && gamepad.buttons && this.hasButtonInput && this.button !== null) {
-
-				if (gamepad.buttons[this.button]) {
-
-					value += gamepad.buttons[this.button].value
+				const button = gamepad.buttons[this.button];
+				if (button) {
+					value += button.value
 				}
 			}
 			}
