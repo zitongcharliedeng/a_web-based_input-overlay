@@ -98,7 +98,7 @@ export class InteractionController {
 	 * Update interaction state
 	 * Returns true if canvas needs redraw
 	 */
-	update(objects: CanvasObject[]): boolean {
+	update(objects: readonly CanvasObject[]): boolean {
 		// Click detection: find which object was clicked (track by ID)
 		if (mouse.clicks[0] === true || mouse.clicks[2] === true) {
 			this.clickedObjectId = null;

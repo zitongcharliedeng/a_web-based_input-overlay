@@ -713,9 +713,8 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 			const target = e.target as HTMLElement;
 			if (target.classList.contains('createObjectBtn')) {
 				const type = target.getAttribute('data-type');
-				const template = target.getAttribute('data-template');
 				if (type) {
-				createObject(type, template || 'DEFAULT');
+				createObject(type);
 				hideBothPanels();  // Close entire unified editor
 				}
 			}

@@ -71,7 +71,7 @@ export class CanvasRenderer {
 	/**
 	 * Render all objects to canvas from config (pure MVC)
 	 */
-	render(objects: CanvasObject[]): void {
+	render(objects: readonly CanvasObject[]): void {
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -99,7 +99,7 @@ export class CanvasRenderer {
 	 * Render debug overlay (hitboxes for all objects)
 	 * Phase3: Moved from InteractionController (MVC violation fix)
 	 */
-	renderDebugHitboxes(objects: CanvasObject[]): void {
+	renderDebugHitboxes(objects: readonly CanvasObject[]): void {
 		for (let i = 0; i < objects.length; i++) {
 			const object = objects[i];
 			if (!object) continue;
