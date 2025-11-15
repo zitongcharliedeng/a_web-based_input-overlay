@@ -3,98 +3,11 @@ import { CanvasObject } from './BaseCanvasObject.js';
 import { canvas_fill_rec, canvas_text, canvas_properties } from '../canvasDrawingHelpers.js';
 import type { LinearInputIndicatorConfig, LinearInputIndicatorTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
-interface GamepadStickInput {
-	type?: "left" | "right" | null;
-	axis?: "X" | "Y" | null;
-	direction?: "positive" | "negative" | null;
-}
-
-interface KeyboardInput {
-	keyCode?: string | null;
-}
-
-interface GamepadButtonInput {
-	index?: number | null;
-}
-
-interface MouseInput {
-	button?: number | null;
-	wheel?: "up" | "down" | null;
-}
-
-interface InputConfig {
-	keyboard?: KeyboardInput;
-	mouse?: MouseInput;
-	gamepad?: {
-		stick?: GamepadStickInput;
-		button?: GamepadButtonInput;
-	};
-}
-
-interface ProcessingConfig {
-	radialCompensationAxis?: number;
-	multiplier?: number;
-	antiDeadzone?: number;
-	fadeOutDuration?: number;
-}
-
-interface FontStyle {
-	textAlign?: CanvasTextAlign;
-	fillStyle?: string;
-	font?: string;
-	strokeStyle?: string;
-	strokeWidth?: number;
-}
-
-interface DisplayConfig {
-	text?: string;
-	reverseFillDirection?: boolean;
-	fillStyle?: string;
-	fillStyleBackground?: string;
-	fontStyle?: FontStyle;
-}
-
-interface LinearInputIndicatorProperties {
-	input?: InputConfig;
-	processing?: ProcessingConfig;
-	display?: DisplayConfig;
-}
-
-interface InputConfigDefaults {
-	keyboard: KeyboardInput;
-	mouse: MouseInput;
-	gamepad: {
-		stick: GamepadStickInput;
-		button: GamepadButtonInput;
-	};
-}
-
-interface ProcessingConfigDefaults {
-	radialCompensationAxis: number;
-	multiplier: number;
-	antiDeadzone: number;
-	fadeOutDuration: number;
-}
-
-interface DisplayConfigDefaults {
-	text: string;
-	reverseFillDirection: boolean;
-	fillStyle: string;
-	fillStyleBackground: string;
-	fontStyle: FontStyle;
-}
-
-interface LinearInputIndicatorDefaults {
-	input: InputConfigDefaults;
-	processing: ProcessingConfigDefaults;
-	display: DisplayConfigDefaults;
-}
-
 // TODO: Move antiDeadzone/deadzone to global per-controller configuration (hardware-specific).
 // Commercial joysticks have 0.5-2% center drift: Xbox/PS ~0.01, Switch ~0.015, cheap ~0.03.
 // antiDeadzone compensates for analog stick resting position drift due to manufacturing tolerances.
 
-const defaultLinearInputIndicatorProperties: LinearInputIndicatorDefaults = {
+const defaultLinearInputIndicatorProperties: LinearInputIndicatorTemplate = {
 	input: {
 		keyboard: {
 			keyCode: null
@@ -218,7 +131,7 @@ class LinearInputIndicator extends CanvasObject {
 	reverseFillDirection: boolean = false;
 	fillStyle: string = "rgba(255, 255, 255, 0.5)";
 	fillStyleBackground: string = "rgba(37, 37, 37, 0.43)";
-	fontStyle: FontStyle = { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
+	fontStyle: { textAlign: CanvasTextAlign; fillStyle: string; font: string; strokeStyle: string; strokeWidth: number } = { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
 
 	// Runtime values
 	value: number = 0;
@@ -226,11 +139,11 @@ class LinearInputIndicator extends CanvasObject {
 	opacity: number = 1.0; // Fade opacity instead of value
 
 	// Config properties (before flattening)
-	input: InputConfigDefaults = defaultLinearInputIndicatorProperties.input;
-	processing: ProcessingConfigDefaults = defaultLinearInputIndicatorProperties.processing;
-	display: DisplayConfigDefaults = defaultLinearInputIndicatorProperties.display;
+	input: LinearInputIndicatorTemplate['input'] = defaultLinearInputIndicatorProperties.input;
+	processing: LinearInputIndicatorTemplate['processing'] = defaultLinearInputIndicatorProperties.processing;
+	display: LinearInputIndicatorTemplate['display'] = defaultLinearInputIndicatorProperties.display;
 
-	constructor(id: string, x: number, y: number, width: number, height: number, properties?: LinearInputIndicatorProperties, layerLevel?: number) {
+	constructor(id: string, x: number, y: number, width: number, height: number, properties?: Partial<LinearInputIndicatorTemplate>, layerLevel?: number) {
 		super(
 			id,
 			{ pxFromCanvasTop: y, pxFromCanvasLeft: x },

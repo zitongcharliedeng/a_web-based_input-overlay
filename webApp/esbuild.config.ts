@@ -8,10 +8,10 @@ const __dirname = path.dirname(__filename);
 const isWatch = process.argv.includes('--watch');
 
 // Plugin to resolve .js imports to .ts files (TypeScript convention)
-const resolveTsPlugin = {
+const resolveTsPlugin: esbuild.Plugin = {
 	name: 'resolve-ts',
-	setup(build) {
-		build.onResolve({ filter: /\.js$/ }, async (args) => {
+	setup(build: esbuild.PluginBuild) {
+		build.onResolve({ filter: /\.js$/ }, async (args: esbuild.OnResolveArgs) => {
 			// Resolve relative to importer directory
 			const resolvedPath = path.resolve(path.dirname(args.importer), args.path);
 			const tsPath = resolvedPath.replace(/\.js$/, '.ts');
@@ -29,7 +29,7 @@ const resolveTsPlugin = {
 	}
 };
 
-const config = {
+const config: esbuild.BuildOptions = {
 	entryPoints: [path.join(__dirname, 'viewWhichRendersConfigurationAndUi/default.ts')],
 	bundle: true,
 	outfile: path.join(__dirname, 'dist/bundle.js'),

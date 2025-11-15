@@ -111,7 +111,7 @@ class PropertyEdit {
 		}
 
 		// Render ALL properties from config (id, type, positionOnCanvas, hitboxSize, layerLevel, + object-specific)
-		this.renderProperties(propertyTable, [], config, targetObject);
+		this.renderProperties(propertyTable, [], config as unknown as Record<string, unknown>, targetObject as unknown as Record<string, unknown>);
 
 		// Add Delete button at the bottom
 		if (this.deleteCallback) {
@@ -183,7 +183,7 @@ class PropertyEdit {
 			if (this.isPlainObject(schemaValue)) {
 				const header = this.createPropertyHeader(key, path.length);
 				container.appendChild(header);
-				this.renderProperties(container, currentPath, schemaValue, targetObj);
+				this.renderProperties(container, currentPath, schemaValue as Record<string, unknown>, targetObj);
 			} else {
 				const row = this.createPropertyRow(key, currentValue, currentPath, targetObj, path.length);
 				container.appendChild(row);

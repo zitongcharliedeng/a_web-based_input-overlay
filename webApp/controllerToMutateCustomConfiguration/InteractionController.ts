@@ -121,10 +121,10 @@ export class InteractionController {
 		}
 
 		// Find clicked object in current frame's objects (by ID)
-		const clickedObject = this.clickedObjectId ? objects.find(o => o.id === this.clickedObjectId) : null;
+		const clickedObject = this.clickedObjectId ? objects.find(o => o.id === this.clickedObjectId) : undefined;
 
 		// Dragging: update position with grid snapping and track last position
-		if (clickedObject !== null && mouse.buttons[0] === true) {
+		if (clickedObject && mouse.buttons[0] === true) {
 			const newX = Math.round((mouse.x + this.draggingOffset.x)/this.gridsize)*this.gridsize;
 			const newY = Math.round((mouse.y + this.draggingOffset.y)/this.gridsize)*this.gridsize;
 			clickedObject.positionOnCanvas.pxFromCanvasLeft = newX;
@@ -159,14 +159,14 @@ export class InteractionController {
 		}
 
 		// Right-click object - show PropertyEdit (only when no editors open)
-		if (mouse.clicks[2] === true && clickedObject !== null && !this.editingProperties && !this.creationPanelActive) {
+		if (mouse.clicks[2] === true && clickedObject && !this.editingProperties && !this.creationPanelActive) {
 			if (this.onShowPropertyEdit) {
 				this.onShowPropertyEdit(clickedObject);
 			}
 		}
 
 		// Right-click background - show both panels (only when no editors open)
-		if (mouse.clicks[2] === true && clickedObject === null && !this.editingProperties && !this.creationPanelActive) {
+		if (mouse.clicks[2] === true && !clickedObject && !this.editingProperties && !this.creationPanelActive) {
 			if (this.onShowCreationPanel) {
 				this.onShowCreationPanel();
 			}

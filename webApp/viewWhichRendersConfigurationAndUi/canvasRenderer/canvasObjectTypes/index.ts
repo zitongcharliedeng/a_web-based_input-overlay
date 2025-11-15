@@ -6,6 +6,9 @@
 import type { CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 import type { CanvasObject } from './BaseCanvasObject.js';
 
+// Export base class
+export type { CanvasObject } from './BaseCanvasObject.js';
+
 // Export all canvas object classes
 export { LinearInputIndicator } from './LinearInputIndicator.js';
 export { PlanarInputIndicator_Radial } from './PlanarInputIndicator_Radial.js';

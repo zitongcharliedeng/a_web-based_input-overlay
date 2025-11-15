@@ -641,15 +641,12 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 			header.textContent = entry.displayName;
 			section.appendChild(header);
 
-			// Create buttons for each template
-			entry.templates.forEach(template => {
-				const button = document.createElement('button');
-				button.className = 'createObjectBtn ButtonWhichUserCanPressToUpdateState';
-				button.setAttribute('data-type', entry.type);
-				button.setAttribute('data-template', template.displayName);
-				button.textContent = template.name;
-				section.appendChild(button);
-			});
+			// Create button for default template
+			const button = document.createElement('button');
+			button.className = 'createObjectBtn ButtonWhichUserCanPressToUpdateState';
+			button.setAttribute('data-type', entry.type);
+			button.textContent = `Create ${entry.displayName}`;
+			section.appendChild(button);
 
 			content.appendChild(section);
 		});
@@ -657,20 +654,22 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 
 	// Helper: Create object with default position (uses registry)
 	// ARCHITECTURE: Config-first approach - ConfigManager is single source of truth
-	function createObject(type: string, template: string = 'DEFAULT') {
+	function createObject(type: string) {
 		const entry = CANVAS_OBJECT_REGISTRY.find(e => e.type === type);
 		if (!entry) {
 			console.error('[Spawn] Unknown type:', type, 'Available:', CANVAS_OBJECT_REGISTRY.map(e => e.type));
 			return;
 		}
 
-		const templateObj = entry.templates.find(t => t.displayName === template);
-		if (!templateObj) {
-			console.error('[Spawn] Unknown template:', template, 'for type:', type);
-			return;
-		}
+		const objectConfig = {
+			type,
+			id: crypto.randomUUID(),
+			positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
+			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+			layerLevel: 10,
+			...entry.template
+		} as CanvasObjectConfig;
 
-		const objectConfig = templateObj.createConfig();
 		configManager.addObject(objectConfig);
 	}
 
@@ -680,11 +679,14 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 		if (index < 0 || index >= config.objects.length) return;
 
 		// Deserialize to call cleanup (for WebEmbed iframe removal)
-		try {
-			const obj = deserializeObject(config.objects[index]);
-			obj.cleanup?.();
-		} catch (e) {
-			console.error('[Delete] Failed to deserialize for cleanup:', e);
+		const objConfig = config.objects[index];
+		if (objConfig) {
+			try {
+				const obj = deserializeObject(objConfig);
+				obj.cleanup?.();
+			} catch (e) {
+				console.error('[Delete] Failed to deserialize for cleanup:', e);
+			}
 		}
 
 		configManager.deleteObject(index);
@@ -701,11 +703,14 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 		}
 
 		// Call cleanup on deserialized object
-		try {
-			const obj = deserializeObject(config.objects[index]);
-			obj.cleanup?.();
-		} catch (e) {
-			console.error('[Delete] Failed to deserialize for cleanup:', e);
+		const objConfig = config.objects[index];
+		if (objConfig) {
+			try {
+				const obj = deserializeObject(objConfig);
+				obj.cleanup?.();
+			} catch (e) {
+				console.error('[Delete] Failed to deserialize for cleanup:', e);
+			}
 		}
 
 		configManager.deleteObjectById(objectId);

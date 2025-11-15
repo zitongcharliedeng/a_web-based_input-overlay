@@ -16,6 +16,7 @@ interface CanvasObjectHitbox {
 }
 
 abstract class CanvasObject {
+    [key: string]: unknown;  // Index signature for strict TypeScript
     id: string;  // Unique identifier (UUID) matching config ID
     positionOnCanvas: CanvasObjectPosition;
     hitboxSize: CanvasObjectHitbox;
