@@ -26,14 +26,7 @@ function setNestedProperty<T>(obj: T, path: string[], value: unknown): T {
  * Helper: Find object index by ID
  */
 function findObjectIndexById(config: OmniConfig, objectId: string): number {
-	return config.objects.findIndex(obj => {
-		if ('linearInputIndicator' in obj) return obj.linearInputIndicator.id === objectId;
-		if ('planarInputIndicator' in obj) return obj.planarInputIndicator.id === objectId;
-		if ('text' in obj) return obj.text.id === objectId;
-		if ('image' in obj) return obj.image.id === objectId;
-		if ('webEmbed' in obj) return obj.webEmbed.id === objectId;
-		return false;
-	});
+	return config.objects.findIndex(obj => obj.id === objectId);
 }
 
 export function updateObjectPosition(
@@ -78,28 +71,8 @@ export function updateObjectPropertyById(
 	const newObjects = [...config.objects];
 	const targetObject = newObjects[objectIndex];
 
-	// Update the nested property inside the discriminated union
-	if ('linearInputIndicator' in targetObject) {
-		newObjects[objectIndex] = {
-			linearInputIndicator: setNestedProperty(targetObject.linearInputIndicator, path, value)
-		};
-	} else if ('planarInputIndicator' in targetObject) {
-		newObjects[objectIndex] = {
-			planarInputIndicator: setNestedProperty(targetObject.planarInputIndicator, path, value)
-		};
-	} else if ('text' in targetObject) {
-		newObjects[objectIndex] = {
-			text: setNestedProperty(targetObject.text, path, value)
-		};
-	} else if ('image' in targetObject) {
-		newObjects[objectIndex] = {
-			image: setNestedProperty(targetObject.image, path, value)
-		};
-	} else if ('webEmbed' in targetObject) {
-		newObjects[objectIndex] = {
-			webEmbed: setNestedProperty(targetObject.webEmbed, path, value)
-		};
-	}
+	// Flat format: just spread and update nested property directly
+	newObjects[objectIndex] = setNestedProperty(targetObject, path, value);
 
 	return { ...config, objects: newObjects };
 }
