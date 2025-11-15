@@ -74,10 +74,10 @@ export interface PlanarInputIndicatorTemplate {
 	};
 	display: {
 		radius: number;
-		stickRadius: number;
-		fillStyle: string;
-		fillStyleStick: string;
-		fillStyleBackground: string;
+		stickRadius?: number;
+		fillStyle?: string;
+		fillStyleStick?: string;
+		fillStyleBackground?: string;
 		backgroundStyle: StyleProperties;
 		xLineStyle: StyleProperties;
 		yLineStyle: StyleProperties;
@@ -98,7 +98,7 @@ export interface PlanarInputIndicatorConfig extends BaseCanvasObjectConfig {
 export interface TextTemplate {
 	text: string;
 	textStyle: {
-		textAlign: string;
+		textAlign: CanvasTextAlign;
 		fillStyle: string;
 		font: string;
 		strokeStyle: string;

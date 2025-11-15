@@ -12,18 +12,8 @@
  * Phase2: Removed cachedObjects, deserializes from config every frame
  */
 
-import type { OmniConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
-
-export interface CanvasObject {
-	id: string;
-	positionOnCanvas: { pxFromCanvasTop: number; pxFromCanvasLeft: number };
-	hitboxSize: { widthInPx: number; lengthInPx: number };
-	update: (delta: number) => boolean;
-	draw: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => void;
-	defaultProperties: unknown;
-}
-
-import type { CanvasObjectConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+import type { OmniConfig, CanvasObjectConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+import type { CanvasObject } from './canvasObjectTypes/index.js';
 
 export class CanvasRenderer {
 	private canvas: HTMLCanvasElement;

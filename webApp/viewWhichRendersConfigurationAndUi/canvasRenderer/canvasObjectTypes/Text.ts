@@ -34,7 +34,7 @@ class Text extends CanvasObject {
     static readonly DEFAULT_TEMPLATE: TextTemplate = {
         text: "",
         textStyle: {
-            textAlign: "left",
+            textAlign: "left" satisfies CanvasTextAlign,
             fillStyle: "black",
             font: "20px Lucida Console",
             strokeStyle: "white",
