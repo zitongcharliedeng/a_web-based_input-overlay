@@ -1,5 +1,5 @@
 import type { ConfigManager } from '../../modelToSaveCustomConfigurationLocally/ConfigManager.js';
-import type { OmniConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+import type { OmniConfig, CanvasObjectConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 // CanvasObject interface for type safety
 interface CanvasObject {
@@ -70,7 +70,7 @@ class PropertyEdit {
 		this.applySceneConfig = null;
 	}
 
-	showPropertyEdit(defaultProperties: Record<string, unknown>, targetObject: CanvasObject, objectId: string, configManager: ConfigManager, deleteCallback?: () => void): void {
+	showPropertyEdit(config: CanvasObjectConfig, targetObject: CanvasObject, objectId: string, configManager: ConfigManager, deleteCallback?: () => void): void {
 		this.targetObject = targetObject;
 		this.targetObjectId = objectId;
 		this.configManager = configManager;
@@ -93,31 +93,14 @@ class PropertyEdit {
 		// Hide right panel (creation panel not needed for property edit)
 		if (rightPanel) rightPanel.hidden = true;
 
-		editorTitle.innerHTML = targetObject.className || targetObject.canvasObjectType || targetObject.constructor.name || "Object";
+		editorTitle.innerHTML = config.type;
 
 		while (propertyTable.firstChild !== null) {
 			propertyTable.removeChild(propertyTable.firstChild);
 		}
 
-		// Combine base properties and object-specific properties into single schema
-		// Base properties: shared by all CanvasObjects (see BaseCanvasObject.ts)
-		const combinedSchema = {
-			"CanvasObject (shared)": {
-				positionOnCanvas: {
-					pxFromCanvasLeft: targetObject.positionOnCanvas.pxFromCanvasLeft,
-					pxFromCanvasTop: targetObject.positionOnCanvas.pxFromCanvasTop
-				},
-				hitboxSize: {
-					widthInPx: targetObject.hitboxSize.widthInPx,
-					lengthInPx: targetObject.hitboxSize.lengthInPx
-				},
-				layerLevel: targetObject.layerLevel  // Z-index: lower = behind, higher = front
-			},
-			...defaultProperties
-		};
-
-		// Render all properties programmatically with proper indentation
-		this.renderProperties(propertyTable, [], combinedSchema, targetObject);
+		// Render ALL properties from config (id, type, positionOnCanvas, hitboxSize, layerLevel, + object-specific)
+		this.renderProperties(propertyTable, [], config, targetObject);
 
 		// Add Delete button at the bottom
 		if (this.deleteCallback) {
