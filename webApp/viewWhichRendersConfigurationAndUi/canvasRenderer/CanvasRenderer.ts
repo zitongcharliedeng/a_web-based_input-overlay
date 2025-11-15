@@ -45,10 +45,12 @@ export class CanvasRenderer {
 	private deserializeObjects(config: OmniConfig): CanvasObject[] {
 		const objects: CanvasObject[] = [];
 		for (let i = 0; i < config.objects.length; i++) {
+			const objConfig = config.objects[i];
+			if (!objConfig) continue;
 			try {
-				objects.push(this.deserializer(config.objects[i]));
+				objects.push(this.deserializer(objConfig));
 			} catch (error) {
-				console.error('[CanvasRenderer] Deserialization failed:', config.objects[i], error);
+				console.error('[CanvasRenderer] Deserialization failed:', objConfig, error);
 			}
 		}
 		return objects;
@@ -69,7 +71,8 @@ export class CanvasRenderer {
 		}
 
 		for (let i = 0; i < this.cache.objects.length; i++) {
-			this.cache.objects[i].update(delta);
+			const obj = this.cache.objects[i];
+			if (obj) obj.update(delta);
 		}
 
 		return this.cache.objects;
@@ -84,6 +87,7 @@ export class CanvasRenderer {
 
 		for (let i = 0; i < objects.length; i++) {
 			const object = objects[i];
+			if (!object) continue;
 			this.ctx.setTransform(
 				1, 0, 0, 1,
 				object.positionOnCanvas.pxFromCanvasLeft,
@@ -108,6 +112,7 @@ export class CanvasRenderer {
 	renderDebugHitboxes(objects: CanvasObject[]): void {
 		for (let i = 0; i < objects.length; i++) {
 			const object = objects[i];
+			if (!object) continue;
 			this.ctx.setTransform(1, 0, 0, 1, object.positionOnCanvas.pxFromCanvasLeft, object.positionOnCanvas.pxFromCanvasTop);
 			this.ctx.beginPath();
 			this.ctx.strokeStyle = "#FF00FF";

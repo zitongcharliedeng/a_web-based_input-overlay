@@ -30,7 +30,7 @@ export interface CanvasObjectClass {
 	readonly TYPE: string;
 	readonly DISPLAY_NAME: string;
 	readonly DEFAULT_TEMPLATE: unknown;
-	fromConfig(config: CanvasObjectConfig): CanvasObject;
+	fromConfig: (config: CanvasObjectConfig) => CanvasObject;
 }
 
 /**

@@ -9,15 +9,17 @@ function setNestedProperty<T>(obj: T, path: string[], value: unknown): T {
 	if (path.length === 0) return value as T;
 
 	const [head, ...rest] = path;
+	if (!head) return obj;
 
 	if (rest.length === 0) {
 		// Base case: set the final key
 		return { ...obj, [head]: value } as T;
 	} else {
 		// Recursive case: go deeper
+		const nestedObj = (obj as Record<string, unknown>)[head];
 		return {
 			...obj,
-			[head]: setNestedProperty((obj as Record<string, unknown>)[head] || {}, rest, value)
+			[head]: setNestedProperty(nestedObj || {}, rest, value)
 		} as T;
 	}
 }
@@ -41,6 +43,7 @@ export function updateObjectPosition(
 
 	const newObjects = [...config.objects];
 	const targetObject = newObjects[objectIndex];
+	if (!targetObject) return config;
 
 	// Flat format: just spread and update position directly
 	newObjects[objectIndex] = {
@@ -70,6 +73,7 @@ export function updateObjectPropertyById(
 
 	const newObjects = [...config.objects];
 	const targetObject = newObjects[objectIndex];
+	if (!targetObject) return config;
 
 	// Flat format: just spread and update nested property directly
 	newObjects[objectIndex] = setNestedProperty(targetObject, path, value);
