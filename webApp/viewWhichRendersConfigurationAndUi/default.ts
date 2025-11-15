@@ -251,119 +251,27 @@ function loadSceneConfig() {
 
 import type { CanvasObjectConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
+import { CANVAS_OBJECT_CLASSES } from './canvasRenderer/canvasObjectTypes/index.js';
+
 function deserializeObject(objData: CanvasObjectConfig): CanvasObject {
-	// Exhaustive type switch on flat discriminated union
-	switch (objData.type) {
-		case 'linearInputIndicator':
-			return createLinearIndicatorFromConfig(objData);
-		case 'planarInputIndicator':
-			return createPlanarIndicatorFromConfig(objData);
-		case 'text':
-			return createTextFromConfig(objData);
-		case 'image':
-			return createImageFromConfig(objData);
-		case 'webEmbed':
-			return createWebEmbedFromConfig(objData);
-		default:
-			// TypeScript enforces exhaustiveness - this line ensures we handle all cases
-			return ((x: never) => { throw new Error(`Unhandled object type: ${JSON.stringify(x)}`); })(objData);
+	// Loop over classes, use static fromConfig() method
+	for (const cls of CANVAS_OBJECT_CLASSES) {
+		if (objData.type === cls.TYPE) {
+			return cls.fromConfig(objData as any);
+		}
 	}
-}
-
-import { defaultTemplateFor_Text } from './canvasRenderer/canvasObjectTypes/Text.js';
-
-function createLinearIndicatorFromConfig(config: LinearInputIndicatorConfig): LinearInputIndicator {
-	return new LinearInputIndicator(
-		config.id,
-		config.positionOnCanvas.pxFromCanvasLeft,
-		config.positionOnCanvas.pxFromCanvasTop,
-		config.hitboxSize.widthInPx,
-		config.hitboxSize.lengthInPx,
-		{
-			input: config.input,
-			processing: config.processing,
-			display: config.display
-		},
-		config.layerLevel
-	);
-}
-
-function createPlanarIndicatorFromConfig(config: PlanarInputIndicatorConfig): PlanarInputIndicator_Radial {
-	return new PlanarInputIndicator_Radial(
-		config.id,
-		config.positionOnCanvas.pxFromCanvasLeft,
-		config.positionOnCanvas.pxFromCanvasTop,
-		config.hitboxSize.widthInPx,
-		config.hitboxSize.lengthInPx,
-		{
-			input: config.input,
-			processing: config.processing,
-			display: config.display
-		},
-		config.layerLevel
-	);
-}
-
-function createTextFromConfig(config: TextConfig): Text {
-	return new Text(
-		config.id,
-		config.positionOnCanvas.pxFromCanvasTop,
-		config.positionOnCanvas.pxFromCanvasLeft,
-		config.hitboxSize.widthInPx,
-		config.hitboxSize.lengthInPx,
-		{
-			text: config.text,
-			textStyle: {
-				textAlign: config.textStyle.textAlign as CanvasTextAlign,
-				fillStyle: config.textStyle.fillStyle,
-				font: config.textStyle.font,
-				strokeStyle: config.textStyle.strokeStyle,
-				strokeWidth: config.textStyle.strokeWidth
-			},
-			shouldStroke: config.shouldStroke
-		},
-		config.layerLevel
-	);
-}
-
-function createImageFromConfig(config: ImageConfig): ImageObject {
-	return new ImageObject(
-		config.id,
-		config.positionOnCanvas.pxFromCanvasTop,
-		config.positionOnCanvas.pxFromCanvasLeft,
-		config.hitboxSize.widthInPx,
-		config.hitboxSize.lengthInPx,
-		{
-			src: config.src,
-			opacity: config.opacity
-		},
-		config.layerLevel
-	);
-}
-
-function createWebEmbedFromConfig(config: WebEmbedConfig): WebEmbed {
-	return new WebEmbed(
-		config.id,
-		config.positionOnCanvas.pxFromCanvasLeft,
-		config.positionOnCanvas.pxFromCanvasTop,
-		config.hitboxSize.widthInPx,
-		config.hitboxSize.lengthInPx,
-		{
-			url: config.url,
-			opacity: config.opacity
-		},
-		config.layerLevel
-	);
+	throw new Error(`Unknown object type: ${(objData as any).type}`);
 }
 
 // Helper to create text labels using default template
 function createLabel(x: number, y: number, text: string): Text {
-	return createTextFromConfig({
+	return Text.fromConfig({
+		type: 'text',
 		id: crypto.randomUUID(),
 		positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
 		hitboxSize: { widthInPx: 800, lengthInPx: 30 },
 		layerLevel: 20,
-		...defaultTemplateFor_Text,
+		...Text.DEFAULT_TEMPLATE,
 		text
 	});
 }
