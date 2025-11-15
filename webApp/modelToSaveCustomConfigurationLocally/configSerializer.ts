@@ -1,4 +1,4 @@
-import type { OmniConfig, CanvasConfig, LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from './OmniConfig.js';
+import type { OmniConfig, CanvasConfig, CanvasObjectConfig, LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from './OmniConfig.js';
 import { defaultTemplateFor_LinearInputIndicator } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/LinearInputIndicator.js';
 import { defaultTemplateFor_PlanarInputIndicator } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/PlanarInputIndicator_Radial.js';
 import { defaultTemplateFor_Text } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/Text.js';
@@ -35,7 +35,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 		backgroundColor: 'transparent'
 	};
 
-	const serializedObjects = objects.map(obj => {
+	const serializedObjects: CanvasObjectConfig[] = objects.map(obj => {
 		const type = obj.className || obj.canvasObjectType || 'unknown';
 		const positionOnCanvas = {
 			pxFromCanvasLeft: obj.positionOnCanvas.pxFromCanvasLeft,
@@ -76,7 +76,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 					fontStyle: { ...defaultTemplateFor_LinearInputIndicator.display.fontStyle, ...objDisplay.fontStyle }
 				}
 			};
-			return { type: 'linearInputIndicator', ...linearConfig };
+			return { type: 'linearInputIndicator' as const, ...linearConfig };
 		} else if (type === 'PlanarInputIndicator_Radial') {
 			const objInput = (obj.input && typeof obj.input === 'object' ? obj.input : {}) as Partial<PlanarInputIndicatorConfig['input']>;
 			const objProcessing = (obj.processing && typeof obj.processing === 'object' ? obj.processing : {}) as Partial<PlanarInputIndicatorConfig['processing']>;
@@ -91,7 +91,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 				processing: { ...defaultTemplateFor_PlanarInputIndicator.processing, ...objProcessing },
 				display: { ...defaultTemplateFor_PlanarInputIndicator.display, ...objDisplay }
 			};
-			return { type: 'planarInputIndicator', ...planarConfig };
+			return { type: 'planarInputIndicator' as const, ...planarConfig };
 		} else if (type === 'Text') {
 			const objTextStyle = (obj.textStyle && typeof obj.textStyle === 'object' ? obj.textStyle : {}) as Partial<TextConfig['textStyle']>;
 
@@ -104,7 +104,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 				textStyle: { ...defaultTemplateFor_Text.textStyle, ...objTextStyle },
 				shouldStroke: obj.shouldStroke ?? true
 			};
-			return { type: 'text', ...textConfig };
+			return { type: 'text' as const, ...textConfig };
 		} else if (type === 'Image') {
 			const imageConfig: import('./OmniConfig.js').ImageConfig = {
 				id: obj.id,
@@ -114,7 +114,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 				src: (obj as { src?: string }).src || defaultTemplateFor_Image.src,
 				opacity: (obj as { opacity?: number }).opacity ?? defaultTemplateFor_Image.opacity
 			};
-			return { type: 'image', ...imageConfig };
+			return { type: 'image' as const, ...imageConfig };
 		} else if (type === 'WebEmbed') {
 			const webEmbedConfig: import('./OmniConfig.js').WebEmbedConfig = {
 				id: obj.id,
@@ -124,7 +124,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 				url: (obj as { url?: string }).url || defaultTemplateFor_WebEmbed.url,
 				opacity: (obj as { opacity?: number }).opacity ?? defaultTemplateFor_WebEmbed.opacity
 			};
-			return { type: 'webEmbed', ...webEmbedConfig };
+			return { type: 'webEmbed' as const, ...webEmbedConfig };
 		}
 
 		// Unknown type - shouldn't happen, but return Text as fallback
@@ -136,7 +136,7 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 			...defaultTemplateFor_Text,
 			text: "Unknown object"
 		};
-		return { type: 'text', ...fallbackConfig };
+		return { type: 'text' as const, ...fallbackConfig };
 	});
 
 	return {

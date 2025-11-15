@@ -296,16 +296,30 @@ class PropertyEdit {
 	}
 
 	private setNestedValue(obj: Record<string, unknown>, path: string[], value: unknown): void {
-		let current = obj;
+		let current: Record<string, unknown> = obj;
 		// Skip grouping headers like "Base Properties" that don't exist on the object
 		const actualPath = path.filter(key => key !== "Base Properties");
 		for (let i = 0; i < actualPath.length - 1; i++) {
-			if (current[actualPath[i]] === null || current[actualPath[i]] === undefined) {
-				current[actualPath[i]] = {};
+			const key = actualPath[i];
+			if (!key) continue;
+
+			if (current[key] === null || current[key] === undefined) {
+				current[key] = {};
 			}
-			current = current[actualPath[i]];
+
+			const next = current[key];
+			if (typeof next !== 'object' || next === null) {
+				current[key] = {};
+				current = current[key] as Record<string, unknown>;
+			} else {
+				current = next as Record<string, unknown>;
+			}
 		}
-		current[actualPath[actualPath.length - 1]] = value;
+
+		const lastKey = actualPath[actualPath.length - 1];
+		if (lastKey !== undefined) {
+			current[lastKey] = value;
+		}
 	}
 
 	private isPlainObject(value: unknown): boolean {

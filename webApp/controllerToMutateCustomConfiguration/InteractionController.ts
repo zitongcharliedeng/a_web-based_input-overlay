@@ -106,14 +106,19 @@ export class InteractionController {
 			this.lastDragPosition = null;
 			for (let i = 0; i < objects.length; i++) {
 				const object = objects[i];
-				if ((mouse.x > object.positionOnCanvas.pxFromCanvasLeft && mouse.y > object.positionOnCanvas.pxFromCanvasTop)
-				&& (mouse.x < object.positionOnCanvas.pxFromCanvasLeft + object.hitboxSize.widthInPx && mouse.y < object.positionOnCanvas.pxFromCanvasTop + object.hitboxSize.lengthInPx)) {
-					this.draggingOffset.x = object.positionOnCanvas.pxFromCanvasLeft - mouse.x;
-					this.draggingOffset.y = object.positionOnCanvas.pxFromCanvasTop - mouse.y;
+				if (!object) continue;
+
+				const { positionOnCanvas, hitboxSize } = object;
+				if (!positionOnCanvas || !hitboxSize) continue;
+
+				if ((mouse.x > positionOnCanvas.pxFromCanvasLeft && mouse.y > positionOnCanvas.pxFromCanvasTop)
+				&& (mouse.x < positionOnCanvas.pxFromCanvasLeft + hitboxSize.widthInPx && mouse.y < positionOnCanvas.pxFromCanvasTop + hitboxSize.lengthInPx)) {
+					this.draggingOffset.x = positionOnCanvas.pxFromCanvasLeft - mouse.x;
+					this.draggingOffset.y = positionOnCanvas.pxFromCanvasTop - mouse.y;
 					this.clickedObjectId = object.id;  // Store ID, not reference
 					this.dragStartPosition = {
-						x: object.positionOnCanvas.pxFromCanvasLeft,
-						y: object.positionOnCanvas.pxFromCanvasTop
+						x: positionOnCanvas.pxFromCanvasLeft,
+						y: positionOnCanvas.pxFromCanvasTop
 					};
 					break;
 				}

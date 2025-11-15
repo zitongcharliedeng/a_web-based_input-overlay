@@ -106,8 +106,6 @@ export type { ImageConfig } from '../../../modelToSaveCustomConfigurationLocally
 
 const DEFAULT_KEY_IMAGE_URL = "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png";
 
-import type { ImageTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
-
 export const defaultTemplateFor_Image: ImageTemplate = {
 	src: DEFAULT_KEY_IMAGE_URL,
 	opacity: 1.0
