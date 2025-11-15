@@ -112,7 +112,7 @@ export { Text };
 export const defaultTemplateFor_Text: TextTemplate = {
 	text: "",
 	textStyle: {
-		textAlign: "left",
+		textAlign: "left" as CanvasTextAlign,
 		fillStyle: "black",
 		font: "20px Lucida Console",
 		strokeStyle: "white",

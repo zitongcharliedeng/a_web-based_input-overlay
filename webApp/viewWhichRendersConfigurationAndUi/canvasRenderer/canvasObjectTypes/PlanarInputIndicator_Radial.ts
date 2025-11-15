@@ -191,13 +191,15 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 		if (gamepads) {
 			for (let i = 0; i < gamepads.length; i++) {
 				const gamepad = gamepads[i];
-			if (gamepad !== null && gamepad.axes) {
+				if (!gamepad) continue;
+			if (gamepad.axes) {
 				for (let i = 0; i < gamepad.axes.length; i++) {
-					if (this.input.xAxes[i]) {
-						xAxis += gamepad.axes[i] || 0;
+					const axisValue = gamepad.axes[i];
+					if (this.input.xAxes[i] && axisValue !== undefined) {
+						xAxis += axisValue;
 					}
-					if (this.input.yAxes[i]) {
-						yAxis += gamepad.axes[i] || 0;
+					if (this.input.yAxes[i] && axisValue !== undefined) {
+						yAxis += axisValue;
 					}
 				}
 			}

@@ -284,7 +284,8 @@ class LinearInputIndicator extends CanvasObject {
 		if (gamepads) {
 			for (let i = 0; i < gamepads.length; i++) {
 				const gamepad = gamepads[i];
-			if (gamepad !== null && gamepad.axes && this.hasStickInput && this.axis !== null) {
+				if (!gamepad) continue;
+			if (gamepad.axes && this.hasStickInput && this.axis !== null) {
 				const axisValue = gamepad.axes[this.axis];
 				const compensationValue = this.radialCompensationAxis >= 0 ? gamepad.axes[this.radialCompensationAxis] : undefined;
 
@@ -308,7 +309,7 @@ class LinearInputIndicator extends CanvasObject {
 					compensationAxisValue += Math.abs(compensationValue)
 				}
 			}
-			if (gamepad !== null && gamepad.buttons && this.hasButtonInput && this.button !== null) {
+			if (gamepad.buttons && this.hasButtonInput && this.button !== null) {
 				const button = gamepad.buttons[this.button];
 				if (button) {
 					value += button.value
@@ -395,7 +396,7 @@ export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorTempla
 		fillStyle: "#00ff00",
 		fillStyleBackground: "#222222",
 		fontStyle: {
-			textAlign: "center",
+			textAlign: "center" as CanvasTextAlign,
 			fillStyle: "black",
 			font: "30px Lucida Console",
 			strokeStyle: "white",
