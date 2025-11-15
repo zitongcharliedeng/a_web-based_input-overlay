@@ -24,7 +24,7 @@ if (-not $Mode) {
     }
 }
 
-Set-Location $PSScriptRoot/../..
+Set-Location $PSScriptRoot
 
 Write-Host "`nBuilding TypeScript..." -ForegroundColor Yellow
 npm run build
