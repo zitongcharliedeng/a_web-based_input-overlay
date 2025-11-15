@@ -8,32 +8,23 @@ interface CanvasProperties {
 }
 
 function canvas_properties(context: CanvasRenderingContext2D, properties: CanvasProperties): void {
-	for (const propertyName in properties) {
-		if (properties.hasOwnProperty(propertyName)) {
-			const key = propertyName as keyof CanvasProperties;
-			const value = properties[key];
-
-			switch (key) {
-				case "lineWidth":
-					context.lineWidth = value as number;
-					break;
-				case "strokeStyle":
-					context.strokeStyle = value as string;
-					break;
-				case "fillStyle":
-					context.fillStyle = value as string;
-					break;
-				case "lineCap":
-					context.lineCap = value as CanvasLineCap;
-					break;
-				case "textAlign":
-					context.textAlign = value as CanvasTextAlign;
-					break;
-				case "font":
-					context.font = value as string;
-					break;
-			}
-		}
+	if (properties.lineWidth !== undefined) {
+		context.lineWidth = properties.lineWidth;
+	}
+	if (properties.strokeStyle !== undefined) {
+		context.strokeStyle = properties.strokeStyle;
+	}
+	if (properties.fillStyle !== undefined) {
+		context.fillStyle = properties.fillStyle;
+	}
+	if (properties.lineCap !== undefined) {
+		context.lineCap = properties.lineCap;
+	}
+	if (properties.textAlign !== undefined) {
+		context.textAlign = properties.textAlign;
+	}
+	if (properties.font !== undefined) {
+		context.font = properties.font;
 	}
 }
 

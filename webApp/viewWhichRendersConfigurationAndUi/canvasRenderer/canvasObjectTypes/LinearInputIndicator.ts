@@ -1,7 +1,7 @@
 
 import { CanvasObject } from './BaseCanvasObject.js';
 import { canvas_fill_rec, canvas_text, canvas_properties } from '../canvasDrawingHelpers.js';
-import type { LinearInputIndicatorConfig, LinearInputIndicatorTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+import type { LinearInputIndicatorConfig, LinearInputIndicatorTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 // TODO: Move antiDeadzone/deadzone to global per-controller configuration (hardware-specific).
 // Commercial joysticks have 0.5-2% center drift: Xbox/PS ~0.01, Switch ~0.015, cheap ~0.03.
@@ -95,7 +95,10 @@ class LinearInputIndicator extends CanvasObject {
 		}
 	};
 
-	static fromConfig(config: LinearInputIndicatorConfig): LinearInputIndicator {
+	static fromConfig(config: CanvasObjectConfig): LinearInputIndicator {
+		if (config.type !== 'linearInputIndicator') {
+			throw new Error(`Invalid config type: expected linearInputIndicator, got ${config.type}`);
+		}
 		return new LinearInputIndicator(
 			config.id,
 			config.positionOnCanvas.pxFromCanvasLeft,
@@ -218,7 +221,7 @@ class LinearInputIndicator extends CanvasObject {
 			this.reverseFillDirection = this.display.reverseFillDirection ?? false;
 			this.fillStyle = this.display.fillStyle ?? "rgba(255, 255, 255, 0.5)";
 			this.fillStyleBackground = this.display.fillStyleBackground ?? "rgba(37, 37, 37, 0.43)";
-			this.fontStyle = this.display.fontStyle ?? { textAlign: "center" as CanvasTextAlign, fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
+			this.fontStyle = this.display.fontStyle ?? { textAlign: "center", fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 };
 		}
 	}
 
@@ -396,7 +399,7 @@ export const defaultTemplateFor_LinearInputIndicator: LinearInputIndicatorTempla
 		fillStyle: "#00ff00",
 		fillStyleBackground: "#222222",
 		fontStyle: {
-			textAlign: "center" as CanvasTextAlign,
+			textAlign: "center",
 			fillStyle: "black",
 			font: "30px Lucida Console",
 			strokeStyle: "white",

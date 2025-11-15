@@ -1,6 +1,6 @@
 import { CanvasObject } from './BaseCanvasObject.js';
 import { canvas_text } from '../canvasDrawingHelpers.js';
-import type { TextConfig, TextTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+import type { TextConfig, TextTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 interface TextStyle {
     textAlign?: CanvasTextAlign;
@@ -43,7 +43,10 @@ class Text extends CanvasObject {
         shouldStroke: true
     };
 
-    static fromConfig(config: TextConfig): Text {
+    static fromConfig(config: CanvasObjectConfig): Text {
+        if (config.type !== 'text') {
+            throw new Error(`Invalid config type: expected text, got ${config.type}`);
+        }
         return new Text(
             config.id,
             config.positionOnCanvas.pxFromCanvasTop,
@@ -112,7 +115,7 @@ export { Text };
 export const defaultTemplateFor_Text: TextTemplate = {
 	text: "",
 	textStyle: {
-		textAlign: "left" as CanvasTextAlign,
+		textAlign: "left",
 		fillStyle: "black",
 		font: "20px Lucida Console",
 		strokeStyle: "white",

@@ -111,7 +111,7 @@ class PropertyEdit {
 		}
 
 		// Render ALL properties from config (id, type, positionOnCanvas, hitboxSize, layerLevel, + object-specific)
-		this.renderProperties(propertyTable, [], config as unknown as Record<string, unknown>, targetObject as unknown as Record<string, unknown>);
+		this.renderProperties(propertyTable, [], config, targetObject);
 
 		// Add Delete button at the bottom
 		if (this.deleteCallback) {
@@ -174,7 +174,9 @@ class PropertyEdit {
 		// Note: unifiedEditor visibility is managed by caller (showBothPanels)
 	}
 
-	private renderProperties(container: HTMLElement, path: string[], schema: Record<string, unknown>, targetObj: Record<string, unknown>): void {
+	private renderProperties(container: HTMLElement, path: string[], schema: unknown, targetObj: unknown): void {
+		if (!this.isPlainObject(schema)) return;
+
 		for (const key in schema) {
 			const currentPath = [...path, key];
 			const schemaValue = schema[key];
@@ -183,7 +185,7 @@ class PropertyEdit {
 			if (this.isPlainObject(schemaValue)) {
 				const header = this.createPropertyHeader(key, path.length);
 				container.appendChild(header);
-				this.renderProperties(container, currentPath, schemaValue as Record<string, unknown>, targetObj);
+				this.renderProperties(container, currentPath, schemaValue, targetObj);
 			} else {
 				const row = this.createPropertyRow(key, currentValue, currentPath, targetObj, path.length);
 				container.appendChild(row);
@@ -202,7 +204,7 @@ class PropertyEdit {
 		return header;
 	}
 
-	private createPropertyRow(label: string, currentValue: unknown, path: string[], targetObj: Record<string, unknown>, depth: number): HTMLElement {
+	private createPropertyRow(label: string, currentValue: unknown, path: string[], targetObj: unknown, depth: number): HTMLElement {
 		const row = document.createElement('div');
 		row.style.display = 'flex';
 		row.style.alignItems = 'center';

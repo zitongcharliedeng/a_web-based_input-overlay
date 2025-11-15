@@ -1,5 +1,5 @@
 import { CanvasObject } from './BaseCanvasObject.js';
-import type { ImageConfig, ImageTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+import type { ImageConfig, ImageTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 interface ImageProperties {
     src?: string;
@@ -19,7 +19,10 @@ class ImageObject extends CanvasObject {
         opacity: 1.0
     };
 
-    static fromConfig(config: ImageConfig): ImageObject {
+    static fromConfig(config: CanvasObjectConfig): ImageObject {
+        if (config.type !== 'image') {
+            throw new Error(`Invalid config type: expected image, got ${config.type}`);
+        }
         return new ImageObject(
             config.id,
             config.positionOnCanvas.pxFromCanvasTop,

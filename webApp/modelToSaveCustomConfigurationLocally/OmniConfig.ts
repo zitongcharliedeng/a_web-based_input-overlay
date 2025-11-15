@@ -36,7 +36,7 @@ export interface LinearInputIndicatorTemplate {
 		fillStyle: string;
 		fillStyleBackground: string;
 		fontStyle: {
-			textAlign: string;
+			textAlign: CanvasTextAlign;
 			fillStyle: string;
 			font: string;
 			strokeStyle: string;

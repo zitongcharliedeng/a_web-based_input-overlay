@@ -1,7 +1,7 @@
 import { CanvasObject } from './BaseCanvasObject.js';
 import { Vector } from '../../../_helpers/Vector.js';
 import { canvas_properties, canvas_arc, canvas_line, canvas_arrow } from '../canvasDrawingHelpers.js';
-import type { PlanarInputIndicatorConfig, PlanarInputIndicatorTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+import type { PlanarInputIndicatorConfig, PlanarInputIndicatorTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 interface AxisMapping {
 	[axisIndex: number]: boolean;
@@ -120,7 +120,10 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 		}
 	};
 
-	static fromConfig(config: PlanarInputIndicatorConfig): PlanarInputIndicator_Radial {
+	static fromConfig(config: CanvasObjectConfig): PlanarInputIndicator_Radial {
+		if (config.type !== 'planarInputIndicator') {
+			throw new Error(`Invalid config type: expected planarInputIndicator, got ${config.type}`);
+		}
 		return new PlanarInputIndicator_Radial(
 			config.id,
 			config.positionOnCanvas.pxFromCanvasLeft,

@@ -1,5 +1,5 @@
 import { CanvasObject } from './BaseCanvasObject.js';
-import type { WebEmbedConfig, WebEmbedTemplate } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
+import type { WebEmbedConfig, WebEmbedTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 
 interface WebEmbedProperties {
 	url?: string;
@@ -19,7 +19,10 @@ class WebEmbed extends CanvasObject {
 		opacity: 1.0
 	};
 
-	static fromConfig(config: WebEmbedConfig): WebEmbed {
+	static fromConfig(config: CanvasObjectConfig): WebEmbed {
+		if (config.type !== 'webEmbed') {
+			throw new Error(`Invalid config type: expected webEmbed, got ${config.type}`);
+		}
 		return new WebEmbed(
 			config.id,
 			config.positionOnCanvas.pxFromCanvasLeft,
