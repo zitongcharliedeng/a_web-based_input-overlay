@@ -2011,8 +2011,8 @@ type DeepPartial<T> = T extends object ? {
 ├── CLAUDE.md
 ├── .gitignore
 └── SourceCode/                  # ALL source code related files
-    ├── node_modules/            # Installed dependencies (gitignored)
     ├── _devTools/               # All configs and build scripts
+    │   ├── node_modules/        # Installed dependencies (gitignored)
     │   ├── package.json         # Dependencies and npm scripts
     │   ├── package-lock.json
     │   ├── tsconfig.json        # Base config (ES2022)

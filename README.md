@@ -45,9 +45,9 @@ Interactive menu with 4 options:
 ├── CLAUDE.md
 ├── .gitignore
 └── SourceCode/                  # ALL source code related files
-    ├── node_modules/            # Installed dependencies (gitignored)
     │
     ├── _devTools/               # Build configs and scripts
+    │   ├── node_modules/        # Installed dependencies (gitignored)
     │   ├── package.json         # Dependencies and npm scripts
     │   ├── package-lock.json
     │   ├── tsconfig.json        # Base TypeScript config
