@@ -40,32 +40,37 @@ Interactive menu with 4 options:
 ### Project Structure
 
 ```
-SourceCode/
-  ├── _devTools/                 # Build configs and scripts
-  │   ├── tsconfig.json          # Base TypeScript config
-  │   ├── tsconfig.webapp.json   # WebApp config (ES2022 modules)
-  │   ├── tsconfig.desktop.json  # Desktop config (CommonJS)
-  │   ├── .eslintrc.cjs          # ESLint config
-  │   └── buildForWindowsDevelopment.ps1
-  │
-  ├── WebApp/                    # Web application (browser + Electron renderer)
-  │   ├── viewWhichRendersConfigurationAndUi/
-  │   │   ├── canvasRenderer/    # Rendering engine
-  │   │   ├── inputReaders/      # Input listeners (keyboard, mouse, gamepad)
-  │   │   └── uiComponents/      # UI (PropertyEdit, toast)
-  │   ├── modelToSaveCustomConfigurationLocally/  # Config management
-  │   ├── _helpers/              # Utilities (Vector, version)
-  │   └── index.html
-  │
-  └── DesktopWrappedWebapp/      # Electron wrapper (main process)
-      ├── main.ts                # Window management, native input hooks
-      └── preload.ts             # IPC bridge
-
-package.json                     # Root dependencies (all merged)
-.gitignore                       # Ignores: **/*.js, **/*.js.map, **/*.d.ts
+/                                # Root: Documentation only
+├── README.md
+├── CLAUDE.md
+├── .gitignore
+└── SourceCode/                  # ALL source code related files
+    ├── node_modules/            # Installed dependencies (gitignored)
+    │
+    ├── _devTools/               # Build configs and scripts
+    │   ├── package.json         # Dependencies and npm scripts
+    │   ├── package-lock.json
+    │   ├── tsconfig.json        # Base TypeScript config
+    │   ├── tsconfig.webapp.json # WebApp (ES2022 modules)
+    │   ├── tsconfig.desktop.json # Desktop (CommonJS)
+    │   ├── .eslintrc.cjs
+    │   └── buildForWindowsDevelopment.ps1
+    │
+    ├── WebApp/                  # Web application (browser + Electron renderer)
+    │   ├── viewWhichRendersConfigurationAndUi/
+    │   │   ├── canvasRenderer/  # Rendering engine
+    │   │   ├── inputReaders/    # Input listeners
+    │   │   └── uiComponents/    # UI components
+    │   ├── modelToSaveCustomConfigurationLocally/
+    │   ├── _helpers/
+    │   └── index.html
+    │
+    └── DesktopWrappedWebapp/    # Electron wrapper (main process)
+        ├── main.ts              # Window management
+        └── preload.ts           # IPC bridge
 ```
 
-All `.js` files are gitignored build artifacts. TypeScript compiles to sibling `.js` files.
+All `.js`, `.d.ts`, `.js.map` files are gitignored build artifacts.
 
 See [CLAUDE.md](CLAUDE.md) for full technical details and architecture.
 

@@ -2006,19 +2006,25 @@ type DeepPartial<T> = T extends object ? {
 
 **File Structure:**
 ```
-SourceCode/
-  ├── _devTools/                 # All configs and build scripts
-  │   ├── tsconfig.json          # Base config (ES2022)
-  │   ├── tsconfig.webapp.json   # WebApp (ES modules)
-  │   ├── tsconfig.desktop.json  # Desktop (CommonJS)
-  │   ├── .eslintrc.cjs
-  │   └── buildForWindowsDevelopment.ps1
-  ├── WebApp/                    # Browser code (ES2022 modules)
-  └── DesktopWrappedWebapp/      # Electron wrapper (CommonJS)
-
-package.json                     # Root - all dependencies merged here
-.gitignore                       # **/*.js, **/*.js.map, **/*.d.ts
+/                                # Root: Documentation only
+├── README.md
+├── CLAUDE.md
+├── .gitignore
+└── SourceCode/                  # ALL source code related files
+    ├── node_modules/            # Installed dependencies (gitignored)
+    ├── _devTools/               # All configs and build scripts
+    │   ├── package.json         # Dependencies and npm scripts
+    │   ├── package-lock.json
+    │   ├── tsconfig.json        # Base config (ES2022)
+    │   ├── tsconfig.webapp.json # WebApp (ES modules)
+    │   ├── tsconfig.desktop.json # Desktop (CommonJS)
+    │   ├── .eslintrc.cjs
+    │   └── buildForWindowsDevelopment.ps1
+    ├── WebApp/                  # Browser code (ES2022 modules)
+    └── DesktopWrappedWebapp/    # Electron wrapper (CommonJS)
 ```
+
+Gitignore: `**/*.js`, `**/*.js.map`, `**/*.d.ts`
 
 **Entry Point (Windows):**
 ```powershell
