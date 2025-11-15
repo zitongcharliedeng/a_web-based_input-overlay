@@ -26,6 +26,16 @@ if (-not $Mode) {
 
 Set-Location $PSScriptRoot
 
+# Check if node_modules exists, install if needed
+if (-not (Test-Path "node_modules")) {
+    Write-Host "`nInstalling dependencies..." -ForegroundColor Yellow
+    npm install
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "npm install failed" -ForegroundColor Red
+        exit 1
+    }
+}
+
 Write-Host "`nBuilding TypeScript..." -ForegroundColor Yellow
 npm run build
 if ($LASTEXITCODE -ne 0) {
