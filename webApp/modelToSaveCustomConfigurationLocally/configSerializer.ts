@@ -157,7 +157,7 @@ export function loadConfigFromJSON(jsonString: string): { success: true; config:
 			return { success: false, error: `Config validation failed: ${errorMessages}` };
 		}
 
-		return { success: true, config: validationResult.data };
+		return { success: true, config: validationResult.data as OmniConfig };
 	} catch (e) {
 		if (e instanceof SyntaxError) {
 			return { success: false, error: `Invalid JSON: ${e.message}` };
