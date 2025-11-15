@@ -306,21 +306,19 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 			}
 		),
 
-		new LinearInputIndicator(crypto.randomUUID(), 
-			240, yOffset + 60, 100, 100,
-			{
-				input: {
-					keyboard: { keyCode: "KeyW" },
-					mouse: { button: 3, wheel: "up" },
-					gamepad: {
-						stick: { type: "left", axis: "Y", direction: "negative" },
-						button: { index: null }
-					}
-				},
-				processing: { radialCompensationAxis: 0 },
-				display: { text: "W" }
-			}
-		),
+		new LinearInputIndicator({
+			positionOnCanvas: { pxFromCanvasLeft: 240, pxFromCanvasTop: yOffset + 60 },
+			input: {
+				keyboard: { keyCode: "KeyW" },
+				mouse: { button: 3, wheel: "up" },
+				gamepad: {
+					stick: { type: "left", axis: "Y", direction: "negative" },
+					button: { index: null }
+				}
+			},
+			processing: { radialCompensationAxis: 0 },
+			display: { text: "W" }
+		}),
 		new LinearInputIndicator(crypto.randomUUID(), 
 			150, yOffset + 160, 100, 100,
 			{

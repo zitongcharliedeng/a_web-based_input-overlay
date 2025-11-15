@@ -154,7 +154,7 @@ class LinearInputIndicator extends CanvasObject {
 	_previousValue: number = 0;
 	opacity: number = 1.0; // Fade opacity instead of value
 
-	constructor(config?: Partial<LinearInputIndicatorConfig>) {
+	constructor(config: { positionOnCanvas: CanvasObjectPosition } & Partial<Omit<LinearInputIndicatorConfig, 'type' | 'positionOnCanvas'>>) {
 		// Deep merge config with SMART_DEFAULTS
 		const merged: LinearInputIndicatorConfig = {
 			...SMART_DEFAULTS,
@@ -177,7 +177,7 @@ class LinearInputIndicator extends CanvasObject {
 					textAlign: (config?.display?.fontStyle?.textAlign || SMART_DEFAULTS.display.fontStyle.textAlign) as CanvasTextAlign
 				}
 			},
-			positionOnCanvas: { ...SMART_DEFAULTS.positionOnCanvas, ...config?.positionOnCanvas },
+			positionOnCanvas: config.positionOnCanvas,
 			hitboxSize: { ...SMART_DEFAULTS.hitboxSize, ...config?.hitboxSize }
 		};
 
