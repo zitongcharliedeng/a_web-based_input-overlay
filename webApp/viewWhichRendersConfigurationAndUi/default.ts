@@ -11,7 +11,7 @@ import { ConfigManager } from '../modelToSaveCustomConfigurationLocally/ConfigMa
 import type { OmniConfig, LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig, ImageConfig, WebEmbedConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig.js';
 import { CONFIG_VERSION } from '../_helpers/version.js';
 import { showToast } from './uiComponents/toast.js';
-import { CANVAS_OBJECT_REGISTRY } from './canvasRenderer/canvasObjectTypes/registry.js';
+import { CANVAS_OBJECT_REGISTRY } from './canvasRenderer/canvasObjectTypes/index.js';
 import { CanvasRenderer } from './canvasRenderer/CanvasRenderer.js';
 import { InteractionController } from '../controllerToMutateCustomConfiguration/InteractionController.js';
 
