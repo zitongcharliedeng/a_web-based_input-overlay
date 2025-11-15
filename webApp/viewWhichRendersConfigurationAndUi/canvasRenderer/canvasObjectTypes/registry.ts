@@ -33,7 +33,7 @@ export interface CanvasObjectRegistryEntry {
 
 export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 	{
-		type: 'LinearInputIndicator',
+		type: 'linearInputIndicator',
 		displayName: 'LinearInputIndicator',
 		className: 'LinearInputIndicator',
 		templates: [
@@ -52,7 +52,7 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 		]
 	},
 	{
-		type: 'PlanarInputIndicator_Radial',
+		type: 'planarInputIndicator',
 		displayName: 'PlanarInputIndicator_Radial',
 		className: 'PlanarInputIndicator_Radial',
 		templates: [
@@ -71,7 +71,7 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 		]
 	},
 	{
-		type: 'Text',
+		type: 'text',
 		displayName: 'Text',
 		className: 'Text',
 		templates: [
@@ -90,7 +90,7 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 		]
 	},
 	{
-		type: 'Image',
+		type: 'image',
 		displayName: 'Image',
 		className: 'Image',
 		templates: [
@@ -109,7 +109,7 @@ export const CANVAS_OBJECT_REGISTRY: CanvasObjectRegistryEntry[] = [
 		]
 	},
 	{
-		type: 'WebEmbed',
+		type: 'webEmbed',
 		displayName: 'WebEmbed',
 		className: 'WebEmbed',
 		templates: [
