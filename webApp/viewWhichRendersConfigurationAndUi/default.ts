@@ -707,9 +707,12 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 
 	// Helper: Hide unified editor
 	function hideBothPanels() {
-		propertyEditor.hidePropertyEdit();
-		interactionController.setCreationPanelActive(false);
-		interactionController.setEditingProperties(false);
+		try {
+			propertyEditor.hidePropertyEdit();
+		} finally {
+			interactionController.setCreationPanelActive(false);
+			interactionController.setEditingProperties(false);
+		}
 
 		// Hide all panels
 		const leftPanel = document.getElementById("leftPanel");
