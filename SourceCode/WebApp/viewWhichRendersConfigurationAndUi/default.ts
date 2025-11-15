@@ -138,7 +138,7 @@ window.addEventListener("load", function (): void {
 	configManager.setConfig(configToUse);
 
 	// Phase2: Frame-local objects for interaction handling
-	let frameObjects: CanvasObject[] = [];
+	let frameObjects: readonly CanvasObject[] = [];
 
 	// Phase2: Render from config (pure MVC - no cache)
 	function frameUpdate(): void {
@@ -654,7 +654,7 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 			positionOnCanvas: { pxFromCanvasLeft: 100, pxFromCanvasTop: 100 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			layerLevel: 10,
-			...entry.template
+			...(entry.template as object)
 		} as CanvasObjectConfig;
 
 		configManager.addObject(objectConfig);

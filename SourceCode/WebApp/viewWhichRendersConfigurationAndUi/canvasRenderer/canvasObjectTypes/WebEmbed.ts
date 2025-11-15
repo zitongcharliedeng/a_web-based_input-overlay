@@ -117,7 +117,7 @@ class WebEmbed extends CanvasObject {
 		ctx.fillText(this.url.substring(0, 50), 2, 8);
 	}
 
-	cleanup(): void {
+	override cleanup(): void {
 		// Remove iframe when object is deleted
 		if (this.iframe && this.iframe.parentNode) {
 			this.iframe.parentNode.removeChild(this.iframe);

@@ -16,7 +16,6 @@ interface CanvasObjectHitbox {
 }
 
 abstract class CanvasObject {
-    [key: string]: unknown;  // Index signature for strict TypeScript
     id: string;  // Unique identifier (UUID) matching config ID
     positionOnCanvas: CanvasObjectPosition;
     hitboxSize: CanvasObjectHitbox;
@@ -39,6 +38,8 @@ abstract class CanvasObject {
 
     syncProperties(): void {
     }
+
+    cleanup?(): void;  // Optional cleanup method for objects like WebEmbed
 
     abstract update(delta: number): boolean;
     abstract draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void;

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "prebuild": "tsx ../WebApp/_helpers/generateVersionGitCommitHash.ts",
+    "prebuild": "npx tsx ../WebApp/_helpers/generateVersionGitCommitHash.ts",
     "build": "npm run build:webapp && npm run build:desktop",
     "build:webapp": "tsc -p tsconfig.webapp.json",
     "build:desktop": "tsc -p tsconfig.desktop.json",
