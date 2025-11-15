@@ -46,14 +46,9 @@ export class CanvasRenderer {
 		const objects: CanvasObject[] = [];
 		for (let i = 0; i < config.objects.length; i++) {
 			try {
-				const obj = this.deserializer(config.objects[i]);
-				objects.push(obj);
-			} catch (e) {
-				console.error('=== DESERIALIZATION FAILED ===');
-				console.error('Index:', i);
-				console.error('Config:', JSON.stringify(config.objects[i], null, 2));
-				console.error('Error:', e);
-				if (e instanceof Error) console.error('Stack:', e.stack);
+				objects.push(this.deserializer(config.objects[i]));
+			} catch (error) {
+				console.error('[CanvasRenderer] Deserialization failed:', config.objects[i], error);
 			}
 		}
 		return objects;

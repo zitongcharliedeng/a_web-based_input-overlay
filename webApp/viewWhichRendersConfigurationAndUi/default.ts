@@ -59,7 +59,6 @@ window.addEventListener("load", function (): void {
 	canvas.height = window.innerHeight;
 
 	// Phase2: Create ConfigManager FIRST (pure MVC - config is source of truth)
-	console.log('[Init] Creating ConfigManager (empty initially)');
 	const configManager = new ConfigManager({
 		canvas: { width: canvas.width, height: canvas.height, backgroundColor: 'transparent' },
 		objects: []
@@ -114,11 +113,9 @@ window.addEventListener("load", function (): void {
 	interactionController.setOnCloseEditors(() => {
 		activeCanvasObjects.hideBothPanels();
 		// Phase2: Config already updated by editor callbacks - no need to sync from runtime objects
-		console.log('[ClickAway] Closing editors');
 	});
 
 	// STEP 3: Serialize canvas to config
-	console.log('[Init] Serializing canvas to config');
 	const initialConfig = objectsToConfig(activeCanvasObjects.objects, canvas);
 
 	// STEP 4: Try to load saved config from localStorage
@@ -135,8 +132,6 @@ window.addEventListener("load", function (): void {
 
 	// Save callback
 	configManager.onSave((config) => {
-		console.log('[ConfigManager] onSave callback triggered, saving to localStorage');
-		console.log('[ConfigManager] Config to save:', JSON.stringify(config, null, 2).substring(0, 500) + '...');
 		saveSceneConfig(config);
 		showToast('Saved');
 	});
@@ -144,7 +139,6 @@ window.addEventListener("load", function (): void {
 	// Phase2: No onChange cache rebuild - config is deserialized every frame (pure MVC)
 
 	// STEP 7: Update ConfigManager with actual config
-	console.log('[Init] Updating ConfigManager with', configToUse.objects.length, 'objects');
 	configManager.setConfig(configToUse);
 
 	// Phase2: Frame-local objects for interaction handling
@@ -175,15 +169,6 @@ window.addEventListener("load", function (): void {
 				if (pads[i]) connectedCount++;
 			}
 			if (connectedCount > 0) {
-				console.log('[Game Loop] Gamepad detected! Count:', connectedCount);
-				for (let i = 0; i < pads.length; i++) {
-					if (pads[i]) {
-						const pad = pads[i];
-					if (pad) {
-						console.log('[Game Loop] Gamepad', i, ':', pad.id, '- Axes:', pad.axes.length, 'Buttons:', pad.buttons.length);
-					}
-					}
-				}
 				window._gamepadDebugLogged = true;
 			}
 		}
@@ -221,10 +206,7 @@ const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 function saveSceneConfig(config: OmniConfig): void {
 	try {
 		const versionedConfig = { version: CONFIG_VERSION, ...config };
-		console.log('[Save] Writing to localStorage with key:', SCENE_CONFIG_KEY);
-		console.log('[Save] Object count:', config.objects?.length || 0);
 		localStorage.setItem(SCENE_CONFIG_KEY, JSON.stringify(versionedConfig));
-		console.log('[Save] Successfully saved to localStorage');
 	} catch (e) {
 		console.error('[Config] Failed to save:', e);
 	}
@@ -687,7 +669,6 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 			configManager.config,
 			canvas,
 			(config) => {
-				console.log('[Canvas] Applying updated config from editor');
 				configManager.setConfig(config);
 			}
 		);
@@ -769,39 +750,20 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 	// Helper: Create object with default position (uses registry)
 	// ARCHITECTURE: Config-first approach - ConfigManager is single source of truth
 	function createObject(type: string, template: string = 'DEFAULT') {
-		console.error('=== SPAWN DEBUG START ===');
-		console.error('Type:', type, 'Template:', template);
-
-		// Find the registry entry
 		const entry = CANVAS_OBJECT_REGISTRY.find(e => e.type === type);
-		console.error('Registry entry found:', !!entry);
 		if (!entry) {
-			console.error('FAIL: Unknown object type:', type);
-			console.error('Available types:', CANVAS_OBJECT_REGISTRY.map(e => e.type));
+			console.error('[Spawn] Unknown type:', type, 'Available:', CANVAS_OBJECT_REGISTRY.map(e => e.type));
 			return;
 		}
 
-		// Find the template
 		const templateObj = entry.templates.find(t => t.displayName === template);
-		console.error('Template found:', !!templateObj);
 		if (!templateObj) {
-			console.error('FAIL: Unknown template:', template);
-			console.error('Available templates:', entry.templates.map(t => t.displayName));
+			console.error('[Spawn] Unknown template:', template, 'for type:', type);
 			return;
 		}
 
-		// 1. Create OmniConfig object (not runtime object) - uses idempotent default position
 		const objectConfig = templateObj.createConfig();
-		console.error('Config created:', JSON.stringify(objectConfig, null, 2));
-
-		// Phase2: Add to ConfigManager (single source of truth)
-		const beforeCount = configManager.config.objects.length;
-		console.error('Before addObject:', beforeCount);
 		configManager.addObject(objectConfig);
-		const afterCount = configManager.config.objects.length;
-		console.error('After addObject:', afterCount);
-		console.error('Success:', afterCount > beforeCount);
-		console.error('=== SPAWN DEBUG END ===');
 	}
 
 	// Phase2: Delete object by index
@@ -817,9 +779,7 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 			console.error('[Delete] Failed to deserialize for cleanup:', e);
 		}
 
-		console.log('[Delete] Removing from ConfigManager');
 		configManager.deleteObject(index);
-		console.log("Deleted object at index", index);
 	}
 
 	function deleteObjectById(objectId: string) {
@@ -840,7 +800,6 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 			console.error('[Delete] Failed to deserialize for cleanup:', e);
 		}
 
-		console.log('[Delete] Removing from ConfigManager by ID');
 		configManager.deleteObjectById(objectId);
 	}
 
@@ -867,7 +826,6 @@ function createCanvasObjectCollection(canvas: HTMLCanvasElement, ctx: CanvasRend
 	const doneUnifiedEditorBtn = document.getElementById("doneUnifiedEditor");
 	if (doneUnifiedEditorBtn) {
 		doneUnifiedEditorBtn.addEventListener("click", () => {
-			console.log('[Done] Unified Editor - closing (config already updated)');
 			hideBothPanels();
 			// Phase2: Config already updated by editor callbacks - no need to sync
 		});
