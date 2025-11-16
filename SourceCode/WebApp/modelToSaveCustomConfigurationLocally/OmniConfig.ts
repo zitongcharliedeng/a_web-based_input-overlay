@@ -1,9 +1,5 @@
 import type { CanvasObjectPosition, CanvasObjectHitbox } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/BaseCanvasObject';
-
-// Utility type: Deep Partial - makes all nested properties optional
-type DeepPartial<T> = T extends object ? {
-	[P in keyof T]?: DeepPartial<T[P]>;
-} : T;
+import type { DeepPartial } from '../_helpers/TypeUtilities';
 
 // Canvas configuration
 export interface CanvasConfig {
@@ -161,3 +157,95 @@ export interface OmniConfig {
 	canvas: CanvasConfig;
 	objects: CanvasObjectConfig[];
 }
+
+// Default configurations - single source of truth for all default values
+// These constants are used by constructors and spawn functions
+
+export const LinearInputIndicatorDefaults = {
+	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
+	hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+	layerLevel: 10,
+	input: {
+		keyboard: { keyCode: null as string | null },
+		mouse: { button: null as number | null, wheel: null as 'up' | 'down' | null },
+		gamepad: {
+			stick: { type: null as 'left' | 'right' | null, axis: null as 'X' | 'Y' | null, direction: null as 'positive' | 'negative' | null },
+			button: { index: null as number | null }
+		}
+	},
+	processing: {
+		radialCompensationAxis: -1,
+		multiplier: 1,
+		antiDeadzone: 0.01,
+		fadeOutDuration: 0.2
+	},
+	display: {
+		text: "",
+		fillStyle: "#00ff00",
+		fillStyleBackground: "#222222",
+		fontStyle: {
+			textAlign: "center" as CanvasTextAlign,
+			fillStyle: "black",
+			font: "30px Lucida Console",
+			strokeStyle: "white",
+			strokeWidth: 3
+		},
+		reverseFillDirection: false
+	}
+} as const;
+
+export const PlanarInputIndicatorDefaults = {
+	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
+	hitboxSize: { widthInPx: 200, lengthInPx: 200 },
+	layerLevel: 10,
+	input: {
+		xAxes: { "0": true } as { [gamepadIndex: string]: boolean },
+		yAxes: { "1": true } as { [gamepadIndex: string]: boolean },
+		invertX: false,
+		invertY: false
+	},
+	processing: {
+		deadzone: 0.01,
+		antiDeadzone: 0
+	},
+	display: {
+		radius: 100,
+		backgroundStyle: { strokeStyle: "#B4B4B4", lineWidth: 2, fillStyle: "rgba(0, 0, 0, 0)" },
+		xLineStyle: { strokeStyle: "#FF0000", lineWidth: 2 },
+		yLineStyle: { strokeStyle: "#00FF00", lineWidth: 2 },
+		deadzoneStyle: { fillStyle: "#524d4d" },
+		inputVectorStyle: { strokeStyle: "#FFFF00", lineWidth: 2 },
+		unitVectorStyle: { strokeStyle: "#0000FF", lineWidth: 2 }
+	}
+} as const;
+
+export const TextDefaults = {
+	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
+	hitboxSize: { widthInPx: 200, lengthInPx: 50 },
+	layerLevel: 20,
+	text: "Sample text",
+	textStyle: {
+		textAlign: "center" as CanvasTextAlign,
+		fillStyle: "black",
+		font: "30px Lucida Console",
+		strokeStyle: "white",
+		strokeWidth: 3
+	},
+	shouldStroke: true
+} as const;
+
+export const ImageDefaults = {
+	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
+	hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+	layerLevel: 0,
+	src: "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png",
+	opacity: 1.0
+} as const;
+
+export const WebEmbedDefaults = {
+	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
+	hitboxSize: { widthInPx: 640, lengthInPx: 480 },
+	layerLevel: 10,
+	url: "https://www.twitch.tv/",
+	opacity: 1.0
+} as const;

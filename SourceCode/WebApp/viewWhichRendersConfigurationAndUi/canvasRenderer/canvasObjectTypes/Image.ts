@@ -1,6 +1,7 @@
 import { CanvasObject } from './BaseCanvasObject';
 import { deepMerge } from '../_helpers/deepMerge';
 import type { ImageConfig, ImageTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
+import { ImageDefaults } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
 
 class ImageObject extends CanvasObject {
     static readonly TYPE = 'image' as const;
@@ -13,22 +14,12 @@ class ImageObject extends CanvasObject {
         return new ImageObject(config.image, objArrayIdx);
     }
 
-    className: string = "image";
-
     src: ImageTemplate['src'];
     opacity: ImageTemplate['opacity'];
     imageElement: HTMLImageElement;
 
     constructor(config: Partial<ImageConfig>, objArrayIdx: number) {
-        const defaults: Required<ImageConfig> = {
-            positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
-            hitboxSize: { widthInPx: 100, lengthInPx: 100 },
-            layerLevel: 0,
-            src: "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png",
-            opacity: 1.0
-        };
-
-        const merged = deepMerge(defaults, config) as Required<ImageConfig>;
+        const merged = deepMerge(ImageDefaults, config);
 
         super(
             objArrayIdx,
@@ -79,10 +70,3 @@ class ImageObject extends CanvasObject {
 
 export { ImageObject };
 export type { ImageConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
-
-const DEFAULT_KEY_IMAGE_URL = "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png";
-
-export const defaultTemplateFor_Image: ImageTemplate = {
-	src: DEFAULT_KEY_IMAGE_URL,
-	opacity: 1.0
-};

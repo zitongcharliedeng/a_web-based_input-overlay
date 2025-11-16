@@ -1,30 +1,5 @@
 import type { OmniConfig, CanvasObjectConfig } from './OmniConfig';
 
-/**
- * Helper: Set nested property in object (immutable)
- * Example: setNested({a: {b: {c: 1}}}, ['a', 'b', 'c'], 2) → {a: {b: {c: 2}}}
- * Uses generics to preserve type information
- */
-function setNestedProperty<T>(obj: T, path: string[], value: unknown): T {
-	if (path.length === 0) return value as T;
-
-	const [head, ...rest] = path;
-	if (!head) return obj;
-
-	if (rest.length === 0) {
-		// Base case: set the final key
-		return { ...obj, [head]: value } as T;
-	} else {
-		// Recursive case: go deeper
-		const nestedObj = (obj as Record<string, unknown>)[head];
-		return {
-			...obj,
-			[head]: setNestedProperty(nestedObj || {}, rest, value)
-		} as T;
-	}
-}
-
-
 export function updateObjectPosition(
 	config: OmniConfig,
 	objectIndex: number,

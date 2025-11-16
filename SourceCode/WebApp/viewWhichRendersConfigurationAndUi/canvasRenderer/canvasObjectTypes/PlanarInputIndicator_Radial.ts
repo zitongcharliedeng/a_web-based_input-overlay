@@ -3,6 +3,7 @@ import { Vector } from '../../../_helpers/Vector';
 import { deepMerge } from '../_helpers/deepMerge';
 import { canvas_properties, canvas_arc, canvas_line, canvas_arrow } from '../canvasDrawingHelpers';
 import type { PlanarInputIndicatorConfig, PlanarInputIndicatorTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
+import { PlanarInputIndicatorDefaults } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
 
 
 class PlanarInputIndicator_Radial extends CanvasObject {
@@ -16,8 +17,6 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 		return new PlanarInputIndicator_Radial(config.planarInputIndicator, objArrayIdx);
 	}
 
-	className: string = "planarInputIndicator";
-
 	inputVector: Vector;
 	previousX: number;
 	previousY: number;
@@ -27,32 +26,7 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 	display: PlanarInputIndicatorTemplate['display'];
 
 	constructor(config: Partial<PlanarInputIndicatorConfig>, objArrayIdx: number) {
-		const defaults = {
-			positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
-			hitboxSize: { widthInPx: 200, lengthInPx: 200 },
-			layerLevel: 10,
-			input: {
-				xAxes: { 0: true },
-				yAxes: { 1: true },
-				invertX: false,
-				invertY: false
-			},
-			processing: {
-				deadzone: 0.01,
-				antiDeadzone: 0
-			},
-			display: {
-				radius: 100,
-				backgroundStyle: { strokeStyle: "#B4B4B4", lineWidth: 2, fillStyle: "rgba(0, 0, 0, 0)" },
-				xLineStyle: { strokeStyle: "#FF0000", lineWidth: 2 },
-				yLineStyle: { strokeStyle: "#00FF00", lineWidth: 2 },
-				deadzoneStyle: { fillStyle: "#524d4d" },
-				inputVectorStyle: { strokeStyle: "#FFFF00", lineWidth: 2 },
-				unitVectorStyle: { strokeStyle: "#0000FF", lineWidth: 2 }
-			}
-		};
-
-		const merged = deepMerge(defaults, config as unknown as Partial<typeof defaults>) as typeof defaults;
+		const merged = deepMerge(PlanarInputIndicatorDefaults, config);
 
 		super(
 			objArrayIdx,
@@ -152,29 +126,3 @@ class PlanarInputIndicator_Radial extends CanvasObject {
 }
 
 export { PlanarInputIndicator_Radial };
-
-export const defaultTemplateFor_PlanarInputIndicator: PlanarInputIndicatorTemplate = {
-	input: {
-		xAxes: {},
-		yAxes: {},
-		invertX: false,
-		invertY: false
-	},
-	processing: {
-		deadzone: 0.01,
-		antiDeadzone: 0
-	},
-	display: {
-		radius: 100,
-		stickRadius: 40,
-		fillStyle: "#00ff00",
-		fillStyleStick: "#ffffff",
-		fillStyleBackground: "rgba(0, 0, 0, 0.5)",
-		backgroundStyle: { lineWidth: 2, strokeStyle: "#B4B4B4", fillStyle: "rgba(0, 0, 0, 0)" },
-		xLineStyle: { strokeStyle: "#FF0000", lineWidth: 2 },
-		yLineStyle: { strokeStyle: "#00FF00", lineWidth: 2 },
-		deadzoneStyle: { fillStyle: "#524d4d" },
-		inputVectorStyle: { strokeStyle: "#FFFF00", lineWidth: 2 },
-		unitVectorStyle: { strokeStyle: "#0000FF", lineWidth: 2 }
-	}
-};

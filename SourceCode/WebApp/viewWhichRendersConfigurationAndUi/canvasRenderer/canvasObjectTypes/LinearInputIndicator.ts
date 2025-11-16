@@ -3,12 +3,9 @@ import { CanvasObject } from './BaseCanvasObject';
 import type { CanvasObjectPosition } from './BaseCanvasObject';
 import { canvas_fill_rec, canvas_text, canvas_properties } from '../canvasDrawingHelpers';
 import type { LinearInputIndicatorConfig, LinearInputIndicatorTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
+import { LinearInputIndicatorDefaults } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
 import { deepMerge } from '../_helpers/deepMerge';
-
-// Utility type: Deep Partial - makes all nested properties optional
-type DeepPartial<T> = T extends object ? {
-	[P in keyof T]?: DeepPartial<T[P]>;
-} : T;
+import type { DeepPartial } from '../../../_helpers/TypeUtilities';
 
 // TODO: Move antiDeadzone/deadzone to global per-controller configuration (hardware-specific).
 // Commercial joysticks have 0.5-2% center drift: Xbox/PS ~0.01, Switch ~0.015, cheap ~0.03.
@@ -37,76 +34,12 @@ class LinearInputIndicator extends CanvasObject {
 	static readonly TYPE = 'linearInputIndicator' as const;
 	static readonly DISPLAY_NAME = 'LinearInputIndicator';
 
-	static readonly TEMPLATES = {
-		W: {
-			input: { keyboard: { keyCode: "KeyW" } },
-			display: { text: "W" }
-		},
-		A: {
-			input: { keyboard: { keyCode: "KeyA" } },
-			display: { text: "A" }
-		},
-		S: {
-			input: { keyboard: { keyCode: "KeyS" } },
-			display: { text: "S", reverseFillDirection: true }
-		},
-		D: {
-			input: { keyboard: { keyCode: "KeyD" } },
-			display: { text: "D" }
-		},
-		SPACE: {
-			input: { keyboard: { keyCode: "Space" } },
-			display: { text: "␣" }
-		},
-		MOUSE_LEFT: {
-			input: { mouse: { button: 0 } },
-			display: { text: "LMB" }
-		},
-		MOUSE_RIGHT: {
-			input: { mouse: { button: 2 } },
-			display: { text: "RMB" }
-		},
-		GAMEPAD_A: {
-			input: { gamepad: { button: { index: 0 } } },
-			display: { text: "A" }
-		}
-	};
-
-	static spawn(templateName: keyof typeof LinearInputIndicator.TEMPLATES, overrides?: DeepPartial<LinearInputIndicatorConfig>): LinearInputIndicator {
-		const template = LinearInputIndicator.TEMPLATES[templateName];
-
-		// Deep merge template with overrides using explicit spreading
-		const merged: DeepPartial<LinearInputIndicatorConfig> & { positionOnCanvas: CanvasObjectPosition } = {
-			positionOnCanvas: overrides?.positionOnCanvas || { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
-			...template as any,
-			...overrides,
-			input: {
-				keyboard: { ...(template as any).input?.keyboard, ...overrides?.input?.keyboard },
-				mouse: { ...(template as any).input?.mouse, ...overrides?.input?.mouse },
-				gamepad: {
-					stick: { ...(template as any).input?.gamepad?.stick, ...overrides?.input?.gamepad?.stick },
-					button: { ...(template as any).input?.gamepad?.button, ...overrides?.input?.gamepad?.button }
-				}
-			},
-			processing: { ...(template as any).processing, ...overrides?.processing },
-			display: {
-				...(template as any).display,
-				...overrides?.display,
-				fontStyle: { ...(template as any).display?.fontStyle, ...overrides?.display?.fontStyle }
-			}
-		};
-
-		return new LinearInputIndicator(merged, 0); // TODO: factory method doesn't have objArrayIdx context
-	}
-
 	static fromConfig(config: CanvasObjectConfig, objArrayIdx: number): LinearInputIndicator {
 		if (!('linearInputIndicator' in config)) {
 			throw new Error('Invalid config for LinearInputIndicator: expected { linearInputIndicator: {...} }');
 		}
 		return new LinearInputIndicator(config.linearInputIndicator, objArrayIdx);
 	}
-
-	className: string = "linearInputIndicator";
 
 	// Nested config properties (NO flattening)
 	input: LinearInputIndicatorTemplate['input'];
@@ -119,40 +52,7 @@ class LinearInputIndicator extends CanvasObject {
 	opacity: number = 1.0; // Fade opacity instead of value
 
 	constructor(config: DeepPartial<LinearInputIndicatorConfig>, objArrayIdx: number) {
-		const defaults = {
-			positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
-			layerLevel: 10,
-			input: {
-				keyboard: { keyCode: null },
-				mouse: { button: null, wheel: null },
-				gamepad: {
-					stick: { type: null, axis: null, direction: null },
-					button: { index: null }
-				}
-			},
-			processing: {
-				radialCompensationAxis: -1,
-				multiplier: 1,
-				antiDeadzone: 0.01,
-				fadeOutDuration: 0.2
-			},
-			display: {
-				text: "",
-				fillStyle: "#00ff00",
-				fillStyleBackground: "#222222",
-				fontStyle: {
-					textAlign: "center" as CanvasTextAlign,
-					fillStyle: "black",
-					font: "30px Lucida Console",
-					strokeStyle: "white",
-					strokeWidth: 3
-				},
-				reverseFillDirection: false
-			}
-		};
-
-		const merged = deepMerge(defaults, config as unknown as Partial<typeof defaults>) as typeof defaults;
+		const merged = deepMerge(LinearInputIndicatorDefaults, config);
 
 		super(
 			objArrayIdx,

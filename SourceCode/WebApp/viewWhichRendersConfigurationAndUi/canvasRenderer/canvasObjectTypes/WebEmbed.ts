@@ -1,6 +1,7 @@
 import { CanvasObject } from './BaseCanvasObject';
 import { deepMerge } from '../_helpers/deepMerge';
 import type { WebEmbedConfig, WebEmbedTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
+import { WebEmbedDefaults } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
 
 class WebEmbed extends CanvasObject {
 	static readonly TYPE = 'webEmbed' as const;
@@ -13,22 +14,12 @@ class WebEmbed extends CanvasObject {
 		return new WebEmbed(config.webEmbed, objArrayIdx);
 	}
 
-	className: string = "webEmbed";
-
 	url: WebEmbedTemplate['url'];
 	opacity: WebEmbedTemplate['opacity'];
 	iframe: HTMLIFrameElement | null = null;
 
 	constructor(config: Partial<WebEmbedConfig>, objArrayIdx: number) {
-		const defaults: Required<WebEmbedConfig> = {
-			positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
-			hitboxSize: { widthInPx: 640, lengthInPx: 480 },
-			layerLevel: 10,
-			url: "https://www.twitch.tv/",
-			opacity: 1.0
-		};
-
-		const merged = deepMerge(defaults, config) as Required<WebEmbedConfig>;
+		const merged = deepMerge(WebEmbedDefaults, config);
 
 		super(
 			objArrayIdx,
@@ -106,11 +97,5 @@ class WebEmbed extends CanvasObject {
 		}
 	}
 }
-
-// Template for creating new WebEmbed objects
-export const defaultTemplateFor_WebEmbed: WebEmbedTemplate = {
-	url: "https://www.twitch.tv/",
-	opacity: 1.0
-};
 
 export { WebEmbed };
