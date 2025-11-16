@@ -25,16 +25,14 @@ declare global {
 	}
 }
 
-// UI Helpers interface (no longer includes objects - those come from config)
-interface UIHelpers {
+// CL5: CanvasObjectCollection returns initial objects + helper functions
+interface CanvasObjectCollection {
+	objects: CanvasObject[];
 	propertyEditor: PropertyEdit;
 	deleteObjectAtIndex: (index: number) => void;
 	showBothPanels: () => void;
 	hideBothPanels: () => void;
 }
-
-// Legacy interface name for compatibility
-type CanvasObjectCollection = UIHelpers;
 
 window.gamepads = null;
 window.keyboard = keyboard;
@@ -67,19 +65,16 @@ window.addEventListener("load", function (): void {
 	// CL3: Create InteractionController (extracted interaction logic)
 	const interactionController = new InteractionController();
 
-	// STEP 2: Create default config (NO objects yet - pure config)
-	const defaultConfig = createDefaultConfig(canvas);
+	// STEP 2: Create canvas (initial objects for default config)
+	const activeCanvasObjects = createCanvasObjectCollection(canvas, ctx, configManager, interactionController);
 
-	// STEP 3: Create UI helpers (moved out of config creation)
-	const uiHelpers = createUIHelpers(canvas, configManager, interactionController);
-
-	// CL5: Set up InteractionController callbacks
+	// CL5: Set up InteractionController callbacks (now that we have helper functions from createCanvasObjectCollection)
 	interactionController.setOnMoveObject((objectIndex, x, y) => {
 		configManager.moveObject(objectIndex, x, y);
 	});
 
 	interactionController.setOnDeleteObject((objectIndex) => {
-		uiHelpers.deleteObjectAtIndex(objectIndex);
+		activeCanvasObjects.deleteObjectAtIndex(objectIndex);
 	});
 
 	interactionController.setOnShowPropertyEdit((obj) => {
@@ -94,30 +89,33 @@ window.addEventListener("load", function (): void {
 		}
 
 		// Pass entire config - PropertyEdit renders ALL properties programmatically
-		uiHelpers.propertyEditor.showPropertyEdit(
+		activeCanvasObjects.propertyEditor.showPropertyEdit(
 			objConfig,
 			obj,
 			objArrayIdx,
 			configManager,
 			() => {
-				uiHelpers.deleteObjectAtIndex(objArrayIdx);
+				activeCanvasObjects.deleteObjectAtIndex(objArrayIdx);
 			}
 		);
 		interactionController.setEditingProperties(true);
 	});
 
 	interactionController.setOnShowCreationPanel(() => {
-		uiHelpers.showBothPanels();
+		activeCanvasObjects.showBothPanels();
 	});
 
 	interactionController.setOnCloseEditors(() => {
-		uiHelpers.hideBothPanels();
+		activeCanvasObjects.hideBothPanels();
 		// Phase2: Config already updated by editor callbacks - no need to sync from runtime objects
 	});
 
-	// STEP 4: Try to load saved config from localStorage, or use default
+	// STEP 3: Serialize canvas to config
+	const initialConfig = objectsToConfig(activeCanvasObjects.objects, canvas);
+
+	// STEP 4: Try to load saved config from localStorage
 	const savedConfig = loadSceneConfig();
-	const configToUse = savedConfig || defaultConfig;
+	const configToUse = savedConfig || initialConfig;
 
 	// STEP 5: Apply canvas dimensions
 	if (configToUse.canvas) {
@@ -251,22 +249,14 @@ import type { CanvasObjectConfig } from '../modelToSaveCustomConfigurationLocall
 import { CANVAS_OBJECT_CLASSES } from './canvasRenderer/canvasObjectTypes/index';
 
 function deserializeObject(objData: CanvasObjectConfig, objArrayIdx: number): CanvasObject {
-	const entries = Object.entries(objData);
-	if (entries.length === 0) {
-		throw new Error('Invalid config: empty object');
-	}
-	const entry = entries[0];
-	if (!entry) {
-		throw new Error('Invalid config: no entries');
-	}
-	const [typeKey, _config] = entry;
+	const [[typeKey, config]] = Object.entries(objData);
 
 	const canvasObjectClass = CANVAS_OBJECT_CLASSES.find(objectClass => objectClass.TYPE === typeKey);
 	if (!canvasObjectClass) {
 		throw new Error(`Unknown object type: ${typeKey}`);
 	}
 
-	return canvasObjectClass.fromConfig(objData, objArrayIdx);
+	return canvasObjectClass.fromConfig(config, objArrayIdx);
 }
 
 // Helper to create text label configs
@@ -298,7 +288,7 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 		createLabelConfig(20, yOffset, "TEST 1: Left Stick + WASD + Mouse - WITH radial compensation vs WITHOUT"),
 		createLabelConfig(20, yOffset + 25, "Move diagonally: LEFT shows ~100% (compensated), RIGHT shows ~70% (raw circular)"),
 
-		{ planarInputIndicator: {
+		new PlanarInputIndicator_Radial({
 			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: yOffset + 60 },
 			hitboxSize: { widthInPx: 200, lengthInPx: 200 },
 			input: {
@@ -316,9 +306,9 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				inputVectorStyle: {strokeStyle:"#FFFF00", lineWidth:2},
 				unitVectorStyle: {strokeStyle:"#0000FF", lineWidth:2}
 			}
-		} },
+		}, objIndex++),
 
-		{ linearInputIndicator: {
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 240, pxFromCanvasTop: yOffset + 60 },
 			input: {
 				keyboard: { keyCode: "KeyW" },
@@ -330,8 +320,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 			},
 			processing: { radialCompensationAxis: 0 },
 			display: { text: "W" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 150, pxFromCanvasTop: yOffset + 160 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -344,8 +334,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 			},
 			processing: { radialCompensationAxis: 1 },
 			display: { text: "A" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 250, pxFromCanvasTop: yOffset + 160 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -358,8 +348,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 			},
 			processing: { radialCompensationAxis: 0 },
 			display: { text: "S" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 350, pxFromCanvasTop: yOffset + 160 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -372,9 +362,9 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				},
 				processing: { radialCompensationAxis: 1 },
 			display: { text: "D" }
-		} },
+		}, objIndex++),
 
-		{ linearInputIndicator: {
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 740, pxFromCanvasTop: yOffset + 60 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -387,8 +377,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				},
 				processing: { radialCompensationAxis: -1 },
 			display: { text: "W" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 650, pxFromCanvasTop: yOffset + 160 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -401,8 +391,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				},
 				processing: { radialCompensationAxis: -1 },
 			display: { text: "A" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 750, pxFromCanvasTop: yOffset + 160 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -415,8 +405,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				},
 				processing: { radialCompensationAxis: -1 },
 			display: { text: "S" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 850, pxFromCanvasTop: yOffset + 160 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -429,12 +419,12 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				},
 				processing: { radialCompensationAxis: -1 },
 			display: { text: "D" }
-		} },
+		}, objIndex++),
 
-		createLabelConfig(1050, yOffset, "TEST 1B: Right Gamepad Stick (IJKL)"),
-		createLabelConfig(1050, yOffset + 25, "Same as Test 1, but using right stick"),
+		createLabel(1050, yOffset, "TEST 1B: Right Gamepad Stick (IJKL)", objIndex++),
+		createLabel(1050, yOffset + 25, "Same as Test 1, but using right stick", objIndex++),
 
-		{ linearInputIndicator: {
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 1150, pxFromCanvasTop: yOffset + 60 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -446,8 +436,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				},
 				processing: { radialCompensationAxis: 2 },
 			display: { text: "I" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 1050, pxFromCanvasTop: yOffset + 160 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -459,8 +449,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				},
 				processing: { radialCompensationAxis: 3 },
 			display: { text: "J" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 1150, pxFromCanvasTop: yOffset + 160 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -472,8 +462,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				},
 				processing: { radialCompensationAxis: 2 },
 			display: { text: "K" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 1250, pxFromCanvasTop: yOffset + 160 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -485,12 +475,12 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				},
 				processing: { radialCompensationAxis: 3 },
 			display: { text: "L" }
-		} },
+		}, objIndex++),
 
-		(() => { yOffset += sectionSpacing; return createLabelConfig(20, yOffset, "TEST 3: Gamepad Buttons (Digital)"); })(),
-		createLabelConfig(20, yOffset + 25, "Face buttons (A/B/X/Y) - digital on/off, no pressure sensitivity"),
+		(() => { yOffset += sectionSpacing; return createLabel(20, yOffset, "TEST 3: Gamepad Buttons (Digital)", objIndex++); })(),
+		createLabel(20, yOffset + 25, "Face buttons (A/B/X/Y) - digital on/off, no pressure sensitivity", objIndex++),
 
-		{ linearInputIndicator: {
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 150, pxFromCanvasTop: yOffset + 60 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -502,8 +492,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				}
 				},
 				display: { text: "A" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 250, pxFromCanvasTop: yOffset + 60 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -515,8 +505,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				}
 				},
 				display: { text: "B" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 350, pxFromCanvasTop: yOffset + 60 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -528,8 +518,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				}
 				},
 				display: { text: "X" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 450, pxFromCanvasTop: yOffset + 60 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -541,9 +531,9 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				}
 				},
 				display: { text: "Y" }
-		} },
+		}, objIndex++),
 
-		{ linearInputIndicator: {
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 550, pxFromCanvasTop: yOffset + 60 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -554,8 +544,8 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				}
 				},
 				display: { text: "LT" }
-		} },
-		{ linearInputIndicator: {
+		}, objIndex++),
+		new LinearInputIndicator({
 			positionOnCanvas: { pxFromCanvasLeft: 650, pxFromCanvasTop: yOffset + 60 },
 			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
 			input: {
@@ -566,17 +556,9 @@ function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
 				}
 				},
 				display: { text: "RT" }
-		} },
+		}, objIndex++),
 	];
 
-	return {
-		canvas: { width: canvas.width, height: canvas.height, backgroundColor: 'transparent' },
-		objects
-	};
-}
-
-// UI Helper functions (moved out of config creation)
-function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager, interactionController: InteractionController): UIHelpers {
 	// CL3: Interaction state now managed by InteractionController
 	const propertyEditor = new PropertyEdit();
 
@@ -727,8 +709,9 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		});
 	}
 
-	// CL5: Return helper functions for UI interaction
+	// CL5: CanvasObjectCollection returns initial objects + helper functions for external callback setup
 	return {
+		objects,
 		propertyEditor,
 		deleteObjectAtIndex,
 		showBothPanels,

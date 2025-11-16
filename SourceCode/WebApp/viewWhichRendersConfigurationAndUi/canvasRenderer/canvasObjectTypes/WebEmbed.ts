@@ -1,65 +1,46 @@
 import { CanvasObject } from './BaseCanvasObject';
+import { deepMerge } from '../_helpers/deepMerge';
 import type { WebEmbedConfig, WebEmbedTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
-
-interface WebEmbedProperties {
-	url?: string;
-	opacity?: number;
-}
-
-const defaultWebEmbedProperties: { url: string; opacity: number } = {
-	url: "https://www.twitch.tv/",
-	opacity: 1.0
-};
 
 class WebEmbed extends CanvasObject {
 	static readonly TYPE = 'webEmbed' as const;
 	static readonly DISPLAY_NAME = 'WebEmbed';
-	static readonly DEFAULT_TEMPLATE: WebEmbedTemplate = {
-		url: "https://www.twitch.tv/",
-		opacity: 1.0
-	};
 
-	static fromConfig(config: CanvasObjectConfig): WebEmbed {
-		if (config.type !== 'webEmbed') {
-			throw new Error(`Invalid config type: expected webEmbed, got ${config.type}`);
+	static fromConfig(config: CanvasObjectConfig, objArrayIdx: number): WebEmbed {
+		if (!('webEmbed' in config)) {
+			throw new Error('Invalid config for WebEmbed: expected { webEmbed: {...} }');
 		}
-		return new WebEmbed(
-			config.id,
-			config.positionOnCanvas.pxFromCanvasLeft,
-			config.positionOnCanvas.pxFromCanvasTop,
-			config.hitboxSize.widthInPx,
-			config.hitboxSize.lengthInPx,
-			{
-				url: config.url,
-				opacity: config.opacity
-			},
-			config.layerLevel
-		);
+		return new WebEmbed(config.webEmbed, objArrayIdx);
 	}
 
-	defaultProperties: WebEmbedProperties = defaultWebEmbedProperties;
-	className: string = "WebEmbed";
+	className: string = "webEmbed";
 
-	url: string = "https://www.twitch.tv/";
-	opacity: number = 1.0;
+	url: WebEmbedTemplate['url'];
+	opacity: WebEmbedTemplate['opacity'];
 	iframe: HTMLIFrameElement | null = null;
 
-	constructor(id: string, x: number, y: number, width: number, height: number, properties?: WebEmbedProperties, layerLevel?: number) {
+	constructor(config: Partial<WebEmbedConfig>, objArrayIdx: number) {
+		const defaults: Required<WebEmbedConfig> = {
+			positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
+			hitboxSize: { widthInPx: 640, lengthInPx: 480 },
+			layerLevel: 10,
+			url: "https://www.twitch.tv/",
+			opacity: 1.0
+		};
+
+		const merged = deepMerge(defaults, config) as Required<WebEmbedConfig>;
+
 		super(
-			id,
-			{ pxFromCanvasTop: y, pxFromCanvasLeft: x },
-			{ widthInPx: width, lengthInPx: height },
+			objArrayIdx,
+			merged.positionOnCanvas,
+			merged.hitboxSize,
 			"webEmbed",
-			layerLevel ?? 10
+			merged.layerLevel
 		);
 
-		const props = properties ?? {};
-		const defaults = defaultWebEmbedProperties;
+		this.url = merged.url;
+		this.opacity = merged.opacity;
 
-		this.url = props.url ?? defaults.url;
-		this.opacity = props.opacity ?? defaults.opacity;
-
-		// Create iframe element
 		this.createIframe();
 	}
 

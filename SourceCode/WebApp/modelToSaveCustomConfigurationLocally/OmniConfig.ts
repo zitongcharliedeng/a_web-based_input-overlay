@@ -13,11 +13,11 @@ export interface CanvasConfig {
 }
 
 // Base config - all canvas objects have position, hitbox, and layer order
+// Note: Array index is used as object identifier (no separate id field needed)
 interface BaseCanvasObjectConfig {
-	id: string;  // Unique identifier (UUID) for stable object identity
-	positionOnCanvas: CanvasObjectPosition;
-	hitboxSize: CanvasObjectHitbox;
-	layerLevel: number;  // Z-index for rendering order (lower = behind, higher = front)
+	positionOnCanvas?: CanvasObjectPosition;
+	hitboxSize?: CanvasObjectHitbox;
+	layerLevel?: number;  // Z-index for rendering order (lower = behind, higher = front)
 }
 
 // LinearInputIndicator template - property defaults only (no id/position/size)
@@ -51,11 +51,11 @@ export interface LinearInputIndicatorTemplate {
 	};
 }
 
-// LinearInputIndicator configuration - full config with runtime fields
+// LinearInputIndicator configuration - full config with runtime fields (DeepPartial for partial configs)
 export interface LinearInputIndicatorConfig extends BaseCanvasObjectConfig {
-	input: LinearInputIndicatorTemplate['input'];
-	processing: LinearInputIndicatorTemplate['processing'];
-	display: LinearInputIndicatorTemplate['display'];
+	input?: DeepPartial<LinearInputIndicatorTemplate['input']>;
+	processing?: DeepPartial<LinearInputIndicatorTemplate['processing']>;
+	display?: DeepPartial<LinearInputIndicatorTemplate['display']>;
 }
 
 // Style properties used in PlanarInputIndicator
@@ -92,11 +92,11 @@ export interface PlanarInputIndicatorTemplate {
 	};
 }
 
-// PlanarInputIndicator configuration - full config with runtime fields
+// PlanarInputIndicator configuration - full config with runtime fields (DeepPartial for partial configs)
 export interface PlanarInputIndicatorConfig extends BaseCanvasObjectConfig {
-	input: PlanarInputIndicatorTemplate['input'];
-	processing: PlanarInputIndicatorTemplate['processing'];
-	display: PlanarInputIndicatorTemplate['display'];
+	input?: DeepPartial<PlanarInputIndicatorTemplate['input']>;
+	processing?: DeepPartial<PlanarInputIndicatorTemplate['processing']>;
+	display?: DeepPartial<PlanarInputIndicatorTemplate['display']>;
 }
 
 // Text template - property defaults only
@@ -112,11 +112,11 @@ export interface TextTemplate {
 	shouldStroke: boolean;
 }
 
-// Text configuration - full config with runtime fields
+// Text configuration - full config with runtime fields (DeepPartial for partial configs)
 export interface TextConfig extends BaseCanvasObjectConfig {
-	text: TextTemplate['text'];
-	textStyle: TextTemplate['textStyle'];
-	shouldStroke: TextTemplate['shouldStroke'];
+	text?: TextTemplate['text'];
+	textStyle?: DeepPartial<TextTemplate['textStyle']>;
+	shouldStroke?: TextTemplate['shouldStroke'];
 }
 
 // Image template - property defaults only
@@ -127,8 +127,8 @@ export interface ImageTemplate {
 
 // Image configuration - full config with runtime fields
 export interface ImageConfig extends BaseCanvasObjectConfig {
-	src: ImageTemplate['src'];
-	opacity: ImageTemplate['opacity'];
+	src?: ImageTemplate['src'];
+	opacity?: ImageTemplate['opacity'];
 }
 
 // WebEmbed template - property defaults only
@@ -139,33 +139,22 @@ export interface WebEmbedTemplate {
 
 // WebEmbed configuration - full config with runtime fields
 export interface WebEmbedConfig extends BaseCanvasObjectConfig {
-	url: WebEmbedTemplate['url'];
-	opacity: WebEmbedTemplate['opacity'];
+	url?: WebEmbedTemplate['url'];
+	opacity?: WebEmbedTemplate['opacity'];
 }
 
-// Discriminated union for all object types (flat with type tag)
+// Discriminated union for all object types (NixOS-style: type as key)
+// Array index is used as object ID
 export type CanvasObjectConfig =
-	| ({ type: 'linearInputIndicator' } & LinearInputIndicatorConfig)
-	| ({ type: 'planarInputIndicator' } & PlanarInputIndicatorConfig)
-	| ({ type: 'text' } & TextConfig)
-	| ({ type: 'image' } & ImageConfig)
-	| ({ type: 'webEmbed' } & WebEmbedConfig);
+	| { linearInputIndicator: LinearInputIndicatorConfig }
+	| { planarInputIndicator: PlanarInputIndicatorConfig }
+	| { text: TextConfig }
+	| { image: ImageConfig }
+	| { webEmbed: WebEmbedConfig };
 
 // Exhaustive type checking helper (compiler enforces all cases handled)
 export function assertNever(value: never): never {
 	throw new Error(`Unhandled discriminated union member: ${JSON.stringify(value)}`);
-}
-
-// Type-safe config property access (replaces all the if-else unwrapping)
-export function getConfigId(config: CanvasObjectConfig): string {
-	switch (config.type) {
-		case 'linearInputIndicator': return config.id;
-		case 'planarInputIndicator': return config.id;
-		case 'text': return config.id;
-		case 'image': return config.id;
-		case 'webEmbed': return config.id;
-		default: return assertNever(config);
-	}
 }
 
 export interface OmniConfig {

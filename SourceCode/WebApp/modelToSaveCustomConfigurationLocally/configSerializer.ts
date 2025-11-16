@@ -1,24 +1,14 @@
-import type { OmniConfig, CanvasConfig, CanvasObjectConfig, LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig } from './OmniConfig';
-import { defaultTemplateFor_LinearInputIndicator } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/LinearInputIndicator';
-import { defaultTemplateFor_PlanarInputIndicator } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/PlanarInputIndicator_Radial';
-import { defaultTemplateFor_Text } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/Text';
-import { defaultTemplateFor_Image } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/Image';
-import { defaultTemplateFor_WebEmbed } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/WebEmbed';
+import type { OmniConfig, CanvasConfig, CanvasObjectConfig, LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig, ImageConfig, WebEmbedConfig } from './OmniConfig';
 import { validateOmniConfig } from './configSchema';
 
-// Type for objects we're serializing (avoid circular dependencies)
+// Type for objects we're serializing (runtime CanvasObject instances, avoiding circular import)
 interface SerializableObject {
-	id: string;  // UUID for stable object identity
-	className?: string;
-	canvasObjectType?: string;
+	canvasObjectType: string;
 	positionOnCanvas: { pxFromCanvasLeft: number; pxFromCanvasTop: number };
 	hitboxSize: { widthInPx: number; lengthInPx: number };
-	input?: unknown;
-	processing?: unknown;
-	display?: unknown;
-	text?: string;
-	textStyle?: unknown;
-	shouldStroke?: boolean;
+	layerLevel: number;
+	// All other properties exist on objects, TypeScript just needs to know the base shape
+	[key: string]: unknown;
 }
 
 
@@ -36,107 +26,23 @@ export function objectsToConfig(objects: SerializableObject[], canvas: HTMLCanva
 	};
 
 	const serializedObjects: CanvasObjectConfig[] = objects.map(obj => {
-		const type = obj.className || obj.canvasObjectType || 'unknown';
-		const positionOnCanvas = {
-			pxFromCanvasLeft: obj.positionOnCanvas.pxFromCanvasLeft,
-			pxFromCanvasTop: obj.positionOnCanvas.pxFromCanvasTop
-		};
-		const hitboxSize = {
-			widthInPx: obj.hitboxSize.widthInPx,
-			lengthInPx: obj.hitboxSize.lengthInPx
-		};
+		const type = obj.canvasObjectType;
+		if (!type) throw new Error('Object missing canvasObjectType');
 
-		// Get layerLevel (default to 10 if not present)
-		const layerLevel = (obj as { layerLevel?: number }).layerLevel ?? 10;
-
-		// Create discriminated union based on type
-		// Deep merge defaults with actual values to ensure all nested fields present
-		if (type === 'LinearInputIndicator') {
-			const objInput = (obj.input && typeof obj.input === 'object' ? obj.input : {}) as Partial<LinearInputIndicatorConfig['input']>;
-			const objProcessing = (obj.processing && typeof obj.processing === 'object' ? obj.processing : {}) as Partial<LinearInputIndicatorConfig['processing']>;
-			const objDisplay = (obj.display && typeof obj.display === 'object' ? obj.display : {}) as Partial<LinearInputIndicatorConfig['display']>;
-
-			const linearConfig: LinearInputIndicatorConfig = {
-				id: obj.id,
-				positionOnCanvas,
-				hitboxSize,
-				layerLevel,
-				input: {
-					keyboard: { ...defaultTemplateFor_LinearInputIndicator.input.keyboard, ...objInput.keyboard },
-					mouse: { ...defaultTemplateFor_LinearInputIndicator.input.mouse, ...objInput.mouse },
-					gamepad: {
-						stick: { ...defaultTemplateFor_LinearInputIndicator.input.gamepad.stick, ...objInput.gamepad?.stick },
-						button: { ...defaultTemplateFor_LinearInputIndicator.input.gamepad.button, ...objInput.gamepad?.button }
-					}
-				},
-				processing: { ...defaultTemplateFor_LinearInputIndicator.processing, ...objProcessing },
-				display: {
-					...defaultTemplateFor_LinearInputIndicator.display,
-					...objDisplay,
-					fontStyle: { ...defaultTemplateFor_LinearInputIndicator.display.fontStyle, ...objDisplay.fontStyle }
-				}
-			};
-			return { type: 'linearInputIndicator' as const, ...linearConfig };
-		} else if (type === 'PlanarInputIndicator_Radial') {
-			const objInput = (obj.input && typeof obj.input === 'object' ? obj.input : {}) as Partial<PlanarInputIndicatorConfig['input']>;
-			const objProcessing = (obj.processing && typeof obj.processing === 'object' ? obj.processing : {}) as Partial<PlanarInputIndicatorConfig['processing']>;
-			const objDisplay = (obj.display && typeof obj.display === 'object' ? obj.display : {}) as Partial<PlanarInputIndicatorConfig['display']>;
-
-			const planarConfig: PlanarInputIndicatorConfig = {
-				id: obj.id,
-				positionOnCanvas,
-				hitboxSize,
-				layerLevel,
-				input: { ...defaultTemplateFor_PlanarInputIndicator.input, ...objInput },
-				processing: { ...defaultTemplateFor_PlanarInputIndicator.processing, ...objProcessing },
-				display: { ...defaultTemplateFor_PlanarInputIndicator.display, ...objDisplay }
-			};
-			return { type: 'planarInputIndicator' as const, ...planarConfig };
-		} else if (type === 'Text') {
-			const objTextStyle = (obj.textStyle && typeof obj.textStyle === 'object' ? obj.textStyle : {}) as Partial<TextConfig['textStyle']>;
-
-			const textConfig: TextConfig = {
-				id: obj.id,
-				positionOnCanvas,
-				hitboxSize,
-				layerLevel,
-				text: obj.text || "",
-				textStyle: { ...defaultTemplateFor_Text.textStyle, ...objTextStyle },
-				shouldStroke: obj.shouldStroke ?? true
-			};
-			return { type: 'text' as const, ...textConfig };
-		} else if (type === 'Image') {
-			const imageConfig: import('./OmniConfig.js').ImageConfig = {
-				id: obj.id,
-				positionOnCanvas,
-				hitboxSize,
-				layerLevel,
-				src: (obj as { src?: string }).src || defaultTemplateFor_Image.src,
-				opacity: (obj as { opacity?: number }).opacity ?? defaultTemplateFor_Image.opacity
-			};
-			return { type: 'image' as const, ...imageConfig };
-		} else if (type === 'WebEmbed') {
-			const webEmbedConfig: import('./OmniConfig.js').WebEmbedConfig = {
-				id: obj.id,
-				positionOnCanvas,
-				hitboxSize,
-				layerLevel,
-				url: (obj as { url?: string }).url || defaultTemplateFor_WebEmbed.url,
-				opacity: (obj as { opacity?: number }).opacity ?? defaultTemplateFor_WebEmbed.opacity
-			};
-			return { type: 'webEmbed' as const, ...webEmbedConfig };
+		// Just copy the object properties directly - they're already complete
+		if (type === 'linearInputIndicator') {
+			return { linearInputIndicator: obj };
+		} else if (type === 'planarInputIndicator') {
+			return { planarInputIndicator: obj };
+		} else if (type === 'text') {
+			return { text: obj };
+		} else if (type === 'image') {
+			return { image: obj };
+		} else if (type === 'webEmbed') {
+			return { webEmbed: obj };
 		}
 
-		// Unknown type - shouldn't happen, but return Text as fallback
-		const fallbackConfig: TextConfig = {
-			id: obj.id,
-			positionOnCanvas,
-			hitboxSize,
-			layerLevel,
-			...defaultTemplateFor_Text,
-			text: "Unknown object"
-		};
-		return { type: 'text' as const, ...fallbackConfig };
+		throw new Error(`Unknown canvasObjectType: ${type}`);
 	});
 
 	return {

@@ -2,7 +2,7 @@
 // Manages OmniConfig with pure functional updates
 
 import type { OmniConfig, CanvasObjectConfig } from './OmniConfig';
-import { updateObjectPosition, updateObjectPropertyById, updateCanvasDimensions, addObject, removeObject, removeObjectById } from './configUpdaters';
+import { updateObjectPosition, updateCanvasDimensions, addObject, removeObject } from './configUpdaters';
 
 // Callback type for when config changes
 type ConfigChangeCallback = (newConfig: OmniConfig) => void;
@@ -83,14 +83,6 @@ export class ConfigManager {
 		this.setConfig(newConfig);
 	}
 
-	/**
-	 * Update object property by ID (immutable deep update)
-	 * This is the proper way for PropertyEdit to mutate objects
-	 */
-	updateObjectProperty(objectId: string, path: string[], value: unknown): void {
-		const newConfig = updateObjectPropertyById(this._config, objectId, path, value);
-		this.setConfig(newConfig);
-	}
 
 	/**
 	 * Update canvas dimensions (immutable)
@@ -116,12 +108,4 @@ export class ConfigManager {
 		this.setConfig(newConfig);
 	}
 
-	/**
-	 * Remove object by ID (immutable)
-	 * Preferred method for object deletion (stable reference)
-	 */
-	deleteObjectById(objectId: string): void {
-		const newConfig = removeObjectById(this._config, objectId);
-		this.setConfig(newConfig);
-	}
 }

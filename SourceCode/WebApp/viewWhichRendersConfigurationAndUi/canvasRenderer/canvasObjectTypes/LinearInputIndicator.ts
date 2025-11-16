@@ -3,6 +3,7 @@ import { CanvasObject } from './BaseCanvasObject';
 import type { CanvasObjectPosition } from './BaseCanvasObject';
 import { canvas_fill_rec, canvas_text, canvas_properties } from '../canvasDrawingHelpers';
 import type { LinearInputIndicatorConfig, LinearInputIndicatorTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
+import { deepMerge } from '../_helpers/deepMerge';
 
 // Utility type: Deep Partial - makes all nested properties optional
 type DeepPartial<T> = T extends object ? {
@@ -13,39 +14,6 @@ type DeepPartial<T> = T extends object ? {
 // Commercial joysticks have 0.5-2% center drift: Xbox/PS ~0.01, Switch ~0.015, cheap ~0.03.
 // antiDeadzone compensates for analog stick resting position drift due to manufacturing tolerances.
 
-const SMART_DEFAULTS = {
-	id: '',  // Will be overridden by UUID or user config
-	positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
-	hitboxSize: { widthInPx: 100, lengthInPx: 100 },
-	layerLevel: 10,
-	input: {
-		keyboard: { keyCode: null },
-		mouse: { button: null, wheel: null },
-		gamepad: {
-			stick: { type: null, axis: null, direction: null },
-			button: { index: null }
-		}
-	},
-	processing: {
-		radialCompensationAxis: -1,
-		multiplier: 1,
-		antiDeadzone: 0.01,
-		fadeOutDuration: 0.2
-	},
-	display: {
-		text: "",
-		fillStyle: "#00ff00",
-		fillStyleBackground: "#222222",
-		fontStyle: {
-			textAlign: "center" satisfies CanvasTextAlign,
-			fillStyle: "black",
-			font: "30px Lucida Console",
-			strokeStyle: "white",
-			strokeWidth: 3
-		},
-		reverseFillDirection: false
-	}
-};
 
 type GamepadStickInput = {
 	type: 'left' | 'right' | null;
@@ -68,17 +36,6 @@ function asConventionalGamepadAxisNumber(stick: GamepadStickInput): number | nul
 class LinearInputIndicator extends CanvasObject {
 	static readonly TYPE = 'linearInputIndicator' as const;
 	static readonly DISPLAY_NAME = 'LinearInputIndicator';
-	static readonly DEFAULT_TEMPLATE: LinearInputIndicatorTemplate = {
-		input: SMART_DEFAULTS.input,
-		processing: SMART_DEFAULTS.processing,
-		display: {
-			...SMART_DEFAULTS.display,
-			fontStyle: {
-				...SMART_DEFAULTS.display.fontStyle,
-				textAlign: SMART_DEFAULTS.display.fontStyle.textAlign as CanvasTextAlign
-			}
-		}
-	};
 
 	static readonly TEMPLATES = {
 		W: {
@@ -139,17 +96,17 @@ class LinearInputIndicator extends CanvasObject {
 			}
 		};
 
-		return new LinearInputIndicator(merged);
+		return new LinearInputIndicator(merged, 0); // TODO: factory method doesn't have objArrayIdx context
 	}
 
-	static fromConfig(config: CanvasObjectConfig): LinearInputIndicator {
-		if (config.type !== 'linearInputIndicator') {
-			throw new Error(`Invalid config type: expected linearInputIndicator, got ${config.type}`);
+	static fromConfig(config: CanvasObjectConfig, objArrayIdx: number): LinearInputIndicator {
+		if (!('linearInputIndicator' in config)) {
+			throw new Error('Invalid config for LinearInputIndicator: expected { linearInputIndicator: {...} }');
 		}
-		return new LinearInputIndicator(config);
+		return new LinearInputIndicator(config.linearInputIndicator, objArrayIdx);
 	}
 
-	className: string = "LinearInputIndicator";
+	className: string = "linearInputIndicator";
 
 	// Nested config properties (NO flattening)
 	input: LinearInputIndicatorTemplate['input'];
@@ -161,50 +118,54 @@ class LinearInputIndicator extends CanvasObject {
 	_previousValue: number = 0;
 	opacity: number = 1.0; // Fade opacity instead of value
 
-	constructor(config: { positionOnCanvas: CanvasObjectPosition } & DeepPartial<Omit<LinearInputIndicatorConfig, 'type' | 'positionOnCanvas'>>) {
-		// Deep merge config with SMART_DEFAULTS
-		const merged: LinearInputIndicatorConfig = {
-			...SMART_DEFAULTS,
-			...config,
+	constructor(config: DeepPartial<LinearInputIndicatorConfig>, objArrayIdx: number) {
+		const defaults = {
+			positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
+			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+			layerLevel: 10,
 			input: {
-				keyboard: { ...SMART_DEFAULTS.input.keyboard, ...config?.input?.keyboard },
-				mouse: { ...SMART_DEFAULTS.input.mouse, ...config?.input?.mouse },
+				keyboard: { keyCode: null },
+				mouse: { button: null, wheel: null },
 				gamepad: {
-					stick: { ...SMART_DEFAULTS.input.gamepad.stick, ...config?.input?.gamepad?.stick },
-					button: { ...SMART_DEFAULTS.input.gamepad.button, ...config?.input?.gamepad?.button }
+					stick: { type: null, axis: null, direction: null },
+					button: { index: null }
 				}
 			},
-			processing: { ...SMART_DEFAULTS.processing, ...config?.processing },
+			processing: {
+				radialCompensationAxis: -1,
+				multiplier: 1,
+				antiDeadzone: 0.01,
+				fadeOutDuration: 0.2
+			},
 			display: {
-				...SMART_DEFAULTS.display,
-				...config?.display,
+				text: "",
+				fillStyle: "#00ff00",
+				fillStyleBackground: "#222222",
 				fontStyle: {
-					...SMART_DEFAULTS.display.fontStyle,
-					...config?.display?.fontStyle,
-					textAlign: (config?.display?.fontStyle?.textAlign || SMART_DEFAULTS.display.fontStyle.textAlign) as CanvasTextAlign
-				}
-			},
-			positionOnCanvas: config.positionOnCanvas,
-			hitboxSize: { ...SMART_DEFAULTS.hitboxSize, ...config?.hitboxSize }
+					textAlign: "center" as CanvasTextAlign,
+					fillStyle: "black",
+					font: "30px Lucida Console",
+					strokeStyle: "white",
+					strokeWidth: 3
+				},
+				reverseFillDirection: false
+			}
 		};
 
-		// Generate UUID if id not provided
-		const finalId = merged.id || self.crypto?.randomUUID?.() || `linear-${Date.now()}-${Math.random()}`;
+		const merged = deepMerge(defaults, config as unknown as Partial<typeof defaults>) as typeof defaults;
 
 		super(
-			finalId,
+			objArrayIdx,
 			merged.positionOnCanvas,
 			merged.hitboxSize,
 			"linearInputIndicator",
 			merged.layerLevel
 		);
 
-		// Store nested config (NO flattening to top-level this.keyCode etc.)
 		this.input = merged.input;
 		this.processing = merged.processing;
 		this.display = merged.display;
 
-		// Initialize runtime values
 		this.value = 0;
 		this._previousValue = 0;
 		this.opacity = 1.0;
@@ -375,6 +336,3 @@ class LinearInputIndicator extends CanvasObject {
 }
 
 export { LinearInputIndicator };
-
-// Deprecated: Use LinearInputIndicator.DEFAULT_TEMPLATE instead
-export const defaultTemplateFor_LinearInputIndicator = LinearInputIndicator.DEFAULT_TEMPLATE;

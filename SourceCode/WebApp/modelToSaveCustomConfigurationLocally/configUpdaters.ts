@@ -24,12 +24,6 @@ function setNestedProperty<T>(obj: T, path: string[], value: unknown): T {
 	}
 }
 
-/**
- * Helper: Find object index by ID
- */
-function findObjectIndexById(config: OmniConfig, objectId: string): number {
-	return config.objects.findIndex(obj => obj.id === objectId);
-}
 
 export function updateObjectPosition(
 	config: OmniConfig,
@@ -45,41 +39,25 @@ export function updateObjectPosition(
 	const targetObject = newObjects[objectIndex];
 	if (!targetObject) return config;
 
-	// Flat format: just spread and update position directly
-	newObjects[objectIndex] = {
-		...targetObject,
+	// Extract type key and inner config from NixOS wrapper
+	const entries = Object.entries(targetObject);
+	const entry = entries[0];
+	if (!entry) return config;
+	const [typeKey, innerConfig] = entry;
+	if (!typeKey || !innerConfig) return config;
+
+	// Update inner config with new position
+	const updatedInnerConfig = {
+		...innerConfig,
 		positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y }
 	};
 
-	return { ...config, objects: newObjects };
-}
-
-/**
- * Update object property by ID (deep nested update)
- * This is the core function for PropertyEdit mutations
- */
-export function updateObjectPropertyById(
-	config: OmniConfig,
-	objectId: string,
-	path: string[],
-	value: unknown
-): OmniConfig {
-	const objectIndex = findObjectIndexById(config, objectId);
-
-	if (objectIndex === -1) {
-		console.error(`[configUpdaters] Object with id ${objectId} not found`);
-		return config;
-	}
-
-	const newObjects = [...config.objects];
-	const targetObject = newObjects[objectIndex];
-	if (!targetObject) return config;
-
-	// Flat format: just spread and update nested property directly
-	newObjects[objectIndex] = setNestedProperty(targetObject, path, value);
+	// Rewrap in NixOS format
+	newObjects[objectIndex] = { [typeKey]: updatedInnerConfig } as CanvasObjectConfig;
 
 	return { ...config, objects: newObjects };
 }
+
 
 export function updateCanvasDimensions(
 	config: OmniConfig,
@@ -120,15 +98,3 @@ export function removeObject(
 	};
 }
 
-/**
- * Remove object by ID (immutable)
- */
-export function removeObjectById(
-	config: OmniConfig,
-	objectId: string
-): OmniConfig {
-	return {
-		...config,
-		objects: config.objects.filter(obj => obj.id !== objectId)
-	};
-}

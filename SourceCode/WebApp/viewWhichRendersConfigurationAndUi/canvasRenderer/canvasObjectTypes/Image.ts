@@ -1,73 +1,46 @@
 import { CanvasObject } from './BaseCanvasObject';
+import { deepMerge } from '../_helpers/deepMerge';
 import type { ImageConfig, ImageTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
-
-interface ImageProperties {
-    src?: string;
-    opacity?: number;
-}
-
-const defaultImageProperties: ImageProperties = {
-    src: "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png",
-    opacity: 1.0
-};
 
 class ImageObject extends CanvasObject {
     static readonly TYPE = 'image' as const;
     static readonly DISPLAY_NAME = 'Image';
-    static readonly DEFAULT_TEMPLATE: ImageTemplate = {
-        src: "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png",
-        opacity: 1.0
-    };
 
-    static fromConfig(config: CanvasObjectConfig): ImageObject {
-        if (config.type !== 'image') {
-            throw new Error(`Invalid config type: expected image, got ${config.type}`);
+    static fromConfig(config: CanvasObjectConfig, objArrayIdx: number): ImageObject {
+        if (!('image' in config)) {
+            throw new Error('Invalid config for ImageObject: expected { image: {...} }');
         }
-        return new ImageObject(
-            config.id,
-            config.positionOnCanvas.pxFromCanvasTop,
-            config.positionOnCanvas.pxFromCanvasLeft,
-            config.hitboxSize.widthInPx,
-            config.hitboxSize.lengthInPx,
-            {
-                src: config.src,
-                opacity: config.opacity
-            },
-            config.layerLevel
-        );
+        return new ImageObject(config.image, objArrayIdx);
     }
 
-    defaultProperties: ImageProperties = defaultImageProperties;
-    className: string = "Image";
+    className: string = "image";
 
-    src: string;
-    opacity: number;
+    src: ImageTemplate['src'];
+    opacity: ImageTemplate['opacity'];
     imageElement: HTMLImageElement;
 
-    constructor(
-        id: string,
-        pxFromCanvasTop: number,
-        pxFromCanvasLeft: number,
-        widthInPx: number,
-        lengthInPx: number,
-        properties?: ImageProperties,
-        layerLevel?: number
-    ) {
+    constructor(config: Partial<ImageConfig>, objArrayIdx: number) {
+        const defaults: Required<ImageConfig> = {
+            positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
+            hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+            layerLevel: 0,
+            src: "https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png",
+            opacity: 1.0
+        };
+
+        const merged = deepMerge(defaults, config) as Required<ImageConfig>;
+
         super(
-            id,
-            { pxFromCanvasTop, pxFromCanvasLeft },
-            { widthInPx, lengthInPx },
+            objArrayIdx,
+            merged.positionOnCanvas,
+            merged.hitboxSize,
             "image",
-            layerLevel ?? 0  // Background layer by default
+            merged.layerLevel
         );
 
-        const props = properties ?? {};
-        const defaults = defaultImageProperties;
+        this.src = merged.src;
+        this.opacity = merged.opacity;
 
-        this.src = props.src ?? (defaults.src || "");
-        this.opacity = props.opacity ?? (defaults.opacity || 1.0);
-
-        // Create and load image
         this.imageElement = new window.Image();
         this.imageElement.src = this.src;
     }
@@ -113,4 +86,3 @@ export const defaultTemplateFor_Image: ImageTemplate = {
 	src: DEFAULT_KEY_IMAGE_URL,
 	opacity: 1.0
 };
-export type { ImageProperties };

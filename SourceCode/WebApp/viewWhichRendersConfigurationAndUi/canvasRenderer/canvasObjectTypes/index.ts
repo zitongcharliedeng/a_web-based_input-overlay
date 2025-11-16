@@ -25,12 +25,12 @@ import { WebEmbed } from './WebEmbed';
 
 /**
  * Canvas object class interface (enforces static metadata)
+ * Each class unwraps its own NixOS-style config wrapper
  */
 export interface CanvasObjectClass {
 	readonly TYPE: string;
 	readonly DISPLAY_NAME: string;
-	readonly DEFAULT_TEMPLATE: unknown;
-	fromConfig: (config: CanvasObjectConfig) => CanvasObject;
+	fromConfig: (config: CanvasObjectConfig, objArrayIdx: number) => CanvasObject;
 }
 
 /**
@@ -51,8 +51,7 @@ export const CANVAS_OBJECT_CLASSES: ReadonlyArray<CanvasObjectClass> = [
 export interface RegistryEntry {
 	type: string;
 	displayName: string;
-	template: unknown;
-	fromConfig: (config: CanvasObjectConfig) => CanvasObject;
+	fromConfig: (config: CanvasObjectConfig, objArrayIdx: number) => CanvasObject;
 }
 
 /**
@@ -62,6 +61,5 @@ export interface RegistryEntry {
 export const CANVAS_OBJECT_REGISTRY: ReadonlyArray<RegistryEntry> = CANVAS_OBJECT_CLASSES.map(cls => ({
 	type: cls.TYPE,
 	displayName: cls.DISPLAY_NAME,
-	template: cls.DEFAULT_TEMPLATE,
 	fromConfig: cls.fromConfig.bind(cls)
 }));

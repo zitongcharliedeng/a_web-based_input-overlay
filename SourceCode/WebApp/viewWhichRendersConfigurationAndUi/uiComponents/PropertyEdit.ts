@@ -1,23 +1,12 @@
 import type { ConfigManager } from '../../modelToSaveCustomConfigurationLocally/ConfigManager';
 import type { OmniConfig, CanvasObjectConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig';
-
-// CanvasObject interface for type safety
-interface CanvasObject {
-	id: string;
-	className?: string;
-	canvasObjectType?: string;
-	positionOnCanvas: { pxFromCanvasLeft: number; pxFromCanvasTop: number };
-	hitboxSize: { widthInPx: number; lengthInPx: number };
-	layerLevel: number;
-	defaultProperties?: Record<string, unknown>;
-	constructor: { name: string };
-}
+import type { CanvasObject } from '../canvasRenderer/canvasObjectTypes/BaseCanvasObject';
 
 class PropertyEdit {
 	className: string = "PropertyEdit";
 
 	targetObject: CanvasObject | null = null;
-	targetObjectId: string | null = null;  // Track object by ID
+	targetObjectIndex: number | null = null;  // Track object by array index
 	configManager: ConfigManager | null = null;  // ConfigManager reference
 	targetScene: OmniConfig | null = null;
 	applySceneConfig: ((config: OmniConfig) => void) | null = null;
@@ -33,10 +22,10 @@ class PropertyEdit {
 		if (!propertyTable || !leftPanel) return;
 
 		// Apply all pending property changes to ConfigManager
-		if (this.configManager && this.targetObjectId && this.pendingChanges.size > 0) {
-			for (const change of this.pendingChanges.values()) {
-				this.configManager.updateObjectProperty(this.targetObjectId, change.path, change.value);
-			}
+		// TODO: Implement index-based property updates when needed
+		// For now, PropertyEdit is not functional (needs refactor for NixOS config)
+		if (this.configManager && this.targetObjectIndex !== null && this.pendingChanges.size > 0) {
+			console.warn('[PropertyEdit] Property updates not yet implemented for index-based system');
 			this.pendingChanges.clear();
 		}
 
@@ -73,16 +62,16 @@ class PropertyEdit {
 		}
 
 		this.targetObject = null;
-		this.targetObjectId = null;
+		this.targetObjectIndex = null;
 		this.configManager = null;
 		this.targetScene = null;
 		this.applySceneConfig = null;
 		this.pendingChanges.clear();
 	}
 
-	showPropertyEdit(config: CanvasObjectConfig, targetObject: CanvasObject, objectId: string, configManager: ConfigManager, deleteCallback?: () => void): void {
+	showPropertyEdit(config: CanvasObjectConfig, targetObject: CanvasObject, objArrayIdx: number, configManager: ConfigManager, deleteCallback?: () => void): void {
 		this.targetObject = targetObject;
-		this.targetObjectId = objectId;
+		this.targetObjectIndex = objArrayIdx;
 		this.configManager = configManager;
 		this.deleteCallback = deleteCallback || null;
 		this.pendingChanges.clear();  // Clear any stale changes from previous edit session
@@ -104,7 +93,9 @@ class PropertyEdit {
 		// Hide right panel (creation panel not needed for property edit)
 		if (rightPanel) rightPanel.hidden = true;
 
-		editorTitle.innerHTML = config.type;
+		// Extract type from NixOS-style wrapper
+		const configType = Object.keys(config)[0] || 'unknown';
+		editorTitle.innerHTML = configType;
 
 		while (propertyTable.firstChild !== null) {
 			propertyTable.removeChild(propertyTable.firstChild);

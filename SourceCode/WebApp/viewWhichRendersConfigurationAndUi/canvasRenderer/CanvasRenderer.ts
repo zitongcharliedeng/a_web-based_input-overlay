@@ -18,10 +18,10 @@ import type { CanvasObject } from './canvasObjectTypes/index';
 export class CanvasRenderer {
 	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
-	private deserializer: (objData: CanvasObjectConfig) => CanvasObject;
+	private deserializer: (objData: CanvasObjectConfig, objArrayIdx: number) => CanvasObject;
 	private cache: { config: OmniConfig; objects: CanvasObject[] } | null = null;
 
-	constructor(canvas: HTMLCanvasElement, deserializer: (objData: CanvasObjectConfig) => CanvasObject) {
+	constructor(canvas: HTMLCanvasElement, deserializer: (objData: CanvasObjectConfig, objArrayIdx: number) => CanvasObject) {
 		this.canvas = canvas;
 		const ctx = canvas.getContext('2d');
 		if (!ctx) throw new Error('Failed to get 2D context');
@@ -34,11 +34,11 @@ export class CanvasRenderer {
 	 */
 	private deserializeObjects(config: OmniConfig): CanvasObject[] {
 		const objects: CanvasObject[] = [];
-		for (let i = 0; i < config.objects.length; i++) {
-			const objConfig = config.objects[i];
+		for (let objArrayIdx = 0; objArrayIdx < config.objects.length; objArrayIdx++) {
+			const objConfig = config.objects[objArrayIdx];
 			if (!objConfig) continue;
 			try {
-				objects.push(this.deserializer(objConfig));
+				objects.push(this.deserializer(objConfig, objArrayIdx));
 			} catch (error) {
 				console.error('[CanvasRenderer] Deserialization failed:', objConfig, error);
 			}

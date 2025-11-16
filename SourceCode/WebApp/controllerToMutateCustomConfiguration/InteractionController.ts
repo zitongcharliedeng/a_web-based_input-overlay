@@ -16,7 +16,7 @@ import type { CanvasObject } from '../viewWhichRendersConfigurationAndUi/canvasR
 import { mouse } from '../viewWhichRendersConfigurationAndUi/inputReaders/mouse';
 
 export class InteractionController {
-	private clickedObjectId: string | null = null;  // Track by ID, not reference
+	private clickedObjectIndex: number | null = null;  // Track by array index
 	private draggingOffset = new Vector(0, 0);
 	private gridsize = 10;
 	private editingProperties = false;
@@ -81,17 +81,17 @@ export class InteractionController {
 	}
 
 	/**
-	 * Get currently selected object ID
+	 * Get currently selected object index
 	 */
-	getClickedObjectId(): string | null {
-		return this.clickedObjectId;
+	getClickedObjectIndex(): number | null {
+		return this.clickedObjectIndex;
 	}
 
 	/**
 	 * Clear selection state (called when objects are rebuilt from config)
 	 */
 	clearSelection(): void {
-		this.clickedObjectId = null;
+		this.clickedObjectIndex = null;
 	}
 
 	/**
@@ -99,9 +99,9 @@ export class InteractionController {
 	 * Returns true if canvas needs redraw
 	 */
 	update(objects: readonly CanvasObject[]): boolean {
-		// Click detection: find which object was clicked (track by ID)
+		// Click detection: find which object was clicked (track by array index)
 		if (mouse.clicks[0] === true || mouse.clicks[2] === true) {
-			this.clickedObjectId = null;
+			this.clickedObjectIndex = null;
 			this.dragStartPosition = null;
 			this.lastDragPosition = null;
 			for (let i = 0; i < objects.length; i++) {
@@ -115,7 +115,7 @@ export class InteractionController {
 				&& (mouse.x < positionOnCanvas.pxFromCanvasLeft + hitboxSize.widthInPx && mouse.y < positionOnCanvas.pxFromCanvasTop + hitboxSize.lengthInPx)) {
 					this.draggingOffset.x = positionOnCanvas.pxFromCanvasLeft - mouse.x;
 					this.draggingOffset.y = positionOnCanvas.pxFromCanvasTop - mouse.y;
-					this.clickedObjectId = object.id;  // Store ID, not reference
+					this.clickedObjectIndex = i;  // Store array index
 					this.dragStartPosition = {
 						x: positionOnCanvas.pxFromCanvasLeft,
 						y: positionOnCanvas.pxFromCanvasTop
@@ -125,8 +125,8 @@ export class InteractionController {
 			}
 		}
 
-		// Find clicked object in current frame's objects (by ID)
-		const clickedObject = this.clickedObjectId ? objects.find(o => o.id === this.clickedObjectId) : undefined;
+		// Find clicked object in current frame's objects (by array index)
+		const clickedObject = this.clickedObjectIndex !== null ? objects[this.clickedObjectIndex] : undefined;
 
 		// Dragging: update position with grid snapping and track last position
 		if (clickedObject && mouse.buttons[0] === true) {
@@ -153,12 +153,11 @@ export class InteractionController {
 			const positionChanged = finalX !== this.dragStartPosition.x || finalY !== this.dragStartPosition.y;
 
 			if (positionChanged) {
-				const objectIndex = objects.indexOf(clickedObject);
-				if (objectIndex >= 0 && this.onMoveObject) {
-					this.onMoveObject(objectIndex, finalX, finalY);
+				if (this.clickedObjectIndex !== null && this.onMoveObject) {
+					this.onMoveObject(this.clickedObjectIndex, finalX, finalY);
 				}
 			}
-			// Don't clear clickedObjectId - keep selection active until next click
+			// Don't clear clickedObjectIndex - keep selection active until next click
 			this.dragStartPosition = null;
 			this.lastDragPosition = null;
 		}
@@ -184,6 +183,6 @@ export class InteractionController {
 	 * Check if any object is selected (for View to decide whether to render hitboxes)
 	 */
 	hasSelection(): boolean {
-		return this.clickedObjectId !== null;
+		return this.clickedObjectIndex !== null;
 	}
 }

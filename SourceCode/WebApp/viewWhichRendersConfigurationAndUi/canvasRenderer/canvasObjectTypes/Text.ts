@@ -1,97 +1,55 @@
 import { CanvasObject } from './BaseCanvasObject';
 import { canvas_text } from '../canvasDrawingHelpers';
+import { deepMerge } from '../_helpers/deepMerge';
 import type { TextConfig, TextTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
 
-interface TextStyle {
-    textAlign?: CanvasTextAlign;
-    fillStyle?: string;
-    font?: string;
-    strokeStyle?: string;
-    strokeWidth?: number;
-}
-
-interface TextProperties {
-    text?: string;
-    textStyle?: TextStyle;
-    shouldStroke?: boolean;
-}
-
-const defaultTextProperties = {
-    text: "Sample text",
-    textStyle: {
-        textAlign: "center" satisfies CanvasTextAlign,
-        fillStyle: "black",
-        font: "30px Lucida Console",
-        strokeStyle: "white",
-        strokeWidth: 3
-    },
-    shouldStroke: true,
-} satisfies TextProperties;
 
 class Text extends CanvasObject {
     static readonly TYPE = 'text' as const;
     static readonly DISPLAY_NAME = 'Text';
-    static readonly DEFAULT_TEMPLATE: TextTemplate = {
-        text: "",
-        textStyle: {
-            textAlign: "left" satisfies CanvasTextAlign,
-            fillStyle: "black",
-            font: "20px Lucida Console",
-            strokeStyle: "white",
-            strokeWidth: 3
-        },
-        shouldStroke: true
-    };
 
-    static fromConfig(config: CanvasObjectConfig): Text {
-        if (config.type !== 'text') {
-            throw new Error(`Invalid config type: expected text, got ${config.type}`);
+    static fromConfig(config: CanvasObjectConfig, objArrayIdx: number): Text {
+        if (!('text' in config)) {
+            throw new Error('Invalid config for Text: expected { text: {...} }');
         }
-        return new Text(
-            config.id,
-            config.positionOnCanvas.pxFromCanvasTop,
-            config.positionOnCanvas.pxFromCanvasLeft,
-            config.hitboxSize.widthInPx,
-            config.hitboxSize.lengthInPx,
-            {
-                text: config.text,
-                textStyle: config.textStyle,
-                shouldStroke: config.shouldStroke
-            },
-            config.layerLevel
-        );
+        return new Text(config.text, objArrayIdx);
     }
 
-    defaultProperties: TextProperties = defaultTextProperties;
-    className: string = "Text";
+    className: string = "text";
 
-    text: string;
-    textStyle: TextStyle;
-    shouldStroke: boolean;
+    text: TextTemplate['text'];
+    textStyle: TextTemplate['textStyle'];
+    shouldStroke: TextTemplate['shouldStroke'];
 
-    constructor(
-        id: string,
-        pxFromCanvasTop: number,
-        pxFromCanvasLeft: number,
-        widthInPx: number,
-        lengthInPx: number,
-        properties?: TextProperties,
-        layerLevel?: number
-    ) {
+    constructor(config: Partial<TextConfig>, objArrayIdx: number) {
+        const defaults = {
+            positionOnCanvas: { pxFromCanvasLeft: 0, pxFromCanvasTop: 0 },
+            hitboxSize: { widthInPx: 200, lengthInPx: 50 },
+            layerLevel: 20,
+            text: "Sample text",
+            textStyle: {
+                textAlign: "center" as CanvasTextAlign,
+                fillStyle: "black",
+                font: "30px Lucida Console",
+                strokeStyle: "white",
+                strokeWidth: 3
+            },
+            shouldStroke: true
+        };
+
+        const merged = deepMerge(defaults, config) as typeof defaults;
+
         super(
-            id,
-            { pxFromCanvasTop, pxFromCanvasLeft },
-            { widthInPx, lengthInPx },
+            objArrayIdx,
+            merged.positionOnCanvas,
+            merged.hitboxSize,
             "text",
-            layerLevel ?? 20
+            merged.layerLevel
         );
 
-        const props = properties ?? {};
-        const defaults = defaultTextProperties;
-
-        this.text = props.text ?? (defaults.text || "");
-        this.textStyle = { ...defaults.textStyle, ...props.textStyle };
-        this.shouldStroke = props.shouldStroke ?? (defaults.shouldStroke || false);
+        this.text = merged.text;
+        this.textStyle = merged.textStyle;
+        this.shouldStroke = merged.shouldStroke;
     }
 
     update(): boolean {
@@ -123,4 +81,3 @@ export const defaultTemplateFor_Text = {
 	},
 	shouldStroke: true
 } satisfies TextTemplate;
-export type { TextProperties, TextStyle };
