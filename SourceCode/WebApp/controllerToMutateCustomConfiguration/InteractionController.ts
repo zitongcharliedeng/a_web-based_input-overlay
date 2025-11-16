@@ -12,7 +12,7 @@
  */
 
 import { Vector } from '../_helpers/Vector';
-import type { CanvasObject } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/index';
+import type { CanvasObjectInstance } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/index';
 import { mouse } from '../viewWhichRendersConfigurationAndUi/inputReaders/mouse';
 
 export class InteractionController {
@@ -27,7 +27,7 @@ export class InteractionController {
 	// Callbacks
 	private onMoveObject: ((objectIndex: number, x: number, y: number) => void) | null = null;
 	private onDeleteObject: ((objectIndex: number) => void) | null = null;
-	private onShowPropertyEdit: ((obj: CanvasObject) => void) | null = null;
+	private onShowPropertyEdit: ((obj: CanvasObjectInstance) => void) | null = null;
 	private onShowCreationPanel: (() => void) | null = null;
 	private onCloseEditors: (() => void) | null = null;
 
@@ -48,7 +48,7 @@ export class InteractionController {
 	/**
 	 * Set callback for when property edit should be shown
 	 */
-	setOnShowPropertyEdit(callback: (obj: CanvasObject) => void): void {
+	setOnShowPropertyEdit(callback: (obj: CanvasObjectInstance) => void): void {
 		this.onShowPropertyEdit = callback;
 	}
 
@@ -98,7 +98,7 @@ export class InteractionController {
 	 * Update interaction state
 	 * Returns true if canvas needs redraw
 	 */
-	update(objects: readonly CanvasObject[]): boolean {
+	update(objects: readonly CanvasObjectInstance[]): boolean {
 		// Click detection: find which object was clicked (track by array index)
 		if (mouse.clicks[0] === true || mouse.clicks[2] === true) {
 			this.clickedObjectIndex = null;
@@ -108,7 +108,7 @@ export class InteractionController {
 				const object = objects[i];
 				if (!object) continue;
 
-				const { positionOnCanvas, hitboxSize } = object;
+				const { positionOnCanvas, hitboxSize } = object.config;
 				if (!positionOnCanvas || !hitboxSize) continue;
 
 				if ((mouse.x > positionOnCanvas.pxFromCanvasLeft && mouse.y > positionOnCanvas.pxFromCanvasTop)
@@ -128,20 +128,24 @@ export class InteractionController {
 		// Find clicked object in current frame's objects (by array index)
 		const clickedObject = this.clickedObjectIndex !== null ? objects[this.clickedObjectIndex] : undefined;
 
-		// Dragging: update position with grid snapping and track last position
+		// Dragging: update config immediately for real-time feedback
 		if (clickedObject && mouse.buttons[0] === true) {
 			const newX = Math.round((mouse.x + this.draggingOffset.x)/this.gridsize)*this.gridsize;
 			const newY = Math.round((mouse.y + this.draggingOffset.y)/this.gridsize)*this.gridsize;
-			clickedObject.positionOnCanvas.pxFromCanvasLeft = newX;
-			clickedObject.positionOnCanvas.pxFromCanvasTop = newY;
+
+			// Update config immediately through callback (don't mutate cached object)
+			if (this.clickedObjectIndex !== null && this.onMoveObject) {
+				this.onMoveObject(this.clickedObjectIndex, newX, newY);
+			}
+
 			this.lastDragPosition = { x: newX, y: newY };
 		}
 
 		// Drag release: save position using lastDragPosition (since objects are fresh from config)
 		if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && clickedObject && this.dragStartPosition) {
 			// Use lastDragPosition if available (was dragged), otherwise use current position (just clicked)
-			const finalX = this.lastDragPosition?.x ?? clickedObject.positionOnCanvas?.pxFromCanvasLeft;
-			const finalY = this.lastDragPosition?.y ?? clickedObject.positionOnCanvas?.pxFromCanvasTop;
+			const finalX = this.lastDragPosition?.x ?? clickedObject.config.positionOnCanvas?.pxFromCanvasLeft;
+			const finalY = this.lastDragPosition?.y ?? clickedObject.config.positionOnCanvas?.pxFromCanvasTop;
 
 			if (finalX === undefined || finalY === undefined) {
 				console.warn('[InteractionController] Object missing positionOnCanvas on release');

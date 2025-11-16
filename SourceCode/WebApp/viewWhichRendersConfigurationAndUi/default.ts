@@ -1,20 +1,18 @@
 import { mouse } from './inputReaders/mouse';
 import { keyboard } from './inputReaders/keyboard';
-import { PlanarInputIndicator_Radial } from './canvasRenderer/canvasObjectTypes/PlanarInputIndicator_Radial';
-import { LinearInputIndicator } from './canvasRenderer/canvasObjectTypes/LinearInputIndicator';
-import { Text } from './canvasRenderer/canvasObjectTypes/Text';
-import { ImageObject } from './canvasRenderer/canvasObjectTypes/Image';
-import { WebEmbed } from './canvasRenderer/canvasObjectTypes/WebEmbed';
+import { deserializeCanvasObject } from './canvasRenderer/canvasObjectTypes/index.js';
 import { PropertyEdit } from './uiComponents/PropertyEdit';
-import { objectsToConfig, loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLocally/configSerializer';
+import { SpawnMenu } from './uiComponents/SpawnMenu';
+import { loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLocally/configSerializer';
 import { ConfigManager } from '../modelToSaveCustomConfigurationLocally/ConfigManager';
-import type { OmniConfig, LinearInputIndicatorConfig, PlanarInputIndicatorConfig, TextConfig, ImageConfig, WebEmbedConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig';
+import type { OmniConfig, CanvasObjectConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig';
+import { ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME } from '../modelToSaveCustomConfigurationLocally/OmniConfig';
 import { CONFIG_VERSION } from '../_helpers/version';
 import { showToast } from './uiComponents/toast';
-import { CANVAS_OBJECT_REGISTRY } from './canvasRenderer/canvasObjectTypes/index';
-import type { CanvasObject } from './canvasRenderer/canvasObjectTypes/BaseCanvasObject';
+import type { CanvasObjectInstance } from './canvasRenderer/canvasObjectTypes/BaseCanvasObject';
 import { CanvasRenderer } from './canvasRenderer/CanvasRenderer';
 import { InteractionController } from '../controllerToMutateCustomConfiguration/InteractionController';
+import { LinearInputIndicatorSchema, PlanarInputIndicatorSchema, TextSchema } from '../modelToSaveCustomConfigurationLocally/configSchema';
 
 declare global {
 	interface Window {
@@ -62,10 +60,13 @@ window.addEventListener("load", function (): void {
 	});
 
 	// Phase2: Create CanvasRenderer with deserializer (no caching)
-	const canvasRenderer = new CanvasRenderer(canvas, deserializeObject);
+	const canvasRenderer = new CanvasRenderer(canvas, deserializeCanvasObject);
 
 	// CL3: Create InteractionController (extracted interaction logic)
 	const interactionController = new InteractionController();
+
+	// Create SpawnMenu for creating new objects
+	const spawnMenu = new SpawnMenu(configManager);
 
 	// STEP 2: Create default config (NO objects yet - pure config)
 	const defaultConfig = createDefaultConfig(canvas);
@@ -115,6 +116,37 @@ window.addEventListener("load", function (): void {
 		// Phase2: Config already updated by editor callbacks - no need to sync from runtime objects
 	});
 
+	// Add right-click spawn menu handler
+	canvas.addEventListener('contextmenu', (e: MouseEvent) => {
+		e.preventDefault();
+
+		// Check if clicking on empty space (not on an object)
+		let clickedOnObject = false;
+		const currentConfig = configManager.config;
+		const currentObjects = currentConfig.objects.map((objData, index) => deserializeCanvasObject(objData, index));
+
+		for (let i = 0; i < currentObjects.length; i++) {
+			const obj = currentObjects[i];
+			if (obj) {
+				const { positionOnCanvas, hitboxSize } = obj.config;
+				if (positionOnCanvas && hitboxSize) {
+					const inBounds = (e.offsetX > positionOnCanvas.pxFromCanvasLeft && e.offsetY > positionOnCanvas.pxFromCanvasTop)
+						&& (e.offsetX < positionOnCanvas.pxFromCanvasLeft + hitboxSize.widthInPx
+						&& e.offsetY < positionOnCanvas.pxFromCanvasTop + hitboxSize.lengthInPx);
+					if (inBounds) {
+						clickedOnObject = true;
+						break;
+					}
+				}
+			}
+		}
+
+		// Show spawn menu only on empty space
+		if (!clickedOnObject) {
+			spawnMenu.show(e.clientX, e.clientY);
+		}
+	});
+
 	// STEP 4: Try to load saved config from localStorage, or use default
 	const savedConfig = loadSceneConfig();
 	const configToUse = savedConfig || defaultConfig;
@@ -139,7 +171,7 @@ window.addEventListener("load", function (): void {
 	configManager.setConfig(configToUse);
 
 	// Phase2: Frame-local objects for interaction handling
-	let frameObjects: readonly CanvasObject[] = [];
+	let frameObjects: readonly CanvasObjectInstance[] = [];
 
 	// Phase2: Render from config (pure MVC - no cache)
 	function frameUpdate(): void {
@@ -225,7 +257,7 @@ function loadSceneConfig() {
 			return null;
 		}
 
-			const result = loadConfigFromLocalStorage(SCENE_CONFIG_KEY);
+		const result = loadConfigFromLocalStorage(SCENE_CONFIG_KEY);
 		if (result.success) {
 			return result.config;
 		} else {
@@ -246,327 +278,200 @@ function loadSceneConfig() {
 // 	return img;
 // }
 
-import type { CanvasObjectConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig';
-
-import { CANVAS_OBJECT_CLASSES } from './canvasRenderer/canvasObjectTypes/index';
-
-function deserializeObject(objData: CanvasObjectConfig, objArrayIdx: number): CanvasObject {
-	const entries = Object.entries(objData);
-	if (entries.length === 0) {
-		throw new Error('Invalid config: empty object');
-	}
-	const entry = entries[0];
-	if (!entry) {
-		throw new Error('Invalid config: no entries');
-	}
-	const [typeKey, _config] = entry;
-
-	const canvasObjectClass = CANVAS_OBJECT_CLASSES.find(objectClass => objectClass.TYPE === typeKey);
-	if (!canvasObjectClass) {
-		throw new Error(`Unknown object type: ${typeKey}`);
-	}
-
-	return canvasObjectClass.fromConfig(objData, objArrayIdx);
-}
-
-// Helper to create text label configs
-function createLabelConfig(x: number, y: number, text: string): { text: TextConfig } {
-	return {
-		text: {
-			positionOnCanvas: { pxFromCanvasLeft: x, pxFromCanvasTop: y },
-			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
-			layerLevel: 20,
-			text,
-			textStyle: {
-				textAlign: "left",
-				fillStyle: "black",
-				font: "20px Lucida Console",
-				strokeStyle: "white",
-				strokeWidth: 3
-			},
-			shouldStroke: true
-		}
-	};
-}
-
 // Create default scene configuration (OmniConfig)
 function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
-	let yOffset = 20;
-	const sectionSpacing = 280;
-
 	const objects: CanvasObjectConfig[] = [
-		createLabelConfig(20, yOffset, "TEST 1: Left Stick + WASD + Mouse - WITH radial compensation vs WITHOUT"),
-		createLabelConfig(20, yOffset + 25, "Move diagonally: LEFT shows ~100% (compensated), RIGHT shows ~70% (raw circular)"),
+		{ Text: TextSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: 20 },
+			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
+			text: "TEST 1: Left Stick + WASD + Mouse - WITH radial compensation vs WITHOUT",
+			textStyle: { textAlign: "left", font: "20px Lucida Console" }
+		}) },
+		{ Text: TextSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: 45 },
+			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
+			text: "Move diagonally: LEFT shows ~100% (compensated), RIGHT shows ~70% (raw circular)",
+			textStyle: { textAlign: "left", font: "20px Lucida Console" }
+		}) },
 
-		{ planarInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: yOffset + 60 },
-			hitboxSize: { widthInPx: 200, lengthInPx: 200 },
+		{ PlanarInputIndicator: PlanarInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: 80 },
 			input: {
-				xAxes: { 0: true },
-				yAxes: { 1: true },
-				invertX: false,
-				invertY: false
-			},
-			display: {
-				radius: 100,
-				backgroundStyle: {lineWidth:2, strokeStyle:"#B4B4B4", fillStyle:"rgba(0, 0, 0, 0)"},
-				xLineStyle: {strokeStyle:"#FF0000", lineWidth:2},
-				yLineStyle: {strokeStyle:"#00FF00", lineWidth:2},
-				deadzoneStyle: {fillStyle:"#524d4d"},
-				inputVectorStyle: {strokeStyle:"#FFFF00", lineWidth:2},
-				unitVectorStyle: {strokeStyle:"#0000FF", lineWidth:2}
+				xAxes: { "0": true },
+				yAxes: { "1": true }
 			}
-		} },
+		}) },
 
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 240, pxFromCanvasTop: yOffset + 60 },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 240, pxFromCanvasTop: 80 },
 			input: {
 				keyboard: { keyCode: "KeyW" },
 				mouse: { button: 3, wheel: "up" },
 				gamepad: {
-				stick: { type: "left", axis: "Y", direction: "negative" },
-				button: { index: null }
+					stick: { type: "left", axis: "Y", direction: "negative" }
 				}
 			},
 			processing: { radialCompensationAxis: 0 },
 			display: { text: "W" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 150, pxFromCanvasTop: yOffset + 160 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 150, pxFromCanvasTop: 180 },
 			input: {
 				keyboard: { keyCode: "KeyA" },
 				mouse: { button: 0 },
-				gamepad: {
-				stick: { type: "left", axis: "X", direction: "negative" },
-				button: { index: null }
-				}
+				gamepad: { stick: { type: "left", axis: "X", direction: "negative" } }
 			},
 			processing: { radialCompensationAxis: 1 },
 			display: { text: "A" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 250, pxFromCanvasTop: yOffset + 160 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 250, pxFromCanvasTop: 180 },
 			input: {
 				keyboard: { keyCode: "KeyS" },
 				mouse: { button: 4, wheel: "down" },
-				gamepad: {
-				stick: { type: "left", axis: "Y", direction: "positive" },
-				button: { index: null }
-				}
+				gamepad: { stick: { type: "left", axis: "Y", direction: "positive" } }
 			},
 			processing: { radialCompensationAxis: 0 },
 			display: { text: "S" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 350, pxFromCanvasTop: yOffset + 160 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 350, pxFromCanvasTop: 180 },
 			input: {
 				keyboard: { keyCode: "KeyD" },
 				mouse: { button: 1 },
-				gamepad: {
-					stick: { type: "left", axis: "X", direction: "positive" },
-					button: { index: null }
-				}
-				},
-				processing: { radialCompensationAxis: 1 },
+				gamepad: { stick: { type: "left", axis: "X", direction: "positive" } }
+			},
+			processing: { radialCompensationAxis: 1 },
 			display: { text: "D" }
-		} },
+		}) },
 
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 740, pxFromCanvasTop: yOffset + 60 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 740, pxFromCanvasTop: 80 },
 			input: {
 				keyboard: { keyCode: "KeyW" },
 				mouse: { button: 3, wheel: "up" },
-				gamepad: {
-					stick: { type: "left", axis: "Y", direction: "negative" },
-					button: { index: null }
-				}
-				},
-				processing: { radialCompensationAxis: -1 },
+				gamepad: { stick: { type: "left", axis: "Y", direction: "negative" } }
+			},
 			display: { text: "W" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 650, pxFromCanvasTop: yOffset + 160 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 650, pxFromCanvasTop: 180 },
 			input: {
 				keyboard: { keyCode: "KeyA" },
 				mouse: { button: 0 },
-				gamepad: {
-					stick: { type: "left", axis: "X", direction: "negative" },
-					button: { index: null }
-				}
-				},
-				processing: { radialCompensationAxis: -1 },
+				gamepad: { stick: { type: "left", axis: "X", direction: "negative" } }
+			},
 			display: { text: "A" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 750, pxFromCanvasTop: yOffset + 160 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 750, pxFromCanvasTop: 180 },
 			input: {
 				keyboard: { keyCode: "KeyS" },
 				mouse: { button: 4, wheel: "down" },
-				gamepad: {
-					stick: { type: "left", axis: "Y", direction: "positive" },
-					button: { index: null }
-				}
-				},
-				processing: { radialCompensationAxis: -1 },
+				gamepad: { stick: { type: "left", axis: "Y", direction: "positive" } }
+			},
 			display: { text: "S" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 850, pxFromCanvasTop: yOffset + 160 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 850, pxFromCanvasTop: 180 },
 			input: {
 				keyboard: { keyCode: "KeyD" },
 				mouse: { button: 1 },
-				gamepad: {
-					stick: { type: "left", axis: "X", direction: "positive" },
-					button: { index: null }
-				}
-				},
-				processing: { radialCompensationAxis: -1 },
+				gamepad: { stick: { type: "left", axis: "X", direction: "positive" } }
+			},
 			display: { text: "D" }
-		} },
+		}) },
 
-		createLabelConfig(1050, yOffset, "TEST 1B: Right Gamepad Stick (IJKL)"),
-		createLabelConfig(1050, yOffset + 25, "Same as Test 1, but using right stick"),
+		{ Text: TextSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 1050, pxFromCanvasTop: 20 },
+			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
+			text: "TEST 1B: Right Gamepad Stick (IJKL)",
+			textStyle: { textAlign: "left", font: "20px Lucida Console" }
+		}) },
+		{ Text: TextSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 1050, pxFromCanvasTop: 45 },
+			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
+			text: "Same as Test 1, but using right stick",
+			textStyle: { textAlign: "left", font: "20px Lucida Console" }
+		}) },
 
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 1150, pxFromCanvasTop: yOffset + 60 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 1150, pxFromCanvasTop: 80 },
 			input: {
-				keyboard: { keyCode: null },
-				gamepad: {
-					stick: { type: "right", axis: "Y", direction: "negative" },
-					button: { index: null }
-				}
-				},
-				processing: { radialCompensationAxis: 2 },
+				gamepad: { stick: { type: "right", axis: "Y", direction: "negative" } }
+			},
+			processing: { radialCompensationAxis: 2 },
 			display: { text: "I" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 1050, pxFromCanvasTop: yOffset + 160 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 1050, pxFromCanvasTop: 180 },
 			input: {
-				keyboard: { keyCode: null },
-				gamepad: {
-					stick: { type: "right", axis: "X", direction: "negative" },
-					button: { index: null }
-				}
-				},
-				processing: { radialCompensationAxis: 3 },
+				gamepad: { stick: { type: "right", axis: "X", direction: "negative" } }
+			},
+			processing: { radialCompensationAxis: 3 },
 			display: { text: "J" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 1150, pxFromCanvasTop: yOffset + 160 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 1150, pxFromCanvasTop: 180 },
 			input: {
-				keyboard: { keyCode: null },
-				gamepad: {
-					stick: { type: "right", axis: "Y", direction: "positive" },
-					button: { index: null }
-				}
-				},
-				processing: { radialCompensationAxis: 2 },
+				gamepad: { stick: { type: "right", axis: "Y", direction: "positive" } }
+			},
+			processing: { radialCompensationAxis: 2 },
 			display: { text: "K" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 1250, pxFromCanvasTop: yOffset + 160 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 1250, pxFromCanvasTop: 180 },
 			input: {
-				keyboard: { keyCode: null },
-				gamepad: {
-					stick: { type: "right", axis: "X", direction: "positive" },
-					button: { index: null }
-				}
-				},
-				processing: { radialCompensationAxis: 3 },
+				gamepad: { stick: { type: "right", axis: "X", direction: "positive" } }
+			},
+			processing: { radialCompensationAxis: 3 },
 			display: { text: "L" }
-		} },
+		}) },
 
-		(() => { yOffset += sectionSpacing; return createLabelConfig(20, yOffset, "TEST 3: Gamepad Buttons (Digital)"); })(),
-		createLabelConfig(20, yOffset + 25, "Face buttons (A/B/X/Y) - digital on/off, no pressure sensitivity"),
+		{ Text: TextSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: 300 },
+			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
+			text: "TEST 3: Gamepad Buttons (Digital)",
+			textStyle: { textAlign: "left", font: "20px Lucida Console" }
+		}) },
+		{ Text: TextSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: 325 },
+			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
+			text: "Face buttons (A/B/X/Y) - digital on/off, no pressure sensitivity",
+			textStyle: { textAlign: "left", font: "20px Lucida Console" }
+		}) },
 
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 150, pxFromCanvasTop: yOffset + 60 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
-			input: {
-				keyboard: { keyCode: null },
-				mouse: { button: null, wheel: null },
-				gamepad: {
-					stick: { type: null, axis: null, direction: null },
-					button: { index: 0 }
-				}
-				},
-				display: { text: "A" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 250, pxFromCanvasTop: yOffset + 60 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
-			input: {
-				keyboard: { keyCode: null },
-				mouse: { button: null, wheel: null },
-				gamepad: {
-					stick: { type: null, axis: null, direction: null },
-					button: { index: 1 }
-				}
-				},
-				display: { text: "B" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 350, pxFromCanvasTop: yOffset + 60 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
-			input: {
-				keyboard: { keyCode: null },
-				mouse: { button: null, wheel: null },
-				gamepad: {
-					stick: { type: null, axis: null, direction: null },
-					button: { index: 2 }
-				}
-				},
-				display: { text: "X" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 450, pxFromCanvasTop: yOffset + 60 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
-			input: {
-				keyboard: { keyCode: null },
-				mouse: { button: null, wheel: null },
-				gamepad: {
-					stick: { type: null, axis: null, direction: null },
-					button: { index: 3 }
-				}
-				},
-				display: { text: "Y" }
-		} },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 150, pxFromCanvasTop: 360 },
+			input: { gamepad: { button: { index: 0 } } },
+			display: { text: "A" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 250, pxFromCanvasTop: 360 },
+			input: { gamepad: { button: { index: 1 } } },
+			display: { text: "B" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 350, pxFromCanvasTop: 360 },
+			input: { gamepad: { button: { index: 2 } } },
+			display: { text: "X" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 450, pxFromCanvasTop: 360 },
+			input: { gamepad: { button: { index: 3 } } },
+			display: { text: "Y" }
+		}) },
 
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 550, pxFromCanvasTop: yOffset + 60 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
-			input: {
-				keyboard: { keyCode: null },
-				gamepad: {
-					stick: { type: null, axis: null, direction: null },
-					button: { index: 6 }
-				}
-				},
-				display: { text: "LT" }
-		} },
-		{ linearInputIndicator: {
-			positionOnCanvas: { pxFromCanvasLeft: 650, pxFromCanvasTop: yOffset + 60 },
-			hitboxSize: { widthInPx: 100, lengthInPx: 100 },
-			input: {
-				keyboard: { keyCode: null },
-				gamepad: {
-					stick: { type: null, axis: null, direction: null },
-					button: { index: 7 }
-				}
-				},
-				display: { text: "RT" }
-		} },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 550, pxFromCanvasTop: 360 },
+			input: { gamepad: { button: { index: 6 } } },
+			display: { text: "LT" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 650, pxFromCanvasTop: 360 },
+			input: { gamepad: { button: { index: 7 } } },
+			display: { text: "RT" }
+		}) },
 	];
 
 	return {
@@ -627,7 +532,7 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 	}
 
 	// Unused for now - may be needed for future serialization
-	// function serializeObjectToConfig(obj: CanvasObject): CanvasObjectConfig | null {
+	// function serializeObjectToConfig(obj: CanvasObjectInstance): CanvasObjectConfig | null {
 	// 	const allObjectsConfig = objectsToConfig([obj], canvas);
 	// 	if (allObjectsConfig.objects.length > 0) {
 	// 		return allObjectsConfig.objects[0];
@@ -644,20 +549,20 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		content.innerHTML = '';
 
 		// Iterate through registry and create sections
-		CANVAS_OBJECT_REGISTRY.forEach(entry => {
+		Object.entries(ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME).forEach(([className, ClassConstructor]) => {
 			const section = document.createElement('div');
 			section.className = 'objectTypeSection';
 
 			const header = document.createElement('p');
 			header.className = 'sectionHeader';
-			header.textContent = entry.displayName;
+			header.textContent = className;
 			section.appendChild(header);
 
 			// Create button for default template
 			const button = document.createElement('button');
 			button.className = 'createObjectBtn ButtonWhichUserCanPressToUpdateState';
-			button.setAttribute('data-type', entry.type);
-			button.textContent = `Create ${entry.displayName}`;
+			button.setAttribute('data-type', className);
+			button.textContent = `Create ${className}`;
 			section.appendChild(button);
 
 			content.appendChild(section);
@@ -667,17 +572,13 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 	// Helper: Create object with default position (uses registry)
 	// ARCHITECTURE: Config-first approach - ConfigManager is single source of truth
 	function createObject(type: string) {
-		const entry = CANVAS_OBJECT_REGISTRY.find(e => e.type === type);
-		if (!entry) {
-			console.error('[Spawn] Unknown type:', type, 'Available:', CANVAS_OBJECT_REGISTRY.map(e => e.type));
+		if (!(type in ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME)) {
+			console.error('[Spawn] Unknown type:', type, 'Available:', Object.keys(ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME));
 			return;
 		}
 
-		const objectConfig: CanvasObjectConfig = {
-			[type]: {}  // Empty config - constructor applies defaults, array index used as ID
-		} as CanvasObjectConfig;
-
-		configManager.addObject(objectConfig);
+		const ClassConstructor = ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME[type as keyof typeof ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME];
+		configManager.addObject({ [type]: ClassConstructor.configDefaults } as CanvasObjectConfig);
 	}
 
 	// Phase2: Delete object by index
@@ -689,7 +590,7 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		const objConfig = config.objects[objArrayIdx];
 		if (objConfig) {
 			try {
-				const obj = deserializeObject(objConfig, objArrayIdx);
+				const obj = deserializeCanvasObject(objConfig, objArrayIdx);
 				obj.cleanup?.();
 			} catch (e) {
 				console.error('[Delete] Failed to deserialize for cleanup:', e);

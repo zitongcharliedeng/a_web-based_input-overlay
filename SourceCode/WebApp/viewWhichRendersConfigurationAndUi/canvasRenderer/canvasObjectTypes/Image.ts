@@ -1,72 +1,48 @@
-import { CanvasObject } from './BaseCanvasObject';
+import { CanvasObjectInstance } from './BaseCanvasObject';
 import { deepMerge } from '../_helpers/deepMerge';
-import type { ImageConfig, ImageTemplate, CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
-import { ImageDefaults } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
+import type { DeepPartial } from '../../../_helpers/TypeUtilities';
+import { ImageSchema, type ImageConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
-class ImageObject extends CanvasObject {
-    static readonly TYPE = 'image' as const;
-    static readonly DISPLAY_NAME = 'Image';
+export class Image extends CanvasObjectInstance {
+	// Single source of truth: Zod schema with defaults
+	static readonly configDefaults: ImageConfig = ImageSchema.parse({});
 
-    static fromConfig(config: CanvasObjectConfig, objArrayIdx: number): ImageObject {
-        if (!('image' in config)) {
-            throw new Error('Invalid config for ImageObject: expected { image: {...} }');
-        }
-        return new ImageObject(config.image, objArrayIdx);
-    }
+	override readonly config: ImageConfig;
+	runtimeState: {
+		imageElement: HTMLImageElement;
+	};
 
-    src: ImageTemplate['src'];
-    opacity: ImageTemplate['opacity'];
-    imageElement: HTMLImageElement;
+	constructor(configOverrides: DeepPartial<ImageConfig>, objArrayIdx: number) {
+		const config = deepMerge(Image.configDefaults, configOverrides || {});
+		super(objArrayIdx);
+		this.config = config;
+		this.runtimeState = {
+			imageElement: new window.Image()
+		};
+		this.runtimeState.imageElement.src = this.config.src;
+	}
 
-    constructor(config: Partial<ImageConfig>, objArrayIdx: number) {
-        const merged = deepMerge(ImageDefaults, config);
+	override update(): boolean {
+		return this.runtimeState.imageElement.complete;
+	}
 
-        super(
-            objArrayIdx,
-            merged.positionOnCanvas,
-            merged.hitboxSize,
-            "image",
-            merged.layerLevel
-        );
+	override draw(_canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
+		if (!this.runtimeState.imageElement.complete) return;
 
-        this.src = merged.src;
-        this.opacity = merged.opacity;
+		const prevAlpha = ctx.globalAlpha;
+		ctx.globalAlpha = this.config.opacity;
 
-        this.imageElement = new window.Image();
-        this.imageElement.src = this.src;
-    }
+		try {
+			ctx.drawImage(
+				this.runtimeState.imageElement,
+				0, 0,
+				this.runtimeState.imageElement.width, this.runtimeState.imageElement.height,
+				0, 0,
+				this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx
+			);
+		} catch {
+		}
 
-    update(): boolean {
-        // Images are static - no updates needed
-        // Return false if image not loaded, true once loaded
-        return this.imageElement.complete;
-    }
-
-    draw(_canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-        // Only draw if image is loaded
-        if (!this.imageElement.complete) return;
-
-        // Save context state
-        const prevAlpha = ctx.globalAlpha;
-        ctx.globalAlpha = this.opacity;
-
-        // Draw image scaled to hitbox dimensions
-        try {
-            ctx.drawImage(
-                this.imageElement,
-                0, 0,
-                this.imageElement.width, this.imageElement.height,
-                0, 0,
-                this.hitboxSize.widthInPx, this.hitboxSize.lengthInPx
-            );
-        } catch {
-            // Image loading failed - skip silently
-        }
-
-        // Restore context state
-        ctx.globalAlpha = prevAlpha;
-    }
+		ctx.globalAlpha = prevAlpha;
+	}
 }
-
-export { ImageObject };
-export type { ImageConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';

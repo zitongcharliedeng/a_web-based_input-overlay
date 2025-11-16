@@ -1,133 +1,195 @@
 import { z } from 'zod';
 
+// Primitive schemas with defaults
 const CanvasObjectPositionSchema = z.object({
-	pxFromCanvasLeft: z.number(),
-	pxFromCanvasTop: z.number()
-});
+	pxFromCanvasLeft: z.number().default(0),
+	pxFromCanvasTop: z.number().default(0)
+}).default({ pxFromCanvasLeft: 0, pxFromCanvasTop: 0 });
 
 const CanvasObjectHitboxSchema = z.object({
-	widthInPx: z.number(),
-	lengthInPx: z.number()
-});
+	widthInPx: z.number().default(100),
+	lengthInPx: z.number().default(100)
+}).default({ widthInPx: 100, lengthInPx: 100 });
 
 const CanvasConfigSchema = z.object({
-	width: z.number(),
-	height: z.number(),
-	backgroundColor: z.string()
-});
+	width: z.number().default(1920),
+	height: z.number().default(1080),
+	backgroundColor: z.string().default('rgba(0, 0, 0, 0)')
+}).default({ width: 1920, height: 1080, backgroundColor: 'rgba(0, 0, 0, 0)' });
 
-const BaseCanvasObjectConfigSchema = z.object({
-	id: z.string(),  // UUID for stable object identity
+// Base schema for all canvas objects (internal format - no id)
+const BaseCanvasObjectSchema = z.object({
 	positionOnCanvas: CanvasObjectPositionSchema,
 	hitboxSize: CanvasObjectHitboxSchema,
-	layerLevel: z.number()
+	layerLevel: z.number().default(10)
 });
 
-const LinearInputIndicatorConfigSchema = BaseCanvasObjectConfigSchema.extend({
+const LinearInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 	input: z.object({
-		keyboard: z.object({ keyCode: z.string().nullable() }),
+		keyboard: z.object({
+			keyCode: z.string().nullable().default(null)
+		}).default({ keyCode: null }),
 		mouse: z.object({
-			button: z.number().nullable(),
-			wheel: z.enum(['up', 'down']).nullable()
-		}),
+			button: z.number().nullable().default(null),
+			wheel: z.enum(['up', 'down']).nullable().default(null)
+		}).default({ button: null, wheel: null }),
 		gamepad: z.object({
 			stick: z.object({
-				type: z.enum(['left', 'right']).nullable(),
-				axis: z.enum(['X', 'Y']).nullable(),
-				direction: z.enum(['positive', 'negative']).nullable()
-			}),
-			button: z.object({ index: z.number().nullable() })
+				type: z.enum(['left', 'right']).nullable().default(null),
+				axis: z.enum(['X', 'Y']).nullable().default(null),
+				direction: z.enum(['positive', 'negative']).nullable().default(null)
+			}).default({ type: null, axis: null, direction: null }),
+			button: z.object({
+				index: z.number().nullable().default(null)
+			}).default({ index: null })
+		}).default({
+			stick: { type: null, axis: null, direction: null },
+			button: { index: null }
 		})
+	}).default({
+		keyboard: { keyCode: null },
+		mouse: { button: null, wheel: null },
+		gamepad: { stick: { type: null, axis: null, direction: null }, button: { index: null } }
 	}),
 	processing: z.object({
-		radialCompensationAxis: z.number(),
-		multiplier: z.number(),
-		antiDeadzone: z.number(),
-		fadeOutDuration: z.number()
-	}),
+		radialCompensationAxis: z.number().default(-1),
+		multiplier: z.number().default(1),
+		antiDeadzone: z.number().default(0.01),
+		fadeOutDuration: z.number().default(0.2)
+	}).default({ radialCompensationAxis: -1, multiplier: 1, antiDeadzone: 0.01, fadeOutDuration: 0.2 }),
 	display: z.object({
-		text: z.string(),
-		fillStyle: z.string(),
-		fillStyleBackground: z.string(),
+		text: z.string().default(""),
+		fillStyle: z.string().default("#00ff00"),
+		fillStyleBackground: z.string().default("#222222"),
 		fontStyle: z.object({
-			textAlign: z.enum(['left', 'right', 'center', 'start', 'end']),
-			fillStyle: z.string(),
-			font: z.string(),
-			strokeStyle: z.string(),
-			strokeWidth: z.number()
-		}),
-		reverseFillDirection: z.boolean()
+			textAlign: z.enum(['left', 'right', 'center', 'start', 'end']).default('center'),
+			fillStyle: z.string().default("black"),
+			font: z.string().default("30px Lucida Console"),
+			strokeStyle: z.string().default("white"),
+			strokeWidth: z.number().default(3)
+		}).default({ textAlign: 'center', fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 }),
+		fillDirection: z.enum(['normal', 'reversed']).default('normal')
+	}).default({
+		text: "",
+		fillStyle: "#00ff00",
+		fillStyleBackground: "#222222",
+		fontStyle: { textAlign: 'center', fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 },
+		fillDirection: 'normal'
 	})
 });
 
 const StylePropertiesSchema = z.object({
-	strokeStyle: z.string().optional(),
-	fillStyle: z.string().optional(),
-	lineWidth: z.number().optional()
-});
+	strokeStyle: z.string(),
+	fillStyle: z.string(),
+	lineWidth: z.number()
+}).partial();
 
-const PlanarInputIndicatorConfigSchema = BaseCanvasObjectConfigSchema.extend({
+const PlanarInputIndicatorSchema = BaseCanvasObjectSchema.extend({
+	hitboxSize: z.object({
+		widthInPx: z.number().default(200),
+		lengthInPx: z.number().default(200)
+	}).default({ widthInPx: 200, lengthInPx: 200 }),
 	input: z.object({
-		xAxes: z.record(z.string(), z.boolean()),
-		yAxes: z.record(z.string(), z.boolean()),
-		invertX: z.boolean(),
-		invertY: z.boolean()
-	}),
+		xAxes: z.record(z.string(), z.boolean()).default({ "0": true }),
+		yAxes: z.record(z.string(), z.boolean()).default({ "1": true }),
+		invertX: z.boolean().default(false),
+		invertY: z.boolean().default(false)
+	}).default({ xAxes: { "0": true }, yAxes: { "1": true }, invertX: false, invertY: false }),
 	processing: z.object({
-		deadzone: z.number(),
-		antiDeadzone: z.number()
-	}),
+		deadzone: z.number().default(0.01),
+		antiDeadzone: z.number().default(0)
+	}).default({ deadzone: 0.01, antiDeadzone: 0 }),
 	display: z.object({
-		radius: z.number(),
+		radius: z.number().default(100),
 		stickRadius: z.number().optional(),
 		fillStyle: z.string().optional(),
 		fillStyleStick: z.string().optional(),
 		fillStyleBackground: z.string().optional(),
-		backgroundStyle: StylePropertiesSchema,
-		xLineStyle: StylePropertiesSchema,
-		yLineStyle: StylePropertiesSchema,
-		deadzoneStyle: StylePropertiesSchema,
-		inputVectorStyle: StylePropertiesSchema,
-		unitVectorStyle: StylePropertiesSchema
+		backgroundStyle: StylePropertiesSchema.default({ strokeStyle: "#B4B4B4", lineWidth: 2, fillStyle: "rgba(0, 0, 0, 0)" }),
+		xLineStyle: StylePropertiesSchema.default({ strokeStyle: "#FF0000", lineWidth: 2 }),
+		yLineStyle: StylePropertiesSchema.default({ strokeStyle: "#00FF00", lineWidth: 2 }),
+		deadzoneStyle: StylePropertiesSchema.default({ fillStyle: "#524d4d" }),
+		inputVectorStyle: StylePropertiesSchema.default({ strokeStyle: "#FFFF00", lineWidth: 2 }),
+		unitVectorStyle: StylePropertiesSchema.default({ strokeStyle: "#0000FF", lineWidth: 2 })
+	}).default({
+		radius: 100,
+		backgroundStyle: { strokeStyle: "#B4B4B4", lineWidth: 2, fillStyle: "rgba(0, 0, 0, 0)" },
+		xLineStyle: { strokeStyle: "#FF0000", lineWidth: 2 },
+		yLineStyle: { strokeStyle: "#00FF00", lineWidth: 2 },
+		deadzoneStyle: { fillStyle: "#524d4d" },
+		inputVectorStyle: { strokeStyle: "#FFFF00", lineWidth: 2 },
+		unitVectorStyle: { strokeStyle: "#0000FF", lineWidth: 2 }
 	})
 });
 
-const TextConfigSchema = BaseCanvasObjectConfigSchema.extend({
-	text: z.string(),
+const TextSchema = BaseCanvasObjectSchema.extend({
+	hitboxSize: z.object({
+		widthInPx: z.number().default(200),
+		lengthInPx: z.number().default(50)
+	}).default({ widthInPx: 200, lengthInPx: 50 }),
+	layerLevel: z.number().default(20),
+	text: z.string().default("Sample text"),
 	textStyle: z.object({
-		textAlign: z.enum(['left', 'right', 'center', 'start', 'end']),
-		fillStyle: z.string(),
-		font: z.string(),
-		strokeStyle: z.string(),
-		strokeWidth: z.number()
-	}),
-	shouldStroke: z.boolean()
+		textAlign: z.enum(['left', 'right', 'center', 'start', 'end']).default('center'),
+		fillStyle: z.string().default("black"),
+		font: z.string().default("30px Lucida Console"),
+		strokeStyle: z.string().default("white"),
+		strokeWidth: z.number().default(3)
+	}).default({ textAlign: 'center', fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 }),
+	shouldStroke: z.boolean().default(true)
 });
 
-const ImageConfigSchema = BaseCanvasObjectConfigSchema.extend({
-	src: z.string(),
-	opacity: z.number().min(0).max(1)
+const ImageSchema = BaseCanvasObjectSchema.extend({
+	layerLevel: z.number().default(0),
+	src: z.string().default("https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png"),
+	opacity: z.number().min(0).max(1).default(1.0)
 });
 
-const WebEmbedConfigSchema = BaseCanvasObjectConfigSchema.extend({
-	url: z.string(),
-	opacity: z.number().min(0).max(1)
+const WebEmbedSchema = BaseCanvasObjectSchema.extend({
+	hitboxSize: z.object({
+		widthInPx: z.number().default(640),
+		lengthInPx: z.number().default(480)
+	}).default({ widthInPx: 640, lengthInPx: 480 }),
+	url: z.string().default("https://www.twitch.tv/"),
+	opacity: z.number().min(0).max(1).default(1.0)
 });
 
-// Discriminated union with type tag (flat format)
-const CanvasObjectConfigSchema = z.discriminatedUnion('type', [
-	LinearInputIndicatorConfigSchema.extend({ type: z.literal('linearInputIndicator') }),
-	PlanarInputIndicatorConfigSchema.extend({ type: z.literal('planarInputIndicator') }),
-	TextConfigSchema.extend({ type: z.literal('text') }),
-	ImageConfigSchema.extend({ type: z.literal('image') }),
-	WebEmbedConfigSchema.extend({ type: z.literal('webEmbed') })
+// Union using class names as keys (NixOS style)
+const CanvasObjectConfigSchema = z.union([
+	z.object({ LinearInputIndicator: LinearInputIndicatorSchema }),
+	z.object({ PlanarInputIndicator: PlanarInputIndicatorSchema }),
+	z.object({ Text: TextSchema }),
+	z.object({ Image: ImageSchema }),
+	z.object({ WebEmbed: WebEmbedSchema })
 ]);
 
 export const OmniConfigSchema = z.object({
 	canvas: CanvasConfigSchema,
-	objects: z.array(CanvasObjectConfigSchema),
-	version: z.string().optional()
+	objects: z.array(CanvasObjectConfigSchema)
 });
+
+// Export base schemas for use in classes (single source of truth!)
+export {
+	BaseCanvasObjectSchema,
+	LinearInputIndicatorSchema,
+	PlanarInputIndicatorSchema,
+	TextSchema,
+	ImageSchema,
+	WebEmbedSchema
+};
+
+// Export types derived from schemas
+export type CanvasConfig = z.infer<typeof CanvasConfigSchema>;
+export type CanvasObjectConfig = z.infer<typeof CanvasObjectConfigSchema>;
+export type OmniConfig = z.infer<typeof OmniConfigSchema>;
+export type StyleProperties = z.infer<typeof StylePropertiesSchema>;
+export type BaseCanvasObjectConfig = z.infer<typeof BaseCanvasObjectSchema>;
+
+export type LinearInputIndicatorConfig = z.infer<typeof LinearInputIndicatorSchema>;
+export type PlanarInputIndicatorConfig = z.infer<typeof PlanarInputIndicatorSchema>;
+export type TextConfig = z.infer<typeof TextSchema>;
+export type ImageConfig = z.infer<typeof ImageSchema>;
+export type WebEmbedConfig = z.infer<typeof WebEmbedSchema>;
 
 export function validateOmniConfig(data: unknown): { success: true; data: z.infer<typeof OmniConfigSchema> } | { success: false; error: z.ZodError } {
 	const result = OmniConfigSchema.safeParse(data);

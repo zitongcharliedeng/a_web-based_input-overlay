@@ -2,7 +2,7 @@
 // Manages OmniConfig with pure functional updates
 
 import type { OmniConfig, CanvasObjectConfig } from './OmniConfig';
-import { updateObjectPosition, updateCanvasDimensions, addObject, removeObject } from './configUpdaters';
+import { updateObjectPosition, updateCanvasDimensions, addObject, removeObject, updateObjectByIndex } from './configUpdaters';
 
 // Callback type for when config changes
 type ConfigChangeCallback = (newConfig: OmniConfig) => void;
@@ -89,6 +89,14 @@ export class ConfigManager {
 	 */
 	resizeCanvas(width: number, height: number): void {
 		const newConfig = updateCanvasDimensions(this._config, width, height);
+		this.setConfig(newConfig);
+	}
+
+	/**
+	 * Update object properties (immutable)
+	 */
+	updateObject(objectIndex: number, updates: Map<string, { path: string[], value: unknown }>): void {
+		const newConfig = updateObjectByIndex(this._config, objectIndex, updates);
 		this.setConfig(newConfig);
 	}
 

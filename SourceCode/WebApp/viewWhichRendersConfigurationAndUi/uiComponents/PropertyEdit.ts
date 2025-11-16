@@ -1,11 +1,11 @@
 import type { ConfigManager } from '../../modelToSaveCustomConfigurationLocally/ConfigManager';
 import type { OmniConfig, CanvasObjectConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig';
-import type { CanvasObject } from '../canvasRenderer/canvasObjectTypes/BaseCanvasObject';
+import type { CanvasObjectInstance } from '../canvasRenderer/canvasObjectTypes/BaseCanvasObject';
 
 class PropertyEdit {
 	className: string = "PropertyEdit";
 
-	targetObject: CanvasObject | null = null;
+	targetObject: CanvasObjectInstance | null = null;
 	targetObjectIndex: number | null = null;  // Track object by array index
 	configManager: ConfigManager | null = null;  // ConfigManager reference
 	targetScene: OmniConfig | null = null;
@@ -22,10 +22,8 @@ class PropertyEdit {
 		if (!propertyTable || !leftPanel) return;
 
 		// Apply all pending property changes to ConfigManager
-		// TODO: Implement index-based property updates when needed
-		// For now, PropertyEdit is not functional (needs refactor for NixOS config)
 		if (this.configManager && this.targetObjectIndex !== null && this.pendingChanges.size > 0) {
-			console.warn('[PropertyEdit] Property updates not yet implemented for index-based system');
+			this.configManager.updateObject(this.targetObjectIndex, this.pendingChanges);
 			this.pendingChanges.clear();
 		}
 
@@ -69,7 +67,7 @@ class PropertyEdit {
 		this.pendingChanges.clear();
 	}
 
-	showPropertyEdit(config: CanvasObjectConfig, targetObject: CanvasObject, objArrayIdx: number, configManager: ConfigManager, deleteCallback?: () => void): void {
+	showPropertyEdit(config: CanvasObjectConfig, targetObject: CanvasObjectInstance, objArrayIdx: number, configManager: ConfigManager, deleteCallback?: () => void): void {
 		this.targetObject = targetObject;
 		this.targetObjectIndex = objArrayIdx;
 		this.configManager = configManager;
@@ -93,16 +91,18 @@ class PropertyEdit {
 		// Hide right panel (creation panel not needed for property edit)
 		if (rightPanel) rightPanel.hidden = true;
 
-		// Extract type from NixOS-style wrapper
+		// Extract type and inner config from NixOS-style wrapper
 		const configType = Object.keys(config)[0] || 'unknown';
+		const innerConfig = (config as any)[configType];
 		editorTitle.innerHTML = configType;
 
 		while (propertyTable.firstChild !== null) {
 			propertyTable.removeChild(propertyTable.firstChild);
 		}
 
-		// Render ALL properties from config (id, type, positionOnCanvas, hitboxSize, layerLevel, + object-specific)
-		this.renderProperties(propertyTable, [], config, targetObject);
+		// Render ALL properties from config (use innerConfig as both schema AND values)
+		// We read from config, not from runtime object!
+		this.renderProperties(propertyTable, [], innerConfig, innerConfig);
 
 		// Add Delete button at the bottom
 		if (this.deleteCallback) {

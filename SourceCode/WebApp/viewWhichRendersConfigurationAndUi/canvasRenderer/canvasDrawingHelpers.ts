@@ -1,10 +1,10 @@
 interface CanvasProperties {
-	lineWidth?: number;
-	strokeStyle?: string;
-	fillStyle?: string;
-	lineCap?: CanvasLineCap;
-	textAlign?: CanvasTextAlign;
-	font?: string;
+	lineWidth?: number | undefined;
+	strokeStyle?: string | undefined;
+	fillStyle?: string | undefined;
+	lineCap?: CanvasLineCap | undefined;
+	textAlign?: CanvasTextAlign | undefined;
+	font?: string | undefined;
 }
 
 function canvas_properties(context: CanvasRenderingContext2D, properties: CanvasProperties): void {

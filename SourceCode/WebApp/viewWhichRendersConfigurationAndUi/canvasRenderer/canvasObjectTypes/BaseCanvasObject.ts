@@ -1,49 +1,25 @@
-type CanvasObjectType =
-    | "linearInputIndicator"
-    | "planarInputIndicator"
-    | "text"
-    | "image"
-    | "webEmbed";
+import type { BaseCanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
-interface CanvasObjectPosition {
-    pxFromCanvasTop: number;
-    pxFromCanvasLeft: number;
-}
-
-interface CanvasObjectHitbox {
-    widthInPx: number;
-    lengthInPx: number;
-}
-
-abstract class CanvasObject {
-    objArrayIdx: number;  // Array index used as object identifier
-    positionOnCanvas: CanvasObjectPosition;
-    hitboxSize: CanvasObjectHitbox;
-    layerLevel: number;  // Z-index for rendering order (lower = behind, higher = front)
-    canvasObjectType: CanvasObjectType;
-
-    constructor(
-        objArrayIdx: number,
-        positionOnCanvas: CanvasObjectPosition,
-        hitboxSize: CanvasObjectHitbox,
-        canvasObjectType: CanvasObjectType,
-        layerLevel: number = 10
-    ) {
+// Part 1: Instance contract (what instances must have)
+abstract class CanvasObjectInstance {
+    constructor(objArrayIdx: number) {
         this.objArrayIdx = objArrayIdx;
-        this.positionOnCanvas = positionOnCanvas;
-        this.hitboxSize = hitboxSize;
-        this.layerLevel = layerLevel;
-        this.canvasObjectType = canvasObjectType;
     }
 
-    syncProperties(): void {
-    }
-
-    cleanup?(): void;  // Optional cleanup method for objects like WebEmbed
+    objArrayIdx: number;
+    abstract readonly config: BaseCanvasObjectConfig; // All configs extend this base
 
     abstract update(delta: number): boolean;
     abstract draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void;
+
+    cleanup?(): void;
 }
 
-export { CanvasObject };
-export type { CanvasObjectType, CanvasObjectPosition, CanvasObjectHitbox };
+// Part 2: Class contract (what constructors must have)
+interface CanvasObjectClass<TConfig extends BaseCanvasObjectConfig> {
+    new (configOverrides: any, objArrayIdx: number): CanvasObjectInstance;
+    readonly configDefaults: TConfig;
+}
+
+export { CanvasObjectInstance };
+export type { CanvasObjectClass };

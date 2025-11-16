@@ -1,65 +1,30 @@
-/**
- * Barrel file for canvas object types
- * Auto-generates registry from class static metadata
- */
+import { ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME, type CanvasObjectClassName, type CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
+import type { CanvasObjectInstance } from './BaseCanvasObject';
 
-import type { CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
-import type { CanvasObject } from './BaseCanvasObject';
+export type { CanvasObjectInstance } from './BaseCanvasObject';
 
-// Export base class
-export type { CanvasObject } from './BaseCanvasObject';
-
-// Export all canvas object classes
 export { LinearInputIndicator } from './LinearInputIndicator';
-export { PlanarInputIndicator_Radial } from './PlanarInputIndicator_Radial';
+export { PlanarInputIndicator } from './PlanarInputIndicator';
 export { Text } from './Text';
-export { ImageObject } from './Image';
+export { Image } from './Image';
 export { WebEmbed } from './WebEmbed';
 
-// Import classes for registry generation
-import { LinearInputIndicator } from './LinearInputIndicator';
-import { PlanarInputIndicator_Radial } from './PlanarInputIndicator_Radial';
-import { Text } from './Text';
-import { ImageObject } from './Image';
-import { WebEmbed } from './WebEmbed';
+export const SPAWNABLE_TYPES: ReadonlyArray<CanvasObjectClassName> =
+	Object.keys(ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME) as CanvasObjectClassName[];
 
-/**
- * Canvas object class interface (enforces static metadata)
- * Each class unwraps its own NixOS-style config wrapper
- */
-export interface CanvasObjectClass {
-	readonly TYPE: string;
-	readonly DISPLAY_NAME: string;
-	fromConfig: (config: CanvasObjectConfig, objArrayIdx: number) => CanvasObject;
+function isCanvasObjectClassName(key: string): key is CanvasObjectClassName {
+	return key in ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME;
 }
 
-/**
- * All registered canvas object classes
- * Adding new class: just export it above, add to this array
- */
-export const CANVAS_OBJECT_CLASSES: ReadonlyArray<CanvasObjectClass> = [
-	LinearInputIndicator,
-	PlanarInputIndicator_Radial,
-	Text,
-	ImageObject,
-	WebEmbed
-] as const;
-
-/**
- * Registry entry (generated from class metadata)
- */
-export interface RegistryEntry {
-	type: string;
-	displayName: string;
-	fromConfig: (config: CanvasObjectConfig, objArrayIdx: number) => CanvasObject;
+export function deserializeCanvasObject(objData: CanvasObjectConfig, objArrayIdx: number): CanvasObjectInstance {
+	for (const key in objData) {
+		if (isCanvasObjectClassName(key)) {
+			const Class = ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME[key];
+			// TypeScript can't narrow discriminated unions with computed keys,
+			// but we've verified the key exists via isCanvasObjectClassName guard
+			const config = (objData as any)[key];
+			return new Class(config, objArrayIdx);
+		}
+	}
+	throw new Error('Invalid config: no valid class name found');
 }
-
-/**
- * Auto-generated registry from class static metadata
- * Single source of truth - metadata lives on classes
- */
-export const CANVAS_OBJECT_REGISTRY: ReadonlyArray<RegistryEntry> = CANVAS_OBJECT_CLASSES.map(cls => ({
-	type: cls.TYPE,
-	displayName: cls.DISPLAY_NAME,
-	fromConfig: cls.fromConfig.bind(cls)
-}));
