@@ -2,7 +2,6 @@ import { mouse } from './inputReaders/mouse';
 import { keyboard } from './inputReaders/keyboard';
 import { deserializeCanvasObject } from './canvasRenderer/canvasObjectTypes/index.js';
 import { PropertyEdit } from './uiComponents/PropertyEdit';
-import { SpawnMenu } from './uiComponents/SpawnMenu';
 import { loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLocally/configSerializer';
 import { ConfigManager } from '../modelToSaveCustomConfigurationLocally/ConfigManager';
 import type { OmniConfig, CanvasObjectConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig';
@@ -12,7 +11,18 @@ import { showToast } from './uiComponents/toast';
 import type { CanvasObjectInstance } from './canvasRenderer/canvasObjectTypes/BaseCanvasObject';
 import { CanvasRenderer } from './canvasRenderer/CanvasRenderer';
 import { InteractionController } from '../controllerToMutateCustomConfiguration/InteractionController';
-import { LinearInputIndicatorSchema, PlanarInputIndicatorSchema, TextSchema } from '../modelToSaveCustomConfigurationLocally/configSchema';
+import { LinearInputIndicatorSchema, PlanarInputIndicatorSchema, TextSchema, ImageSchema, WebEmbedSchema } from '../modelToSaveCustomConfigurationLocally/configSchema';
+import type { z } from 'zod';
+import type { CanvasObjectClassName } from '../modelToSaveCustomConfigurationLocally/OmniConfig';
+
+// Map class names to their Zod schemas for proper default generation
+const CANVAS_OBJECT_SCHEMAS: Record<CanvasObjectClassName, z.ZodSchema<any>> = {
+	LinearInputIndicator: LinearInputIndicatorSchema,
+	PlanarInputIndicator: PlanarInputIndicatorSchema,
+	Text: TextSchema,
+	Image: ImageSchema,
+	WebEmbed: WebEmbedSchema
+};
 
 declare global {
 	interface Window {
@@ -65,8 +75,7 @@ window.addEventListener("load", function (): void {
 	// CL3: Create InteractionController (extracted interaction logic)
 	const interactionController = new InteractionController();
 
-	// Create SpawnMenu for creating new objects
-	const spawnMenu = new SpawnMenu(configManager);
+	// SpawnMenu removed - using existing showBothPanels UI instead
 
 	// STEP 2: Create default config (NO objects yet - pure config)
 	const defaultConfig = createDefaultConfig(canvas);
@@ -116,7 +125,7 @@ window.addEventListener("load", function (): void {
 		// Phase2: Config already updated by editor callbacks - no need to sync from runtime objects
 	});
 
-	// Add right-click spawn menu handler
+	// Add right-click canvas menu handler
 	canvas.addEventListener('contextmenu', (e: MouseEvent) => {
 		e.preventDefault();
 
@@ -141,9 +150,9 @@ window.addEventListener("load", function (): void {
 			}
 		}
 
-		// Show spawn menu only on empty space
+		// Show canvas config menu with creation panel on empty space
 		if (!clickedOnObject) {
-			spawnMenu.show(e.clientX, e.clientY);
+			uiHelpers.showBothPanels();
 		}
 	});
 
@@ -569,7 +578,7 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		});
 	}
 
-	// Helper: Create object with default position (uses registry)
+	// Helper: Create object with default position (uses Zod schemas for complete defaults)
 	// ARCHITECTURE: Config-first approach - ConfigManager is single source of truth
 	function createObject(type: string) {
 		if (!(type in ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME)) {
@@ -577,8 +586,18 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 			return;
 		}
 
-		const ClassConstructor = ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME[type as keyof typeof ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME];
-		configManager.addObject({ [type]: ClassConstructor.configDefaults } as CanvasObjectConfig);
+		const schema = CANVAS_OBJECT_SCHEMAS[type as CanvasObjectClassName];
+		if (!schema) {
+			console.error(`No schema found for ${type}`);
+			return;
+		}
+
+		// Use Zod to generate complete defaults (with default position)
+		const innerConfig = schema.parse({});
+
+		// Wrap in NixOS-style discriminated union
+		const config = { [type]: innerConfig } as CanvasObjectConfig;
+		configManager.addObject(config);
 	}
 
 	// Phase2: Delete object by index

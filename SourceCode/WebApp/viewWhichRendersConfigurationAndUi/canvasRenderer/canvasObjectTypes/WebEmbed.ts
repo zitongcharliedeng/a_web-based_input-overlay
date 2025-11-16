@@ -3,6 +3,9 @@ import { deepMerge } from '../_helpers/deepMerge';
 import type { DeepPartial } from '../../../_helpers/TypeUtilities';
 import { WebEmbedSchema, type WebEmbedConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
+// Global iframe registry to prevent duplicates when objects are recreated each frame
+const iframeRegistry = new Map<number, HTMLIFrameElement>();
+
 export class WebEmbed extends CanvasObjectInstance {
 	// Single source of truth: Zod schema with defaults
 	static readonly configDefaults: WebEmbedConfig = WebEmbedSchema.parse({});
@@ -20,10 +23,22 @@ export class WebEmbed extends CanvasObjectInstance {
 			iframe: null
 		};
 
-		this.createIframe();
+		this.findOrCreateIframe();
 	}
 
-	private createIframe(): void {
+	private findOrCreateIframe(): void {
+		// Check if iframe already exists for this object index
+		const existing = iframeRegistry.get(this.objArrayIdx);
+		if (existing && existing.parentNode) {
+			this.runtimeState.iframe = existing;
+			// Update URL if changed
+			if (this.runtimeState.iframe.src !== this.config.url) {
+				this.runtimeState.iframe.src = this.config.url;
+			}
+			return;
+		}
+
+		// Create new iframe only if it doesn't exist
 		this.runtimeState.iframe = document.createElement('iframe');
 		this.runtimeState.iframe.src = this.config.url;
 		this.runtimeState.iframe.style.position = 'absolute';
@@ -41,6 +56,9 @@ export class WebEmbed extends CanvasObjectInstance {
 		this.runtimeState.iframe.setAttribute('allowfullscreen', '');
 
 		document.body.appendChild(this.runtimeState.iframe);
+
+		// Register iframe to prevent duplicates
+		iframeRegistry.set(this.objArrayIdx, this.runtimeState.iframe);
 	}
 
 	override update(): boolean {
@@ -77,5 +95,7 @@ export class WebEmbed extends CanvasObjectInstance {
 			this.runtimeState.iframe.parentNode.removeChild(this.runtimeState.iframe);
 			this.runtimeState.iframe = null;
 		}
+		// Remove from registry to allow proper cleanup
+		iframeRegistry.delete(this.objArrayIdx);
 	}
 }

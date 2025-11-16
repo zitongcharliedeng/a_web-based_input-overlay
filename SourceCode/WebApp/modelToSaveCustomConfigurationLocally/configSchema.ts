@@ -150,7 +150,7 @@ const WebEmbedSchema = BaseCanvasObjectSchema.extend({
 		widthInPx: z.number().default(640),
 		lengthInPx: z.number().default(480)
 	}).default({ widthInPx: 640, lengthInPx: 480 }),
-	url: z.string().default("https://www.twitch.tv/"),
+	url: z.string().default("https://www.youtube.com/embed/dQw4w9WgXcQ"),
 	opacity: z.number().min(0).max(1).default(1.0)
 });
 
