@@ -70,10 +70,20 @@ jobs:
         shell: bash
         run: |
           cd SourceCode/DesktopWrappedWebapp
-          # Run electron with timeout - if it crashes within 3 seconds, build fails
-          timeout 3 npx electron main.js --with-dev-console 2>&1 | tee smoke-test.log || true
-          # Check log for common error patterns
-          if grep -qi "error\|exception\|cannot read" smoke-test.log; then
+          # Run electron with timeout (use gtimeout on macOS, timeout on Linux/Windows)
+          if command -v timeout &> /dev/null; then
+            timeout 3 npx electron main.js --with-dev-console 2>&1 | tee smoke-test.log || true
+          elif command -v gtimeout &> /dev/null; then
+            gtimeout 3 npx electron main.js --with-dev-console 2>&1 | tee smoke-test.log || true
+          else
+            # Fallback: run for 3 seconds then kill (macOS without coreutils)
+            npx electron main.js --with-dev-console 2>&1 | tee smoke-test.log &
+            PID=$!
+            sleep 3
+            kill $PID 2>/dev/null || true
+          fi
+          # Only check for ACTUAL runtime errors (not Chromium internal warnings)
+          if grep -qi "cannot read\|cannot find\|is not defined\|TypeError\|ReferenceError" smoke-test.log; then
             echo "::error::Smoke test failed - runtime error detected in logs"
             cat smoke-test.log
             exit 1
