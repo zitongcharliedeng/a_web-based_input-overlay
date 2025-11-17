@@ -66,6 +66,20 @@ jobs:
       - name: Build TypeScript
         run: cd SourceCode/_devTools && npm run build
 
+      - name: Smoke test - run app to catch runtime errors
+        shell: bash
+        run: |
+          cd SourceCode/DesktopWrappedWebapp
+          # Run electron with timeout - if it crashes within 3 seconds, build fails
+          timeout 3 npx electron main.js --with-dev-console 2>&1 | tee smoke-test.log || true
+          # Check log for common error patterns
+          if grep -qi "error\|exception\|cannot read" smoke-test.log; then
+            echo "::error::Smoke test failed - runtime error detected in logs"
+            cat smoke-test.log
+            exit 1
+          fi
+          echo "Smoke test passed - app started successfully"
+
       - name: Build and release Electron app
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
