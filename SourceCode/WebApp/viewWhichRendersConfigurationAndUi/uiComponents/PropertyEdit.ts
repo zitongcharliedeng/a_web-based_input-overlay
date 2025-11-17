@@ -17,7 +17,7 @@ class PropertyEdit {
 		const propertyTable = document.getElementById("propertyTable");
 		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
 		const leftPanel = document.getElementById("leftPanel");
-		const unifiedEditor = document.getElementById("unifiedEditor");
+		const containerForPossibleEditorWindows = document.getElementById("containerForPossibleEditorWindows");
 
 		if (!propertyTable || !leftPanel) return;
 
@@ -62,9 +62,9 @@ class PropertyEdit {
 		if (leftPanel) {
 			leftPanel.hidden = true;
 		}
-		// CRITICAL: Hide the unifiedEditor wrapper itself
-		if (unifiedEditor) {
-			unifiedEditor.hidden = true;
+		// CRITICAL: Hide the container wrapper itself
+		if (containerForPossibleEditorWindows) {
+			containerForPossibleEditorWindows.hidden = true;
 		}
 
 		this.targetObject = null;
@@ -82,14 +82,14 @@ class PropertyEdit {
 		this.deleteCallback = deleteCallback || null;
 		this.pendingChanges.clear();  // Clear any stale changes from previous edit session
 
-		const unifiedEditor = document.getElementById("unifiedEditor");
+		const containerForPossibleEditorWindows = document.getElementById("containerForPossibleEditorWindows");
 		const propertyTable = document.getElementById("propertyTable");
 		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
 		const editorTitle = document.getElementById("editorTitle");
 		const leftPanel = document.getElementById("leftPanel");
 		const rightPanel = document.getElementById("rightPanel");
 
-		if (!unifiedEditor || !propertyTable || !editorTitle || !leftPanel) return;
+		if (!containerForPossibleEditorWindows || !propertyTable || !editorTitle || !leftPanel) return;
 
 		// Show left panel with property table, hide canvas config text
 		leftPanel.hidden = false;
@@ -145,20 +145,20 @@ class PropertyEdit {
 			propertyTable.appendChild(deleteRow);
 		}
 
-		unifiedEditor.hidden = false;
+		containerForPossibleEditorWindows.hidden = false;
 	}
 
 	showCanvasConfig(config: CustomisableCanvasConfig, canvas: HTMLCanvasElement, applyCallback: (config: CustomisableCanvasConfig) => void): void {
 		this.targetScene = config;
 		this.applySceneConfig = applyCallback;
 
-		const unifiedEditor = document.getElementById("unifiedEditor");
+		const containerForPossibleEditorWindows = document.getElementById("containerForPossibleEditorWindows");
 		const propertyTable = document.getElementById("propertyTable");
 		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
 		const editorTitle = document.getElementById("editorTitle");
 		const leftPanel = document.getElementById("leftPanel");
 
-		if (!unifiedEditor || !propertyTable || !sceneConfigText || !editorTitle || !leftPanel) return;
+		if (!containerForPossibleEditorWindows || !propertyTable || !sceneConfigText || !editorTitle || !leftPanel) return;
 
 		// Show left panel with canvas config text, hide property table
 		leftPanel.hidden = false;
@@ -176,7 +176,7 @@ class PropertyEdit {
 			sceneConfigText.dataset['modified'] = 'true';
 		};
 
-		// Note: unifiedEditor visibility is managed by caller (showBothPanels)
+		// Note: containerForPossibleEditorWindows visibility is managed by caller (showBothPanels)
 	}
 
 	private renderProperties(container: HTMLElement, path: string[], schema: unknown, targetObj: unknown): void {

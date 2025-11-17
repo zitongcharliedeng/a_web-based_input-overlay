@@ -535,9 +535,9 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		if (leftPanel) leftPanel.hidden = false;
 		if (rightPanel) rightPanel.hidden = false;
 
-		// Show unified editor
-		const unifiedEditor = document.getElementById("unifiedEditor");
-		if (unifiedEditor) unifiedEditor.hidden = false;
+		// Show container
+		const containerForPossibleEditorWindows = document.getElementById("containerForPossibleEditorWindows");
+		if (containerForPossibleEditorWindows) containerForPossibleEditorWindows.hidden = false;
 
 		// Populate spawn buttons when showing panel
 		populateCreationPanel();
@@ -561,8 +561,8 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		if (rightPanel) rightPanel.hidden = true;
 
 		// Hide entire window
-		const unifiedEditor = document.getElementById("unifiedEditor");
-		if (unifiedEditor) unifiedEditor.hidden = true;
+		const containerForPossibleEditorWindows = document.getElementById("containerForPossibleEditorWindows");
+		if (containerForPossibleEditorWindows) containerForPossibleEditorWindows.hidden = true;
 	}
 
 	// Unused for now - may be needed for future serialization
@@ -659,10 +659,10 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		});
 	}
 
-	// Setup unified Done button (single source of truth)
-	const doneUnifiedEditorBtn = document.getElementById("doneUnifiedEditor");
-	if (doneUnifiedEditorBtn) {
-		doneUnifiedEditorBtn.addEventListener("click", () => {
+	// Setup Done button
+	const doneBtn = document.getElementById("doneContainerForPossibleEditorWindows");
+	if (doneBtn) {
+		doneBtn.addEventListener("click", () => {
 			hideBothPanels();
 			// Phase2: Config already updated by editor callbacks - no need to sync
 		});

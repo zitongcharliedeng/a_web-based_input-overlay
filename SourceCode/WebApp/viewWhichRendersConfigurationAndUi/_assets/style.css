@@ -3,8 +3,7 @@
 	top: 0; left: 0;
 }
 
-/* Unified Editor Window - FULLSCREEN */
-#unifiedEditor {
+#containerForPossibleEditorWindows {
 	color: #cdc1c1;
 	background-color: rgba(111, 110, 122, 0.85);
 	border: none;
@@ -22,8 +21,7 @@
 	overflow: hidden;
 }
 
-/* Ensure hidden attribute actually hides the element (higher specificity than display: flex) */
-#unifiedEditor[hidden] {
+#containerForPossibleEditorWindows[hidden] {
 	display: none !important;
 }
 
@@ -111,7 +109,7 @@
 	background-color: #EEEEEE;
 }
 
-#doneUnifiedEditor {
+#doneContainerForPossibleEditorWindows {
 	position: fixed;
 	bottom: 2em;
 	right: 2em;

@@ -15,27 +15,22 @@
 		Your browser does not support the HTML5 canvas tag.
 	</canvas>
 
-	<!-- Toast notification container -->
 	<div id="toastContainer"></div>
 
-	<!-- Unified Editor Window (contains property edit, canvas config, and creation panel) -->
-	<div id="unifiedEditor" hidden oncontextmenu="return false">
+	<div id="containerForPossibleEditorWindows" hidden oncontextmenu="return false">
 		<p id="editorTitle" class="windowTitle">Editor</p>
 
-		<!-- Left side: Property Edit or Canvas Config -->
 		<div id="leftPanel" hidden>
 			<table id="propertyTable" hidden></table>
 			<textarea id="sceneConfigText" hidden spellcheck="false"></textarea>
 		</div>
 
-		<!-- Right side: Object Creation -->
 		<div id="rightPanel" hidden>
 			<p class="panelTitle">Create New Object</p>
 			<div id="objectCreationContent"></div>
 		</div>
 
-		<!-- Single Done button for entire window -->
-		<button id="doneUnifiedEditor" class="ButtonWhichUserCanPressToUpdateState">Done</button>
+		<button id="doneContainerForPossibleEditorWindows" class="ButtonWhichUserCanPressToUpdateState">Done</button>
 	</div>
 
 </body>
