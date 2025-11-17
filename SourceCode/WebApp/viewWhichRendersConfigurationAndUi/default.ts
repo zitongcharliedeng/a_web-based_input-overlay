@@ -7,8 +7,10 @@ import { loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLoc
 import { ConfigManager } from '../modelToSaveCustomConfigurationLocally/ConfigManager';
 import type { CustomisableCanvasConfig, CanvasObjectConfig } from '../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
 import { ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME } from '../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
-import { CONFIG_VERSION } from '../_helpers/version';
 import { showToast } from './uiComponents/Toast';
+
+// Injected at build time by esbuild define
+declare const CONFIG_VERSION: string;
 import type { CanvasObjectInstance } from './canvasRenderer/canvasObjectTypes/BaseCanvasObject';
 import { CanvasRenderer } from './canvasRenderer/CanvasRenderer';
 import { UserEditModeInteractionsController } from '../controllerToMutateCustomConfiguration/UserEditModeInteractionsController';

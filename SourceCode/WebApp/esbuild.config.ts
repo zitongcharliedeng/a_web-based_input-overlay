@@ -1,11 +1,20 @@
 import * as esbuild from 'esbuild';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const isWatch = process.argv.includes('--watch');
+
+// Get git hash for version
+let gitHash: string;
+try {
+	gitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+} catch {
+	gitHash = Date.now().toString();
+}
 
 // Plugin to resolve .js imports to .ts files (TypeScript convention)
 const resolveTsPlugin: esbuild.Plugin = {
@@ -37,7 +46,10 @@ const config: esbuild.BuildOptions = {
 	sourcemap: true,
 	minify: !isWatch,
 	keepNames: true,
-	plugins: [resolveTsPlugin]
+	plugins: [resolveTsPlugin],
+	define: {
+		'CONFIG_VERSION': JSON.stringify(gitHash)
+	}
 };
 
 (async () => {

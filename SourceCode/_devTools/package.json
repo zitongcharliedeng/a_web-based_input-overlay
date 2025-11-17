@@ -9,7 +9,6 @@
   },
   "main": "main.js",
   "scripts": {
-    "prebuild": "npx tsx ../WebApp/_helpers/generateVersionGitCommitHash.ts",
     "build": "npm run build:webapp && npm run build:desktop",
     "build:webapp": "tsc -p tsconfig.webapp.json && node ../WebApp/esbuild.config.js",
     "build:desktop": "tsc -p tsconfig.desktop.json",
