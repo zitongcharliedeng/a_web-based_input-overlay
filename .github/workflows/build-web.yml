@@ -1,0 +1,64 @@
+name: Build Web App (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      deploy-path:
+        description: 'Deployment path (empty for root, "experimental" for subdirectory)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies and build
+        run: |
+          cd SourceCode/_devTools
+          npm ci
+          ln -s $(pwd)/node_modules ../WebApp/node_modules
+          ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules
+          npm run build
+
+      - name: Deploy to GitHub Pages (root)
+        if: inputs.deploy-path == ''
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: SourceCode/WebApp
+
+      - name: Deploy to GitHub Pages (root)
+        if: inputs.deploy-path == ''
+        uses: actions/deploy-pages@v4
+
+      - name: Deploy to GitHub Pages (subdirectory)
+        if: inputs.deploy-path != ''
+        run: |
+          cd SourceCode/WebApp
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git clone --single-branch --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git gh-pages-temp || git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git gh-pages-temp
+
+          cd gh-pages-temp
+          git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages
+
+          mkdir -p ${{ inputs.deploy-path }}
+          rm -rf ${{ inputs.deploy-path }}/*
+          cp -r ../* ${{ inputs.deploy-path }}/
+          rm -rf ${{ inputs.deploy-path }}/node_modules
+
+          git add ${{ inputs.deploy-path }}/
+          git commit -m "Deploy ${{ inputs.deploy-path }}: ${{ github.sha }}" || echo "No changes"
+          git push origin gh-pages
