@@ -10,7 +10,7 @@ import { CONFIG_VERSION } from '../_helpers/version';
 import { showToast } from './uiComponents/Toast';
 import type { CanvasObjectInstance } from './canvasRenderer/canvasObjectTypes/BaseCanvasObject';
 import { CanvasRenderer } from './canvasRenderer/CanvasRenderer';
-import { InteractionController } from '../controllerToMutateCustomConfiguration/InteractionController';
+import { UserEditModeInteractionsController } from '../controllerToMutateCustomConfiguration/UserEditModeInteractionsController';
 import { LinearInputIndicatorSchema, PlanarInputIndicatorSchema, TextSchema, ImageSchema, WebEmbedSchema } from '../modelToSaveCustomConfigurationLocally/configSchema';
 import type { z } from 'zod';
 import type { CanvasObjectClassName } from '../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
@@ -74,13 +74,13 @@ window.addEventListener("load", function (): void {
 	// Phase2: Create CanvasRenderer with deserializer (no caching)
 	const canvasRenderer = new CanvasRenderer(canvas, deserializeCanvasObject);
 
-	// CL3: Create InteractionController (extracted interaction logic)
-	const interactionController = new InteractionController();
+	// CL3: Create UserEditModeInteractionsController (extracted interaction logic)
+	const userEditModeInteractionsController = new UserEditModeInteractionsController();
 
 	// Initialize readonly mode from Electron (if running in Electron wrapper)
 	if (window.electronAPI) {
 		const isAppInReadonlyClickthroughMode = window.electronAPI.isAppInReadonlyClickthroughMode();
-		interactionController.setDisableInteractions(isAppInReadonlyClickthroughMode);
+		userEditModeInteractionsController.setDisableInteractions(isAppInReadonlyClickthroughMode);
 		console.log('[default.ts] Readonly/clickthrough mode:', isAppInReadonlyClickthroughMode);
 	}
 
@@ -90,18 +90,18 @@ window.addEventListener("load", function (): void {
 	const defaultConfig = createDefaultConfig(canvas);
 
 	// STEP 3: Create UI helpers (moved out of config creation)
-	const uiHelpers = createUIHelpers(canvas, configManager, interactionController);
+	const uiHelpers = createUIHelpers(canvas, configManager, userEditModeInteractionsController);
 
 	// CL5: Set up InteractionController callbacks
-	interactionController.setOnMoveObject((objectIndex, x, y) => {
+	userEditModeInteractionsController.setOnMoveObject((objectIndex, x, y) => {
 		configManager.moveObject(objectIndex, x, y);
 	});
 
-	interactionController.setOnDeleteObject((objectIndex) => {
+	userEditModeInteractionsController.setOnDeleteObject((objectIndex) => {
 		uiHelpers.deleteObjectAtIndex(objectIndex);
 	});
 
-	interactionController.setOnShowPropertyEdit((obj) => {
+	userEditModeInteractionsController.setOnShowPropertyEdit((obj) => {
 		const objArrayIdx = obj.objArrayIdx;
 		// Find the config for this object using array index
 		const config = configManager.config;
@@ -122,14 +122,14 @@ window.addEventListener("load", function (): void {
 				uiHelpers.deleteObjectAtIndex(objArrayIdx);
 			}
 		);
-		interactionController.setEditingProperties(true);
+		userEditModeInteractionsController.setEditingProperties(true);
 	});
 
-	interactionController.setOnShowCreationPanel(() => {
+	userEditModeInteractionsController.setOnShowCreationPanel(() => {
 		uiHelpers.showBothPanels();
 	});
 
-	interactionController.setOnCloseEditors(() => {
+	userEditModeInteractionsController.setOnCloseEditors(() => {
 		uiHelpers.hideBothPanels();
 		// Phase2: Config already updated by editor callbacks - no need to sync from runtime objects
 	});
@@ -200,11 +200,11 @@ window.addEventListener("load", function (): void {
 	function frameUpdate(): void {
 		canvasRenderer.render(frameObjects);
 		// Phase3: View renders hitboxes when Controller has selection
-		if (interactionController.hasSelection()) {
+		if (userEditModeInteractionsController.hasSelection()) {
 			canvasRenderer.renderDebugHitboxes(frameObjects);
 		}
 		// Render drag preview (semi-transparent clone at drag position)
-		const dragPreview = interactionController.getDragPreview();
+		const dragPreview = userEditModeInteractionsController.getDragPreview();
 		if (dragPreview) {
 			const object = frameObjects[dragPreview.objectIndex];
 			if (object) {
@@ -245,7 +245,7 @@ window.addEventListener("load", function (): void {
 		updateScreen = true; // Always redraw (60fps)
 
 		// InteractionController updates (handles dragging, clicks, etc.)
-		interactionController.update(frameObjects);
+		userEditModeInteractionsController.update(frameObjects);
 
 		if (updateScreen) {
 			frameUpdate();
@@ -511,13 +511,13 @@ function createDefaultConfig(canvas: HTMLCanvasElement): CustomisableCanvasConfi
 }
 
 // UI Helper functions (moved out of config creation)
-function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager, interactionController: InteractionController): UIHelpers {
-	// CL3: Interaction state now managed by InteractionController
+function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager, userEditModeInteractionsController: UserEditModeInteractionsController): UIHelpers {
+	// CL3: Interaction state now managed by UserEditModeInteractionsController
 	const propertyEditor = new PropertyEdit();
 
 	// Helper: Show unified editor with both panels
 	function showBothPanels() {
-		interactionController.setCreationPanelActive(true);
+		userEditModeInteractionsController.setCreationPanelActive(true);
 
 		// Phase2: Show canvas config (from ConfigManager - no cache)
 		propertyEditor.showCanvasConfig(
@@ -541,7 +541,7 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		// Populate spawn buttons when showing panel
 		populateCreationPanel();
 
-		interactionController.setEditingProperties(true);
+		userEditModeInteractionsController.setEditingProperties(true);
 	}
 
 	// Helper: Hide unified editor
@@ -549,8 +549,8 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		try {
 			propertyEditor.hidePropertyEdit();
 		} finally {
-			interactionController.setCreationPanelActive(false);
-			interactionController.setEditingProperties(false);
+			userEditModeInteractionsController.setCreationPanelActive(false);
+			userEditModeInteractionsController.setEditingProperties(false);
 		}
 
 		// Hide all panels

@@ -40,10 +40,6 @@
 
 	<!-- Bridge uiohook and SDL to Web APIs (Electron only) -->
 	<script>
-		console.log('[Renderer] Script started');
-		console.log('[Renderer] process.type:', typeof process !== 'undefined' ? process.type : 'undefined');
-		console.log('[Renderer] window.electronAPI:', typeof window.electronAPI);
-
 		// SDL gamepad state from main process (sdl2-gamecontroller)
 		// sdl2-gamecontroller runs SDL_PumpEvents() in separate thread
 		// This works with Electron's event loop and provides unfocused input
@@ -80,31 +76,21 @@
 		};
 
 		if (window.electronAPI) {
-			console.log('[Renderer] ✓ electronAPI is available!');
-			console.log('[Renderer] Has global input:', window.electronAPI.hasGlobalInput());
-			console.log('[Renderer] Is readonly:', window.electronAPI.isReadonly());
-
 			// Bridge uiohook events to synthetic DOM KeyboardEvents
 			window.electronAPI.onGlobalKeyDown((data) => {
-				console.log('[Renderer] IPC received keydown, keycode:', data.keycode);
 				const code = UIOHOOK_TO_KEYCODE[data.keycode];
 				if (code) {
-					console.log('[Renderer] Dispatching synthetic keydown:', code);
 					document.dispatchEvent(new KeyboardEvent('keydown', {
 						code: code,
 						bubbles: true,
 						cancelable: true
 					}));
-				} else {
-					console.warn('[Renderer] Unknown keycode:', data.keycode, '- add to mapping');
 				}
 			});
 
 			window.electronAPI.onGlobalKeyUp((data) => {
-				console.log('[Renderer] IPC received keyup, keycode:', data.keycode);
 				const code = UIOHOOK_TO_KEYCODE[data.keycode];
 				if (code) {
-					console.log('[Renderer] Dispatching synthetic keyup:', code);
 					document.dispatchEvent(new KeyboardEvent('keyup', {
 						code: code,
 						bubbles: true,
@@ -115,10 +101,6 @@
 
 			// Bridge SDL gamepad events to navigator.getGamepads()
 			window.electronAPI.onGlobalGamepadState((state) => {
-				console.log('[Renderer] SDL gamepad state update - axes:',
-					state.axes.map(a => a.toFixed(2)).join(','),
-					'- buttons:', state.buttons.filter(b => b.pressed).length, 'pressed');
-
 				// Store state with proper Gamepad interface properties
 				sdlGamepadState = {
 					axes: state.axes,
@@ -133,7 +115,6 @@
 
 			// Bridge uiohook mouse events to mouse state object
 			window.electronAPI.onGlobalMouseDown((data) => {
-				console.log('[Renderer] IPC received mousedown, button:', data.button);
 				// Convert uiohook button values (1-5) to standard values (0-4)
 				// uiohook: 1=Left, 2=Right, 3=Middle, 4=Back, 5=Forward
 				// standard: 0=Left, 1=Middle, 2=Right, 3=Back, 4=Forward
@@ -144,20 +125,17 @@
 					if (window.mouse.buttons[button] === false) {
 						window.mouse.buttons[button] = true;
 						window.mouse.clicks[button] = true;
-						console.log('[Renderer] Updated mouse.buttons[' + button + '] = true');
 					}
 				}
 			});
 
 			window.electronAPI.onGlobalMouseUp((data) => {
-				console.log('[Renderer] IPC received mouseup, button:', data.button);
 				const buttonMap = { 1: 0, 3: 1, 2: 2, 4: 3, 5: 4 };
 				const button = buttonMap[data.button];
 
 				if (button !== undefined && window.mouse && window.mouse.buttons) {
 					if (window.mouse.buttons[button] === true) {
 						window.mouse.buttons[button] = false;
-						console.log('[Renderer] Updated mouse.buttons[' + button + '] = false');
 					}
 				}
 			});
@@ -171,13 +149,11 @@
 			});
 
 			window.electronAPI.onGlobalWheel((data) => {
-				console.log('[Renderer] IPC received wheel, rotation:', data.rotation);
 				// Update wheel delta (negate to match DOM WheelEvent.deltaY convention)
 				if (window.mouse && window.mouse.wheelDelta) {
 					// DOM convention: negative = scroll up, positive = scroll down
 					// uiohook rotation: positive = scroll down, negative = scroll up (verified)
 					window.mouse.wheelDelta.y = -data.rotation;
-					console.log('[Renderer] Updated mouse.wheelDelta.y =', -data.rotation);
 				}
 				// Set single-frame wheel events (match DOM convention)
 				if (window.mouse && window.mouse.wheelEvents) {
@@ -188,10 +164,6 @@
 					}
 				}
 			});
-
-			console.log('[Renderer] ✓ Global input bridge active (uiohook + SDL → DOM/Web APIs)');
-		} else {
-			console.log('[Renderer] ✗ electronAPI not found (running as web version)');
 		}
 	</script>
 </body>

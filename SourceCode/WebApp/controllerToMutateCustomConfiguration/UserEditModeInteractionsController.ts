@@ -1,12 +1,13 @@
 /**
- * InteractionController: Mouse/keyboard interaction handler
+ * UserEditModeInteractionsController: Mouse/keyboard interaction handler for UI editing
  *
  * Responsibilities:
- * - Handle mouse clicks, dragging, keyboard input
+ * - Handle mouse clicks, dragging, keyboard input for editing overlay
  * - Manage selection state (clickedObject)
  * - Trigger UI actions (PropertyEdit, creation panel)
  * - NO rendering (delegates to canvas.draw)
  * - NO state persistence (delegates to ConfigManager callbacks)
+ * - Does NOT handle input reading for indicators (they read from window.keyboard/mouse/gamepads directly)
  *
  * CL3: Extracted from default.ts interaction logic without behavior change
  */
@@ -15,7 +16,7 @@ import { Vector } from '../_helpers/Vector';
 import type { CanvasObjectInstance } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/index';
 import { mouse } from '../viewWhichRendersConfigurationAndUi/inputReaders/mouse';
 
-export class InteractionController {
+export class UserEditModeInteractionsController {
 	private clickedObjectIndex: number | null = null;  // Track by array index
 	private draggingOffset = new Vector(0, 0);
 	private gridsize = 10;
@@ -155,7 +156,7 @@ export class InteractionController {
 			const finalY = this.lastDragPosition?.y ?? clickedObject.config.positionOnCanvas?.pxFromCanvasTop;
 
 			if (finalX === undefined || finalY === undefined) {
-				console.warn('[InteractionController] Object missing positionOnCanvas on release');
+				console.warn('[UserEditModeInteractionsController] Object missing positionOnCanvas on release');
 				this.dragStartPosition = null;
 				this.lastDragPosition = null;
 				return false;
