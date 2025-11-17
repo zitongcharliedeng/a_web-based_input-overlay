@@ -5,6 +5,7 @@ interface CanvasProperties {
 	lineCap?: CanvasLineCap | undefined;
 	textAlign?: CanvasTextAlign | undefined;
 	font?: string | undefined;
+	opacity?: number | undefined;
 }
 
 function canvas_properties(context: CanvasRenderingContext2D, properties: CanvasProperties): void {
@@ -25,6 +26,9 @@ function canvas_properties(context: CanvasRenderingContext2D, properties: Canvas
 	}
 	if (properties.font !== undefined) {
 		context.font = properties.font;
+	}
+	if (properties.opacity !== undefined) {
+		context.globalAlpha = properties.opacity;
 	}
 }
 

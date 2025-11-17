@@ -81,7 +81,8 @@ const LinearInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 const StylePropertiesSchema = z.object({
 	strokeStyle: z.string(),
 	fillStyle: z.string(),
-	lineWidth: z.number()
+	lineWidth: z.number(),
+	opacity: z.number()
 }).partial();
 
 const PlanarInputIndicatorSchema = BaseCanvasObjectSchema.extend({
@@ -92,17 +93,17 @@ const PlanarInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 	input: z.object({
 		xAxes: z.record(z.string(), z.boolean()).default({ "0": true }),
 		yAxes: z.record(z.string(), z.boolean()).default({ "1": true }),
-		xKeyCodePositive: z.string().nullable().default(null),
-		xKeyCodeNegative: z.string().nullable().default(null),
-		yKeyCodePositive: z.string().nullable().default(null),
-		yKeyCodeNegative: z.string().nullable().default(null),
+		xKeyCodePositive: z.string().nullable().default("ArrowRight"),
+		xKeyCodeNegative: z.string().nullable().default("ArrowLeft"),
+		yKeyCodePositive: z.string().nullable().default("ArrowUp"),
+		yKeyCodeNegative: z.string().nullable().default("ArrowDown"),
 		invertX: z.boolean().default(false),
 		invertY: z.boolean().default(false)
-	}).default({ xAxes: { "0": true }, yAxes: { "1": true }, xKeyCodePositive: null, xKeyCodeNegative: null, yKeyCodePositive: null, yKeyCodeNegative: null, invertX: false, invertY: false }),
+	}).default({ xAxes: { "0": true }, yAxes: { "1": true }, xKeyCodePositive: "ArrowRight", xKeyCodeNegative: "ArrowLeft", yKeyCodePositive: "ArrowUp", yKeyCodeNegative: "ArrowDown", invertX: false, invertY: false }),
 	processing: z.object({
-		deadzone: z.number().default(0.01),
+		deadzone: z.number().default(0.03),
 		antiDeadzone: z.number().default(0)
-	}).default({ deadzone: 0.01, antiDeadzone: 0 }),
+	}).default({ deadzone: 0.03, antiDeadzone: 0 }),
 	display: z.object({
 		radius: z.number().default(100),
 		stickRadius: z.number().optional(),
@@ -110,20 +111,20 @@ const PlanarInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 		fillStyleStick: z.string().optional(),
 		fillStyleBackground: z.string().optional(),
 		backgroundStyle: StylePropertiesSchema.default({ strokeStyle: "rgba(180, 180, 180, 0.5)", lineWidth: 2, fillStyle: "rgba(0, 0, 0, 0)" }),
-		xLineStyle: StylePropertiesSchema.default({ strokeStyle: "#FF0000", lineWidth: 2 }),
-		yLineStyle: StylePropertiesSchema.default({ strokeStyle: "#00FF00", lineWidth: 2 }),
+		xLineStyle: StylePropertiesSchema.default({ strokeStyle: "#FF0000", lineWidth: 2, opacity: 0.5 }),
+		yLineStyle: StylePropertiesSchema.default({ strokeStyle: "#00FF00", lineWidth: 2, opacity: 0.5 }),
 		deadzoneStyle: StylePropertiesSchema.default({ fillStyle: "#524d4d" }),
-		inputVectorStyle: StylePropertiesSchema.default({ strokeStyle: "rgba(255, 255, 0, 0.5)", lineWidth: 2 }),
-		unitVectorStyle: StylePropertiesSchema.default({ strokeStyle: "rgba(0, 0, 255, 0.5)", lineWidth: 2 }),
+		inputVectorStyle: StylePropertiesSchema.default({ strokeStyle: "rgba(255, 255, 0, 1.0)", lineWidth: 2, opacity: 0.5 }),
+		unitVectorStyle: StylePropertiesSchema.default({ strokeStyle: "rgba(0, 0, 255, 1.0)", lineWidth: 2, opacity: 0.5 }),
 		crosshairStyle: StylePropertiesSchema.default({ fillStyle: "#FFFFFF", strokeStyle: "#000000", lineWidth: 2 })
 	}).default({
 		radius: 100,
 		backgroundStyle: { strokeStyle: "rgba(180, 180, 180, 0.5)", lineWidth: 2, fillStyle: "rgba(0, 0, 0, 0)" },
-		xLineStyle: { strokeStyle: "#FF0000", lineWidth: 2 },
-		yLineStyle: { strokeStyle: "#00FF00", lineWidth: 2 },
+		xLineStyle: { strokeStyle: "#FF0000", lineWidth: 2, opacity: 0.5 },
+		yLineStyle: { strokeStyle: "#00FF00", lineWidth: 2, opacity: 0.5 },
 		deadzoneStyle: { fillStyle: "#524d4d" },
-		inputVectorStyle: { strokeStyle: "rgba(255, 255, 0, 0.5)", lineWidth: 2 },
-		unitVectorStyle: { strokeStyle: "rgba(0, 0, 255, 0.5)", lineWidth: 2 },
+		inputVectorStyle: { strokeStyle: "rgba(255, 255, 0, 1.0)", lineWidth: 2, opacity: 0.5 },
+		unitVectorStyle: { strokeStyle: "rgba(0, 0, 255, 1.0)", lineWidth: 2, opacity: 0.5 },
 		crosshairStyle: { fillStyle: "#FFFFFF", strokeStyle: "#000000", lineWidth: 2 }
 	})
 });
