@@ -1,7 +1,6 @@
 import * as esbuild from 'esbuild';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { copyFileSync, cpSync, mkdirSync, existsSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,26 +44,7 @@ const config = {
     }
     else {
         await esbuild.build(config);
-
-        // Copy index.html to dist/ for GitHub Pages deployment
-        const distDir = path.join(__dirname, 'dist');
-        if (!existsSync(distDir)) {
-            mkdirSync(distDir, { recursive: true });
-        }
-
-        copyFileSync(
-            path.join(__dirname, 'index.html'),
-            path.join(distDir, 'index.html')
-        );
-
-        // Copy assets directory to dist/
-        const assetsSource = path.join(__dirname, 'viewWhichRendersConfigurationAndUi/_assets');
-        const assetsDest = path.join(distDir, '_assets');
-        if (existsSync(assetsSource)) {
-            cpSync(assetsSource, assetsDest, { recursive: true });
-        }
-
-        console.log('✅ Build complete (copied index.html and assets to dist/)');
+        console.log('✅ Build complete');
     }
 })();
 //# sourceMappingURL=esbuild.config.js.map
