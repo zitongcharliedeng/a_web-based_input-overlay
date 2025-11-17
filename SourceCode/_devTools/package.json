@@ -41,6 +41,7 @@
   "build": {
     "appId": "com.zitongcharliedeng.inputoverlay",
     "productName": "Input Overlay",
+    "electronRebuild": false,
     "directories": {
       "output": "../../dist",
       "buildResources": "../../build"
