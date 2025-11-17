@@ -53,8 +53,14 @@ jobs:
         run: |
           cd SourceCode/_devTools
           npm ci
-          ln -s $(pwd)/node_modules ../WebApp/node_modules || true
-          ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules || true
+          # On Windows, copy node_modules (symlinks require admin). On Unix, use symlinks.
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            cp -r node_modules ../WebApp/
+            cp -r node_modules ../DesktopWrappedWebapp/
+          else
+            ln -s $(pwd)/node_modules ../WebApp/node_modules
+            ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules
+          fi
 
       - name: Build TypeScript
         run: cd SourceCode/_devTools && npm run build
