@@ -31,11 +31,6 @@ declare global {
 		keyboard: typeof keyboard;
 		mouse: typeof mouse;
 		_gamepadDebugLogged?: boolean;
-		electronAPI?: {
-			isAppInReadonlyClickthroughMode: () => boolean;
-			hasGlobalInput: () => boolean;
-			// ... other methods (not needed here)
-		};
 	}
 }
 
