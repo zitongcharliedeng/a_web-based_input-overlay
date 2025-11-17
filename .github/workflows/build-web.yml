@@ -30,37 +30,10 @@ jobs:
           ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules
           npm run build
 
-      - name: Deploy to GitHub Pages (gh-pages branch)
-        run: |
-          cd SourceCode/WebApp
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Clone or create gh-pages branch
-          git clone --single-branch --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git gh-pages-temp 2>/dev/null || \
-            git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git gh-pages-temp
-
-          cd gh-pages-temp
-          git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages
-
-          # Deploy to root or subdirectory
-          if [ -z "${{ inputs.deploy-path }}" ]; then
-            # Root deployment - replace everything
-            git rm -rf . 2>/dev/null || true
-            shopt -s extglob
-            cp -r ../!(node_modules|gh-pages-temp) .
-          else
-            # Subdirectory deployment - only update subdirectory
-            mkdir -p ${{ inputs.deploy-path }}
-            rm -rf ${{ inputs.deploy-path }}/*
-            shopt -s extglob
-            cp -r ../!(node_modules|gh-pages-temp) ${{ inputs.deploy-path }}/
-          fi
-
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No changes to deploy"
-          else
-            git commit -m "Deploy to ${{ inputs.deploy-path || 'root' }}: ${{ github.sha }}"
-            git push -u origin gh-pages
-          fi
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./SourceCode/WebApp
+          destination_dir: ${{ inputs.deploy-path }}
+          keep_files: true
