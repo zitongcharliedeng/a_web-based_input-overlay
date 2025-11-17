@@ -7,9 +7,10 @@ if (process.platform === 'linux') {
 	app.commandLine.appendSwitch('gtk-version', '3');
 }
 
-const isReadonly = process.argv.includes('--in-clickthrough-readonly-mode');
+let isReadonly = process.argv.includes('--in-clickthrough-readonly-mode');
 const enableFrame = process.argv.includes('--with-window-frame');
 const enableDevTools = process.argv.includes('--with-dev-console');
+const skipModeSelector = process.argv.includes('--in-clickthrough-readonly-mode') || process.argv.includes('--skip-mode-selector');
 let globalInputAvailable = false;
 
 interface UIOHookKeyEvent {
@@ -127,9 +128,43 @@ ipcMain.on('has-global-input', (event: IpcMainEvent) => {
 	event.returnValue = globalInputAvailable;
 });
 
+ipcMain.on('launch-mode', (_event: IpcMainEvent, mode: 'interactive' | 'readonly') => {
+	console.log('[Main] User selected mode:', mode);
+	isReadonly = mode === 'readonly';
+
+	// Close all windows (mode selector)
+	BrowserWindow.getAllWindows().forEach(win => win.close());
+
+	// Launch overlay window
+	mainWindow = createWindow();
+	startInputHooks();
+});
+
 console.log('[Main] Starting overlay...');
 console.log('[Main] Readonly mode:', isReadonly);
 console.log('[Main] Preload script path:', path.join(__dirname, 'preload.js'));
+
+function createModeSelectorWindow(): BrowserWindow {
+	const win = new BrowserWindow({
+		width: 540,
+		height: 400,
+		resizable: false,
+		frame: true,
+		alwaysOnTop: false,
+		backgroundColor: '#667eea',
+		webPreferences: {
+			nodeIntegration: false,
+			contextIsolation: true,
+			preload: path.join(__dirname, 'modeSelectorPreload.js')
+		}
+	});
+
+	const selectorPath = path.join(__dirname, 'modeSelector.html');
+	console.log('[Main] Loading mode selector from:', selectorPath);
+	win.loadFile(selectorPath);
+
+	return win;
+}
 
 function createWindow(): BrowserWindow {
 	const width = 1600;
@@ -152,7 +187,14 @@ function createWindow(): BrowserWindow {
 
 	win.setAlwaysOnTop(true, 'screen-saver', 1);
 
-	win.loadFile(path.join(__dirname, '..', 'webApp', 'index.html'));
+	// In packaged app: __dirname is where main.js is, WebApp is sibling directory
+	// In dev: __dirname is DesktopWrappedWebapp, need to go up and into WebApp
+	const indexPath = app.isPackaged
+		? path.join(__dirname, 'WebApp', 'index.html')
+		: path.join(__dirname, '..', 'WebApp', 'index.html');
+
+	console.log('[Main] Loading index.html from:', indexPath);
+	win.loadFile(indexPath);
 
 	if (isReadonly) {
 		win.setIgnoreMouseEvents(true);
@@ -179,9 +221,7 @@ function createWindow(): BrowserWindow {
 	return win;
 }
 
-app.whenReady().then(() => {
-	mainWindow = createWindow();
-
+function startInputHooks(): void {
 	if (uIOhook) {
 		console.log('[Main] Starting global input hooks...');
 
@@ -330,6 +370,17 @@ app.whenReady().then(() => {
 		} else {
 			console.log('[Main] No controllers detected');
 		}
+	}
+}
+
+app.whenReady().then(() => {
+	if (skipModeSelector) {
+		console.log('[Main] Skipping mode selector, launching directly');
+		mainWindow = createWindow();
+		startInputHooks();
+	} else {
+		console.log('[Main] Showing mode selector');
+		createModeSelectorWindow();
 	}
 
 	app.on('activate', () => {
