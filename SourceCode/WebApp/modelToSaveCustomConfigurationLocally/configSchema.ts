@@ -141,7 +141,7 @@ const TextSchema = BaseCanvasObjectSchema.extend({
 
 const ImageSchema = BaseCanvasObjectSchema.extend({
 	layerLevel: z.number().default(0),
-	src: z.string().default("https://raw.githubusercontent.com/zitongcharliedeng/a_web-based_input-overlay/refs/heads/master/webApp/sceneRender/_assets/images/KeyDefault.png"),
+	src: z.string().default("./viewWhichRendersConfigurationAndUi/_assets/images/KeyDefault.png"),
 	opacity: z.number().min(0).max(1).default(1.0)
 });
 
