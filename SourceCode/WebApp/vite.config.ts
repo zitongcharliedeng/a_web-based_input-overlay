@@ -15,8 +15,8 @@ export default defineConfig({
 		emptyOutDir: true,
 		// Sourcemaps: disabled (usecase: debug TypeScript in DevTools via .ts.map files, not needed for production overlay)
 		sourcemap: false,
-		// Minification: disabled (usecase: smaller bundle size, but we need readable stack traces and debugging)
-		minify: false,
+		// Minification: enabled for smaller bundle size (keepNames below preserves class names for serialization)
+		minify: 'esbuild',
 		rollupOptions: {
 			output: {
 				entryFileNames: 'bundle.js',
