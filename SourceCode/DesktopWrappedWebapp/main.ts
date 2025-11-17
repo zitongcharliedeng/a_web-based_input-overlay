@@ -2,11 +2,7 @@ import { app, BrowserWindow, ipcMain, IpcMainEvent, screen } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 
-const packageJsonPath = app.isPackaged
-	? path.join(__dirname, 'package.json')
-	: path.join(__dirname, '../_devTools/package.json');
-const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-const APP_TITLE = packageJson.build.productName;
+const APP_TITLE = 'A Real Web-based Input Overlay';
 
 process.env['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1';
 
