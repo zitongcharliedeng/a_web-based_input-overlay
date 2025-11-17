@@ -8,7 +8,6 @@
     "url": "https://github.com/zitongcharliedeng/a_web-based_input-overlay.git"
   },
   "main": "main.js",
-  "type": "module",
   "scripts": {
     "prebuild": "npx tsx ../WebApp/_helpers/generateVersionGitCommitHash.ts",
     "build": "npm run build:webapp && npm run build:desktop",
