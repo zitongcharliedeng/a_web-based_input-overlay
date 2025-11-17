@@ -3,4 +3,4 @@ node_modules/
 **/*.d.ts
 !SourceCode/WebApp/viewWhichRendersConfigurationAndUi/inputReaders/ElectronAppWrapper_API/types.d.ts
 **/*.tsbuildinfo
-**/bundledWebApp/
+**/_bundleAllCompiledJavascriptForWebapp/

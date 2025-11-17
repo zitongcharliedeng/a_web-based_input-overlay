@@ -32,7 +32,7 @@ const resolveTsPlugin: esbuild.Plugin = {
 const config: esbuild.BuildOptions = {
 	entryPoints: [path.join(__dirname, 'viewWhichRendersConfigurationAndUi/default.ts')],
 	bundle: true,
-	outfile: path.join(__dirname, 'bundledWebApp/bundle.js'),
+	outfile: path.join(__dirname, '_bundleAllCompiledJavascriptForWebapp/bundle.js'),
 	format: 'esm',
 	sourcemap: true,
 	minify: !isWatch,
