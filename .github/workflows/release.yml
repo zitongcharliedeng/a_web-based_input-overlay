@@ -50,6 +50,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
+        shell: bash
         run: |
           cd SourceCode/_devTools
           npm ci
