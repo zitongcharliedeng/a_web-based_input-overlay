@@ -21,7 +21,9 @@
     "baseUrl": ".",
     "paths": {
       "@webapp/*": ["../WebApp/*"],
-      "@desktop/*": ["../DesktopWrappedWebapp/*"]
+      "@desktop/*": ["../DesktopWrappedWebapp/*"],
+      "esbuild": ["./node_modules/esbuild"],
+      "zod": ["./node_modules/zod"]
     }
   }
 }
