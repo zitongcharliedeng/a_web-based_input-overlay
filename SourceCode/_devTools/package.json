@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/zitongcharliedeng/a_web-based_input-overlay.git"
   },
-  "main": "DesktopWrappedWebapp/main.js",
+  "main": "main.js",
   "type": "module",
   "scripts": {
     "prebuild": "npx tsx ../WebApp/_helpers/generateVersionGitCommitHash.ts",
@@ -53,11 +53,16 @@
       "buildResources": "../../build"
     },
     "files": [
-      "../DesktopWrappedWebapp/**/*",
-      "../WebApp/**/*",
-      "!../WebApp/node_modules",
-      "!../**/*.ts",
-      "!../**/*.map"
+      {
+        "from": "../DesktopWrappedWebapp",
+        "to": ".",
+        "filter": ["**/*", "!**/*.ts", "!**/*.map"]
+      },
+      {
+        "from": "../WebApp",
+        "to": "WebApp",
+        "filter": ["**/*", "!node_modules/**", "!**/*.ts", "!**/*.map"]
+      }
     ],
     "extraResources": [
       {
