@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, IpcMainEvent } from 'electron';
+import { app, BrowserWindow, ipcMain, IpcMainEvent, screen } from 'electron';
 import * as path from 'path';
 
 process.env['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1';
@@ -167,8 +167,9 @@ function createModeSelectorWindow(): BrowserWindow {
 }
 
 function createWindow(): BrowserWindow {
-	const width = 1600;
-	const height = 600;
+	// Get primary display dimensions
+	const primaryDisplay = screen.getPrimaryDisplay();
+	const { width, height } = primaryDisplay.workAreaSize;
 
 	const win = new BrowserWindow({
 		width: width,

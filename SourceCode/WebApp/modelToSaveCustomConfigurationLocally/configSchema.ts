@@ -109,21 +109,21 @@ const PlanarInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 		fillStyle: z.string().optional(),
 		fillStyleStick: z.string().optional(),
 		fillStyleBackground: z.string().optional(),
-		backgroundStyle: StylePropertiesSchema.default({ strokeStyle: "#B4B4B4", lineWidth: 2, fillStyle: "rgba(0, 0, 0, 0)" }),
+		backgroundStyle: StylePropertiesSchema.default({ strokeStyle: "rgba(180, 180, 180, 0.5)", lineWidth: 2, fillStyle: "rgba(0, 0, 0, 0)" }),
 		xLineStyle: StylePropertiesSchema.default({ strokeStyle: "#FF0000", lineWidth: 2 }),
 		yLineStyle: StylePropertiesSchema.default({ strokeStyle: "#00FF00", lineWidth: 2 }),
 		deadzoneStyle: StylePropertiesSchema.default({ fillStyle: "#524d4d" }),
-		inputVectorStyle: StylePropertiesSchema.default({ strokeStyle: "#FFFF00", lineWidth: 2 }),
-		unitVectorStyle: StylePropertiesSchema.default({ strokeStyle: "#0000FF", lineWidth: 2 }),
+		inputVectorStyle: StylePropertiesSchema.default({ strokeStyle: "rgba(255, 255, 0, 0.5)", lineWidth: 2 }),
+		unitVectorStyle: StylePropertiesSchema.default({ strokeStyle: "rgba(0, 0, 255, 0.5)", lineWidth: 2 }),
 		crosshairStyle: StylePropertiesSchema.default({ fillStyle: "#FFFFFF", strokeStyle: "#000000", lineWidth: 2 })
 	}).default({
 		radius: 100,
-		backgroundStyle: { strokeStyle: "#B4B4B4", lineWidth: 2, fillStyle: "rgba(0, 0, 0, 0)" },
+		backgroundStyle: { strokeStyle: "rgba(180, 180, 180, 0.5)", lineWidth: 2, fillStyle: "rgba(0, 0, 0, 0)" },
 		xLineStyle: { strokeStyle: "#FF0000", lineWidth: 2 },
 		yLineStyle: { strokeStyle: "#00FF00", lineWidth: 2 },
 		deadzoneStyle: { fillStyle: "#524d4d" },
-		inputVectorStyle: { strokeStyle: "#FFFF00", lineWidth: 2 },
-		unitVectorStyle: { strokeStyle: "#0000FF", lineWidth: 2 },
+		inputVectorStyle: { strokeStyle: "rgba(255, 255, 0, 0.5)", lineWidth: 2 },
+		unitVectorStyle: { strokeStyle: "rgba(0, 0, 255, 0.5)", lineWidth: 2 },
 		crosshairStyle: { fillStyle: "#FFFFFF", strokeStyle: "#000000", lineWidth: 2 }
 	})
 });
