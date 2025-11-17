@@ -6,7 +6,6 @@ import { PropertyEdit } from './uiComponents/PropertyEdit';
 import { loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLocally/configSerializer';
 import { ConfigManager } from '../modelToSaveCustomConfigurationLocally/ConfigManager';
 import { ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME } from '../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
-import { CONFIG_VERSION } from '../_helpers/version';
 import { showToast } from './uiComponents/Toast';
 import { CanvasRenderer } from './canvasRenderer/CanvasRenderer';
 import { UserEditModeInteractionsController } from '../controllerToMutateCustomConfiguration/UserEditModeInteractionsController';
@@ -210,7 +209,7 @@ window.addEventListener("load", function () {
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 function saveSceneConfig(config) {
     try {
-        const versionedConfig = { version: CONFIG_VERSION, ...config };
+        const versionedConfig = { version: __CURRENT_PROJECT_GIT_HASH__, ...config };
         localStorage.setItem(SCENE_CONFIG_KEY, JSON.stringify(versionedConfig));
     }
     catch (e) {
@@ -225,8 +224,8 @@ function loadSceneConfig() {
         }
         // Parse to check version
         const parsed = JSON.parse(raw);
-        if (parsed.version !== CONFIG_VERSION) {
-            console.warn(`[Config] Version mismatch: stored=${parsed.version}, current=${CONFIG_VERSION}. Clearing localStorage.`);
+        if (parsed.version !== __CURRENT_PROJECT_GIT_HASH__) {
+            console.warn(`[Config] Version mismatch: stored=${parsed.version}, current=${__CURRENT_PROJECT_GIT_HASH__}. Clearing localStorage.`);
             localStorage.removeItem(SCENE_CONFIG_KEY);
             showToast(`Config version changed - reset to defaults`);
             return null;
