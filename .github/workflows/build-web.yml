@@ -32,10 +32,7 @@ jobs:
 
       - name: Prepare deployment directory
         run: |
-          mkdir -p deploy
-          cp SourceCode/WebApp/index.html deploy/
-          cp -r SourceCode/WebApp/_bundleAllCompiledJavascriptForWebapp deploy/
-          cp -r SourceCode/WebApp/viewWhichRendersConfigurationAndUi deploy/
+          cp -r SourceCode/WebApp deploy
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
