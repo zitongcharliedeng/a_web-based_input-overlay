@@ -7,6 +7,8 @@
  * Only runs when window.electronAPI is available (Electron environment).
  */
 
+import './types';
+
 // uiohook keycode to KeyboardEvent.code mapping
 const UIOHOOK_TO_KEYCODE: Record<number, string> = {
 	// Letters
@@ -91,7 +93,7 @@ export function initializeElectronBridges(): void {
 			id: 'SDL2 Gamepad (sdl2-gamecontroller)',
 			index: 0,
 			mapping: 'standard'
-		} as Gamepad;
+		} as unknown as Gamepad;
 	});
 
 	// Bridge uiohook mouse events to mouse state object
