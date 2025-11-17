@@ -1,5 +1,6 @@
-import { mouse } from './inputReaders/mouse';
-import { keyboard } from './inputReaders/keyboard';
+import { mouse } from './inputReaders/DOM_API/mouse';
+import { keyboard } from './inputReaders/DOM_API/keyboard';
+import './inputReaders/ElectronAppWrapper_API';
 import { deserializeCanvasObject } from './canvasRenderer/canvasObjectTypes/index.js';
 import { PropertyEdit } from './uiComponents/PropertyEdit';
 import { loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLocally/configSerializer';

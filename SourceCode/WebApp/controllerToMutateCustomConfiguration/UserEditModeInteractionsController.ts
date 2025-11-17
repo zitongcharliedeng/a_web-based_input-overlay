@@ -14,7 +14,7 @@
 
 import { Vector } from '../_helpers/Vector';
 import type { CanvasObjectInstance } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/index';
-import { mouse } from '../viewWhichRendersConfigurationAndUi/inputReaders/mouse';
+import { mouse } from '../viewWhichRendersConfigurationAndUi/inputReaders/DOM_API/mouse';
 
 export class UserEditModeInteractionsController {
 	private clickedObjectIndex: number | null = null;  // Track by array index
