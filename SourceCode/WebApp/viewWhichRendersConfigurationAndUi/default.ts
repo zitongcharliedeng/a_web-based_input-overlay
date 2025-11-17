@@ -30,6 +30,11 @@ declare global {
 		keyboard: typeof keyboard;
 		mouse: typeof mouse;
 		_gamepadDebugLogged?: boolean;
+		electronAPI?: {
+			isAppInReadonlyClickthroughMode: () => boolean;
+			hasGlobalInput: () => boolean;
+			// ... other methods (not needed here)
+		};
 	}
 }
 
@@ -71,6 +76,13 @@ window.addEventListener("load", function (): void {
 
 	// CL3: Create InteractionController (extracted interaction logic)
 	const interactionController = new InteractionController();
+
+	// Initialize readonly mode from Electron (if running in Electron wrapper)
+	if (window.electronAPI) {
+		const isAppInReadonlyClickthroughMode = window.electronAPI.isAppInReadonlyClickthroughMode();
+		interactionController.setDisableInteractions(isAppInReadonlyClickthroughMode);
+		console.log('[default.ts] Readonly/clickthrough mode:', isAppInReadonlyClickthroughMode);
+	}
 
 	// SpawnMenu removed - using existing showBothPanels UI instead
 
@@ -125,6 +137,11 @@ window.addEventListener("load", function (): void {
 	// Add right-click canvas menu handler
 	canvas.addEventListener('contextmenu', (e: MouseEvent) => {
 		e.preventDefault();
+
+		// Readonly/clickthrough mode - no context menus
+		if (window.electronAPI && window.electronAPI.isAppInReadonlyClickthroughMode()) {
+			return;
+		}
 
 		// Check if clicking on empty space (not on an object)
 		let clickedOnObject = false;

@@ -23,6 +23,7 @@ export class InteractionController {
 	private creationPanelActive = false;
 	private dragStartPosition: { x: number, y: number } | null = null;  // Original position when drag started
 	private lastDragPosition: { x: number, y: number } | null = null;  // Last dragged position (for release frame)
+	private disableInteractions = false;  // Disable all UI interactions in readonly/clickthrough mode
 
 	// Callbacks
 	private onMoveObject: ((objectIndex: number, x: number, y: number) => void) | null = null;
@@ -81,6 +82,13 @@ export class InteractionController {
 	}
 
 	/**
+	 * Set whether to disable UI interactions (for readonly/clickthrough mode)
+	 */
+	setDisableInteractions(disable: boolean): void {
+		this.disableInteractions = disable;
+	}
+
+	/**
 	 * Get currently selected object index
 	 */
 	getClickedObjectIndex(): number | null {
@@ -99,6 +107,9 @@ export class InteractionController {
 	 * Returns true if canvas needs redraw
 	 */
 	update(objects: readonly CanvasObjectInstance[]): boolean {
+		// Readonly/clickthrough mode - disable all UI interactions
+		if (this.disableInteractions) return false;
+
 		// Click detection: find which object was clicked (track by array index)
 		if (mouse.clicks[0] === true || mouse.clicks[2] === true) {
 			this.clickedObjectIndex = null;
