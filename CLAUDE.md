@@ -1090,31 +1090,24 @@ Extend to VR gaming:
 **Migration Complete:**
 All core objects, helpers, and input listeners are now in TypeScript. The only remaining JavaScript file is `default.js` (main game loop/scene), which will be kept as JavaScript for flexibility during development.
 
-### Known Issues & TODOs
+### Current Architecture Notes
 
-**Active TODOs:**
-- [x] Convert Text.js to TypeScript (CL4 complete)
-- [x] Convert PropertyEdit.js to TypeScript (CL6 complete)
-- [x] Convert keyboard.js and gamepad.js to TypeScript (CL7 complete)
-- [x] Convert draw.js helpers to TypeScript (CL8 complete)
-- [ ] Rename `linkedAxis` to better mathematical term (radialCompensationAxis or perpendicularAxis)
-- [ ] Make KeyImage user-customizable property (currently hardcoded in default.js scene)
-- [ ] Remove temporary x/y/width/height getters from CanvasObject (optimization)
+**Config System:**
+- Nested config structure: `{ input: {...}, processing: {...}, display: {...} }`
+- Zod schemas with defaults are single source of truth
+- Deep merging handled by explicit object spreading (no deepMerge utility)
+- CustomisableCanvasConfig validated on load/save with detailed error messages
 
-**Click-Through Investigation (COSMIC Limitation):**
-- ⚠️ `setIgnoreMouseEvents(true)` does NOT work on COSMIC compositor (both Wayland and X11/XWayland modes)
-- ✅ Researched stream-overlay implementation (uses same API - BaseWindow + setIgnoreMouseEvents)
-- ✅ Implemented BaseWindow + WebContentsView (matches stream-overlay exactly)
-- ✅ Added GTK-3 flag for Linux compatibility
-- ✅ Tested in X11 mode with transparent background (background works, click-through doesn't)
-- **Conclusion**: COSMIC compositor doesn't support click-through windows yet (very new DE)
-- **Workaround**: Use interactive mode for editing, overlay mode for display (user must avoid clicking on it)
+**Build System:**
+- esbuild bundles TypeScript → dist/bundle.js
+- Compiled output gitignored (developers compile locally)
+- No global npm/node - use `nix-shell -p nodejs --run "npm run build"`
+- <50ms rebuild times
 
-**Architectural Notes:**
-- Using nested config structure: `{ input: {...}, processing: {...}, display: {...} }`
-- `deepMerge()` properly handles special objects (Image, Date, etc.) via `isPlainObject()` check
-- Compiled output is gitignored (developers must compile locally)
-- No npm/npx in PATH - must use `nix-shell -p nodejs --run "npx tsc"`
+**Electron Wrapper (Optional):**
+- BaseWindow + WebContentsView API for transparency
+- Click-through NOT supported on COSMIC compositor (Wayland/X11)
+- Workaround: Interactive mode for editing, avoid clicking in overlay mode
 
 ### User Preferences (Code Style)
 - No emojis in code or commit messages (removed from README)
@@ -1255,11 +1248,8 @@ When TypeScript complains about types and you reach for `any` or `as`, that's a 
 - ✅ PropertyEdit persists changes to localStorage
 - ✅ Config serialization/deserialization working
 - ✅ Image object shows default KeyDefault.png on spawn
-
-**Remaining TODOs:**
-- [ ] Rename `linkedAxis` to better mathematical term (radialCompensationAxis or perpendicularAxis)
-- [ ] Make KeyImage user-customizable property (currently hardcoded in default.js scene)
-- [ ] Remove temporary x/y/width/height getters from CanvasObject (optimization)
+- ✅ All properties user-customizable through PropertyEdit (right-click any object)
+- ✅ Clean architecture: no temporary getters, semantic naming throughout
 
 ---
 
@@ -1395,7 +1385,7 @@ Before adding new features, need to:
 
 ---
 
-## 🔮 Pending Features & Refactoring (DO NOT IMPLEMENT YET)
+## 🔮 Completed Priorities & Future Features
 
 ### Priority -1: Foundation (Critical - Do First) ✅ COMPLETE
 
@@ -1504,84 +1494,23 @@ processing: {
 
 ---
 
-### Priority 2: Configuration Management System
+### Priority 2: Configuration Management System ✅ COMPLETE
 
-**Goal:** Save/load/share overlay configurations easily
+**Status:** ✅ COMPLETED 2025-11-17
 
-**Feature: Configuration Export/Import UI**
+**What was implemented:**
+1. ✅ **localStorage Persistence** - Configs auto-save and restore on reload
+2. ✅ **Zod Validation** - All configs validated on load/save with detailed error messages
+3. ✅ **PropertyEdit UI** - Right-click any object to edit all properties
+4. ✅ **Spawn Menu** - Right-click background to create new objects (all 5 types)
+5. ✅ **Position Saving** - Objects maintain position across reloads
+6. ✅ **JSON Serialization** - CustomisableCanvasConfig format (ready for copy/paste)
 
-1. **Right-Click Context Menu (Background Only)**
-   - Right-click on canvas background (NOT on objects) opens menu:
-     - "Create New PlanarInputIndicator"
-     - "Create New LinearInputIndicator"
-     - "Change Canvas Background RGBA"
-     - "Show Configuration (Copy/Paste)" ← 4th option
-
-2. **Configuration Text Box**
-   - Modal/panel that displays entire scene configuration as JSON
-   - Shows all objects with:
-     - Position properties (x, y)
-     - All input/processing/display config
-     - Canvas background RGBA
-     - Global settings (fadeOutDuration, scale, etc.)
-   - Fully copy/pasteable text
-   - Friends can share configs via Discord/text
-
-3. **Live Configuration Update**
-   - Pasting new config into text box updates canvas in real-time
-   - Graceful error handling with validation warnings
-   - Shows which line/property is invalid if paste fails
-   - Preserves valid objects if only part of config is bad
-   - Undo/redo support for config changes
-
-**Example Configuration Format:**
-```json
-{
-  "canvas": {
-    "width": 1920,
-    "height": 1080,
-    "scale": 1.0,
-    "backgroundColor": "rgba(0, 0, 0, 0)"
-  },
-  "global": {
-    "fadeOutDuration": 0.2
-  },
-  "objects": [
-    {
-      "type": "LinearInputIndicator",
-      "x": 240,
-      "y": 60,
-      "width": 100,
-      "height": 100,
-      "input": {
-        "keyboard": { "keyCode": "KeyW" },
-        "mouse": { "button": 3, "wheel": null },
-        "gamepad": {
-          "stick": { "type": "left", "axis": "Y", "direction": "negative" },
-          "button": { "index": null }
-        }
-      },
-      "processing": {
-        "linkedAxis": 0,
-        "multiplier": 1,
-        "antiDeadzone": 0,
-        "fadeOutDuration": 0.2
-      },
-      "display": {
-        "text": "W",
-        "backgroundImage": "KeyDefault.png",
-        "fillStyle": "#00ff00"
-      }
-    }
-    // ... more objects
-  ]
-}
-```
-
-4. **Position Properties**
-   - All objects must include `x`, `y` in config
-   - Currently objects have position but not in serialized config
-   - Add position to configuration export/import
+**What's missing (future enhancements):**
+- [ ] Config export/import UI (currently auto-saves to localStorage)
+- [ ] Manual copy/paste config JSON feature
+- [ ] Preset sharing (Discord/URL sharing)
+- [ ] Canvas background color changer in spawn menu
 
 ---
 
