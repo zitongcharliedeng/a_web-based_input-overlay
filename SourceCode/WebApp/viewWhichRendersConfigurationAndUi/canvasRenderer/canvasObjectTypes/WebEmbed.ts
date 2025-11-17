@@ -43,7 +43,7 @@ export class WebEmbed extends CanvasObjectInstance {
 		this.runtimeState.iframe.src = this.config.url;
 		this.runtimeState.iframe.style.position = 'absolute';
 
-		const padding = 10;
+		const padding = 50;  // 50px border for dragging and right-click
 		this.runtimeState.iframe.style.left = (this.config.positionOnCanvas.pxFromCanvasLeft + padding) + 'px';
 		this.runtimeState.iframe.style.top = (this.config.positionOnCanvas.pxFromCanvasTop + padding) + 'px';
 		this.runtimeState.iframe.style.width = (this.config.hitboxSize.widthInPx - padding * 2) + 'px';
@@ -63,7 +63,7 @@ export class WebEmbed extends CanvasObjectInstance {
 
 	override update(): boolean {
 		if (this.runtimeState.iframe) {
-			const padding = 10;
+			const padding = 50;  // 50px border for dragging and right-click
 			this.runtimeState.iframe.style.left = (this.config.positionOnCanvas.pxFromCanvasLeft + padding) + 'px';
 			this.runtimeState.iframe.style.top = (this.config.positionOnCanvas.pxFromCanvasTop + padding) + 'px';
 			this.runtimeState.iframe.style.width = (this.config.hitboxSize.widthInPx - padding * 2) + 'px';
@@ -75,20 +75,23 @@ export class WebEmbed extends CanvasObjectInstance {
 	}
 
 	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
+		// Outer magenta border (full hitbox - for dragging and right-click)
 		ctx.strokeStyle = '#FF00FF';
 		ctx.lineWidth = 3;
 		ctx.strokeRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx);
 
-		const padding = 10;
+		// Inner gray border (iframe boundary)
+		const padding = 50;  // 50px border for dragging and right-click
 		ctx.strokeStyle = '#B4B4B4';
 		ctx.lineWidth = 1;
 		ctx.strokeRect(padding, padding, this.config.hitboxSize.widthInPx - padding * 2, this.config.hitboxSize.lengthInPx - padding * 2);
 
+		// URL label at top
 		ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-		ctx.fillRect(0, 0, this.config.hitboxSize.widthInPx, padding);
+		ctx.fillRect(0, 0, this.config.hitboxSize.widthInPx, 12);
 		ctx.fillStyle = '#FFFFFF';
 		ctx.font = '10px Lucida Console';
-		ctx.fillText(this.config.url.substring(0, 50), 2, 8);
+		ctx.fillText(this.config.url.substring(0, 50), 2, 10);
 	}
 
 	override cleanup(): void {

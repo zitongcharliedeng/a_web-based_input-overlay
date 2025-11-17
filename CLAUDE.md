@@ -1104,6 +1104,9 @@ All core objects, helpers, and input listeners are now in TypeScript. The only r
 - [ ] **Bug: Text object renders text above hitbox** - Text content appears above the hitbox rectangle instead of inside it
 - [ ] **Bug: Dragging updates position every tick** - Drag movement updates config and saves to localStorage on every frame; should only update when drag is released (mouse up)
   - **Proposed solution:** Show visual preview during drag (hitbox outline or object clone), keep actual object at original position until mouse release
+- [ ] **Naming refactor: OmniConfig → CustomisableCanvasConfig** - Rename OmniConfig type/files to CustomisableCanvasConfig for semantic clarity
+- [ ] **Naming refactor: toast → Toast** - Capitalize toast to follow TypeScript class naming conventions
+- [ ] **Naming refactor: Function name clarity** - Make function names indicate if they're internal helpers (e.g., prefix with underscore or group in internal namespace) vs public API for CustomisableCanvasConfig module
 
 **Click-Through Investigation (COSMIC Limitation):**
 - ⚠️ `setIgnoreMouseEvents(true)` does NOT work on COSMIC compositor (both Wayland and X11/XWayland modes)
