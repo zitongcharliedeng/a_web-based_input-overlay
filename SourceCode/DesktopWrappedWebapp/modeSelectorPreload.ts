@@ -1,12 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-declare global {
-	interface Window {
-		electronAPI: {
-			launchMode: (mode: 'interactive' | 'readonly') => void;
-		};
-	}
-}
+// No global type declaration - this preload is only used by modeSelector.html
+// which has inline JavaScript (no TypeScript checking needed)
 
 contextBridge.exposeInMainWorld('electronAPI', {
 	launchMode: (mode: 'interactive' | 'readonly'): void => {
