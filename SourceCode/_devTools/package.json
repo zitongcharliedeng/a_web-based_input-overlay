@@ -1,6 +1,6 @@
 {
-  "name": "analog-keyboard-overlay",
-  "version": "1.0.6",
+  "name": "a-real-web-based-input-overlay",
+  "version": "1.0.7",
   "description": "Transparent input overlay for streamers - displays keyboard, mouse, and gamepad inputs",
   "author": "zitongcharliedeng",
   "repository": {
@@ -45,7 +45,7 @@
   },
   "build": {
     "appId": "com.zitongcharliedeng.inputoverlay",
-    "productName": "Input Overlay",
+    "productName": "A Real Web Based Input Overlay",
     "npmRebuild": false,
     "directories": {
       "output": "../../dist",
