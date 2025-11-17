@@ -33,7 +33,7 @@ jobs:
       - name: Prepare deployment directory
         run: |
           mkdir -p deploy
-          rsync -a --exclude='node_modules' SourceCode/WebApp/ deploy/
+          cp -r SourceCode/WebApp/_bundleAllCompiledJavascriptForWebapp/* deploy/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
