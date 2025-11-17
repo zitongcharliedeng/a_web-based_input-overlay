@@ -30,10 +30,16 @@ jobs:
           ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules
           npm run build
 
+      - name: Prepare deployment directory
+        run: |
+          mkdir -p deploy
+          cp SourceCode/WebApp/index.html deploy/
+          cp -r SourceCode/WebApp/_bundleAllCompiledJavascriptForWebapp deploy/
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./SourceCode/WebApp
+          publish_dir: ./deploy
           destination_dir: ${{ inputs.deploy-path }}
           keep_files: true
