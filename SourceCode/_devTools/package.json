@@ -1,6 +1,6 @@
 {
   "name": "analog-keyboard-overlay",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Transparent input overlay for streamers - displays keyboard, mouse, and gamepad inputs",
   "author": "zitongcharliedeng",
   "repository": {
