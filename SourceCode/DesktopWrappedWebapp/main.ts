@@ -179,6 +179,7 @@ function createWindow(): BrowserWindow {
 		alwaysOnTop: true,
 		skipTaskbar: false,
 		backgroundColor: '#00000000',
+		title: 'A Real Web Based Input Overlay',
 		webPreferences: {
 			nodeIntegration: false,
 			contextIsolation: true,
