@@ -1,0 +1,188 @@
+#canvas {
+	position: absolute;
+	top: 0; left: 0;
+}
+
+#containerForPossibleEditorWindows {
+	color: #cdc1c1;
+	background-color: rgba(111, 110, 122, 0.85);
+	border: none;
+	position: fixed;
+	width: 100vw;
+	height: 100vh;
+	top: 0;
+	left: 0;
+	display: flex;
+	flex-direction: row;
+	gap: 1em;
+	padding: 1em;
+	padding-bottom: 6em;
+	z-index: 100;
+	overflow: hidden;
+}
+
+#containerForPossibleEditorWindows[hidden] {
+	display: none !important;
+}
+
+#leftPanel {
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding-right: 1em;
+}
+
+#leftPanel[hidden] {
+	display: none !important;
+}
+
+#rightPanel {
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding-left: 1em;
+	border-left: 1px solid #666;
+}
+
+#rightPanel[hidden] {
+	display: none !important;
+}
+
+.panelTitle {
+	font-size: 1.3em;
+	font-weight: bold;
+	margin-top: 0;
+	margin-bottom: 1em;
+	color: #AAAAAA;
+}
+
+#propertyTable {
+	width: 100%;
+	margin-top: 1em;
+}
+
+#propertyTable input {
+	color: #cdc1c1;
+	padding: .7em;
+	width: 90%;
+	background-color: rgba(0, 0, 0, 0);
+}
+
+#sceneConfigText {
+	width: 100%;
+	height: calc(100% - 2em);
+	padding: 0.5em;
+	font-family: 'Lucida Console', monospace;
+	font-size: 0.9em;
+	color: #cdc1c1;
+	background-color: rgba(0, 0, 0, 0.3);
+	border: 1px solid #666;
+	resize: none;
+	box-sizing: border-box;
+}
+
+/* Shared window styles */
+.windowTitle {
+	font-size: 1.8em;
+	margin-top: 0;
+	margin-bottom: 0.5em;
+	padding-top: 0;
+	text-shadow: 2px 2px #000;
+}
+
+/* Buttons which user can press to update state (Done, spawn) - pure white background, pure black text */
+.ButtonWhichUserCanPressToUpdateState {
+	color: #000000;
+	background-color: #FFFFFF;
+	border: 2px solid #000000;
+	padding: 0.8em 1.5em;
+	font-size: 1em;
+	font-family: 'Lucida Console', monospace;
+	font-style: italic;
+	cursor: pointer;
+	transition: background-color 0.2s;
+	width: 100%;
+	text-align: center;
+}
+
+.ButtonWhichUserCanPressToUpdateState:hover {
+	background-color: #EEEEEE;
+}
+
+#doneContainerForPossibleEditorWindows {
+	position: fixed;
+	bottom: 2em;
+	right: 2em;
+	font-size: 1.1em;
+	padding: 1em 2em;
+	width: auto;
+	z-index: 101;
+}
+
+/* Object type sections in creation panel */
+.objectTypeSection {
+	margin-bottom: 1.5em;
+}
+
+.sectionHeader {
+	font-size: 1.1em;
+	font-weight: bold;
+	color: #AAAAAA;
+	margin-bottom: 0.5em;
+	margin-top: 0;
+	border-bottom: 1px solid #666;
+	padding-bottom: 0.3em;
+}
+
+/* Create object buttons use action button styling */
+.createObjectBtn {
+	margin-bottom: 0.3em;
+}
+
+/* Toast notifications - status update boxes */
+#toastContainer {
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	z-index: 300;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	pointer-events: none;
+}
+
+.BoxWhichNotifiesUserOfStatusUpdates {
+	color: #FFFFFF;
+	background-color: #000000;
+	border: 2px solid #FFFFFF;
+	padding: 12px 20px;
+	border-radius: 4px;
+	font-family: 'Lucida Console', monospace;
+	font-size: 1em;
+	font-style: italic;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+	opacity: 0;
+	transform: translateX(100px);
+	animation: toastSlideIn 0.3s ease-out forwards, toastFadeOut 0.3s ease-in 1.7s forwards;
+}
+
+@keyframes toastSlideIn {
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes toastFadeOut {
+	to {
+		opacity: 0;
+		transform: translateX(100px);
+	}
+}
+
+body {
+	font: 1em Lucida Console;
+	background-color: transparent;
+	margin: 0px auto;
+	overflow: hidden;
+}

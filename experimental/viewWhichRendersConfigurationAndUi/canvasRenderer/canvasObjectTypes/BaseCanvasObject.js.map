@@ -1,0 +1,1 @@
+{"version":3,"file":"BaseCanvasObject.js","sourceRoot":"","sources":["BaseCanvasObject.ts"],"names":[],"mappings":"AAEA,uDAAuD;AACvD,MAAe,oBAAoB;IAC/B,YAAY,WAAmB;QAC3B,IAAI,CAAC,WAAW,GAAG,WAAW,CAAC;IACnC,CAAC;CASJ;AAOD,OAAO,EAAE,oBAAoB,EAAE,CAAC"}

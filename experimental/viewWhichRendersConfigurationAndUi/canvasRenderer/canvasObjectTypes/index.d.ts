@@ -1,0 +1,10 @@
+import { type CanvasObjectClassName, type CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
+import type { CanvasObjectInstance } from './BaseCanvasObject';
+export type { CanvasObjectInstance } from './BaseCanvasObject';
+export { LinearInputIndicator } from './LinearInputIndicator';
+export { PlanarInputIndicator } from './PlanarInputIndicator';
+export { Text } from './Text';
+export { Image } from './Image';
+export { WebEmbed } from './WebEmbed';
+export declare const SPAWNABLE_TYPES: ReadonlyArray<CanvasObjectClassName>;
+export declare function deserializeCanvasObject(objData: CanvasObjectConfig, objArrayIdx: number): CanvasObjectInstance;
