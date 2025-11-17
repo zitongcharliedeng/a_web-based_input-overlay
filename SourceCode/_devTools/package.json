@@ -1,6 +1,7 @@
 {
   "name": "analog-keyboard-overlay",
   "version": "1.0.0",
+  "main": "../DesktopWrappedWebapp/main.js",
   "type": "module",
   "scripts": {
     "prebuild": "npx tsx ../WebApp/_helpers/generateVersionGitCommitHash.ts",
@@ -23,6 +24,7 @@
     "@typescript-eslint/parser": "^8.46.4",
     "concurrently": "^9.1.0",
     "electron": "^34.5.8",
+    "electron-builder": "^25.1.8",
     "eslint": "^9.39.1",
     "http-server": "^14.1.1",
     "tsx": "^4.20.6",
@@ -33,5 +35,41 @@
     "@kmamal/sdl": "^0.11.13",
     "uiohook-napi": "^1.5.4",
     "zod": "^4.1.12"
+  },
+  "build": {
+    "appId": "com.zitongcharliedeng.inputoverlay",
+    "productName": "Input Overlay",
+    "directories": {
+      "output": "../../dist",
+      "buildResources": "../../build"
+    },
+    "files": [
+      "../DesktopWrappedWebapp/**/*",
+      "../WebApp/**/*",
+      "!../WebApp/node_modules",
+      "!../**/*.ts",
+      "!../**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/@kmamal/sdl",
+        "to": "node_modules/@kmamal/sdl"
+      },
+      {
+        "from": "node_modules/uiohook-napi",
+        "to": "node_modules/uiohook-napi"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Utility"
+    }
   }
 }

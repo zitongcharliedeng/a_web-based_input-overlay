@@ -1,0 +1,59 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  deploy-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: cd SourceCode/_devTools && npm ci
+
+      - name: Build web app
+        run: cd SourceCode/WebApp && node esbuild.config.js
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: SourceCode/WebApp/dist
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+
+  build-electron:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: cd SourceCode/_devTools && npm ci
+
+      - name: Build TypeScript
+        run: cd SourceCode/_devTools && npm run build
+
+      - name: Build and release Electron app
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: cd SourceCode/_devTools && npx electron-builder --publish always
