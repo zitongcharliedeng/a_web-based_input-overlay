@@ -53,8 +53,8 @@ jobs:
         run: |
           cd SourceCode/_devTools
           npm ci
-          ln -s $(pwd)/node_modules ../WebApp/node_modules
-          ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules
+          ln -s $(pwd)/node_modules ../WebApp/node_modules || true
+          ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules || true
 
       - name: Build TypeScript
         run: cd SourceCode/_devTools && npm run build
