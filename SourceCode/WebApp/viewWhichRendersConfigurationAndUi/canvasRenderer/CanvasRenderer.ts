@@ -60,12 +60,16 @@ export class CanvasRenderer {
 			};
 		}
 
-		for (let i = 0; i < this.cache.objects.length; i++) {
-			const obj = this.cache.objects[i];
+		// Cache is guaranteed non-null after above if block
+		const cache = this.cache;
+		if (!cache) throw new Error('Cache should be initialized');
+
+		for (let i = 0; i < cache.objects.length; i++) {
+			const obj = cache.objects[i];
 			if (obj) obj.update(delta);
 		}
 
-		return this.cache.objects;
+		return cache.objects;
 	}
 
 	/**

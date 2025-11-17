@@ -129,7 +129,7 @@ window.addEventListener("load", function (): void {
 		// Check if clicking on empty space (not on an object)
 		let clickedOnObject = false;
 		const currentConfig = configManager.config;
-		const currentObjects = currentConfig.objects.map((objData, index) => deserializeCanvasObject(objData, index));
+		const currentObjects = currentConfig.objects.map((objData: CanvasObjectConfig, index: number) => deserializeCanvasObject(objData, index));
 
 		for (let i = 0; i < currentObjects.length; i++) {
 			const obj = currentObjects[i];

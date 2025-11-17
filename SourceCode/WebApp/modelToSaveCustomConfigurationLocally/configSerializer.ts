@@ -7,7 +7,7 @@ export function loadConfigFromJSON(jsonString: string): { success: true; config:
 		const validationResult = validateCustomisableCanvasConfig(parsed);
 
 		if (!validationResult.success) {
-			const errorMessages = validationResult.error.issues.map(issue =>
+			const errorMessages = validationResult.error.issues.map((issue: { path: (string | number)[]; message: string }) =>
 				`${issue.path.join('.')}: ${issue.message}`
 			).join('; ');
 			return { success: false, error: `Config validation failed: ${errorMessages}` };

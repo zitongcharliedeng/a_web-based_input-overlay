@@ -33,13 +33,13 @@ class PropertyEdit {
 		if (sceneConfigText && !sceneConfigText.hidden && this.applySceneConfig) {
 			// Only apply if the text was actually modified (has focus or was recently focused)
 			const textWasEdited = document.activeElement === sceneConfigText ||
-								 sceneConfigText.dataset.modified === 'true';
+								 sceneConfigText.dataset['modified'] === 'true';
 
 			if (textWasEdited) {
 				try {
 					const config = JSON.parse(sceneConfigText.value);
 					this.applySceneConfig(config);
-					sceneConfigText.dataset.modified = 'false';
+					sceneConfigText.dataset['modified'] = 'false';
 				} catch (parseError) {
 					console.error('Invalid JSON in canvas config:', parseError);
 					alert('Invalid JSON syntax. Please fix the configuration.');
@@ -169,11 +169,11 @@ class PropertyEdit {
 
 		// Config is already serialized (from ConfigManager) - just display it
 		sceneConfigText.value = JSON.stringify(config, null, 2);
-		sceneConfigText.dataset.modified = 'false';  // Reset modified flag
+		sceneConfigText.dataset['modified'] = 'false';  // Reset modified flag
 
 		// Track if user modifies the text
 		sceneConfigText.oninput = () => {
-			sceneConfigText.dataset.modified = 'true';
+			sceneConfigText.dataset['modified'] = 'true';
 		};
 
 		// Note: unifiedEditor visibility is managed by caller (showBothPanels)

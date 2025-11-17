@@ -69,7 +69,7 @@ export function removeObject(
 
 	return {
 		...config,
-		objects: config.objects.filter((_, i) => i !== objectIndex)
+		objects: config.objects.filter((_: unknown, i: number) => i !== objectIndex)
 	};
 }
 
