@@ -48,7 +48,7 @@ const config: esbuild.BuildOptions = {
 	keepNames: true,
 	plugins: [resolveTsPlugin],
 	define: {
-		'CONFIG_VERSION': JSON.stringify(gitHash)
+		'__CURRENT_PROJECT_GIT_HASH__': JSON.stringify(gitHash)
 	}
 };
 
