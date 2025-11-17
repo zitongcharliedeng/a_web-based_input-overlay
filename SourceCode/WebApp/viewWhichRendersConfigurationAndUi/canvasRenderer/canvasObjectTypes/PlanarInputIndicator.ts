@@ -31,6 +31,21 @@ export class PlanarInputIndicator extends CanvasObjectInstance {
 		let xAxis = 0;
 		let yAxis = 0;
 
+		// Keyboard input (digital - adds +1 or -1)
+		const keyboard = window.keyboard;
+		if (keyboard) {
+			const xKeyPos = this.config.input.xKeyCodePositive;
+			const xKeyNeg = this.config.input.xKeyCodeNegative;
+			const yKeyPos = this.config.input.yKeyCodePositive;
+			const yKeyNeg = this.config.input.yKeyCodeNegative;
+
+			if (xKeyPos && keyboard[xKeyPos]) xAxis += 1;
+			if (xKeyNeg && keyboard[xKeyNeg]) xAxis -= 1;
+			if (yKeyPos && keyboard[yKeyPos]) yAxis += 1;
+			if (yKeyNeg && keyboard[yKeyNeg]) yAxis -= 1;
+		}
+
+		// Gamepad input (analog)
 		const gamepads = window.gamepads;
 		if (gamepads) {
 			for (let i = 0; i < gamepads.length; i++) {
@@ -102,6 +117,12 @@ export class PlanarInputIndicator extends CanvasObjectInstance {
 			canvas_arrow(ctx, 0, 0, clampedInput.x * radius, clampedInput.y * radius, this.config.display.inputVectorStyle);
 			ctx.stroke();
 		}
+
+		// Crosshair dot (center origin marker)
+		ctx.beginPath();
+		canvas_arc(ctx, 0, 0, 2, 0, 2 * Math.PI, this.config.display.crosshairStyle);
+		ctx.fill();
+		ctx.stroke();
 
 		ctx.closePath();
 	}

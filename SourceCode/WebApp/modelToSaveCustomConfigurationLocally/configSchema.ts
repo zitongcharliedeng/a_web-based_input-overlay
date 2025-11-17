@@ -92,9 +92,13 @@ const PlanarInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 	input: z.object({
 		xAxes: z.record(z.string(), z.boolean()).default({ "0": true }),
 		yAxes: z.record(z.string(), z.boolean()).default({ "1": true }),
+		xKeyCodePositive: z.string().nullable().default(null),
+		xKeyCodeNegative: z.string().nullable().default(null),
+		yKeyCodePositive: z.string().nullable().default(null),
+		yKeyCodeNegative: z.string().nullable().default(null),
 		invertX: z.boolean().default(false),
 		invertY: z.boolean().default(false)
-	}).default({ xAxes: { "0": true }, yAxes: { "1": true }, invertX: false, invertY: false }),
+	}).default({ xAxes: { "0": true }, yAxes: { "1": true }, xKeyCodePositive: null, xKeyCodeNegative: null, yKeyCodePositive: null, yKeyCodeNegative: null, invertX: false, invertY: false }),
 	processing: z.object({
 		deadzone: z.number().default(0.01),
 		antiDeadzone: z.number().default(0)
@@ -110,7 +114,8 @@ const PlanarInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 		yLineStyle: StylePropertiesSchema.default({ strokeStyle: "#00FF00", lineWidth: 2 }),
 		deadzoneStyle: StylePropertiesSchema.default({ fillStyle: "#524d4d" }),
 		inputVectorStyle: StylePropertiesSchema.default({ strokeStyle: "#FFFF00", lineWidth: 2 }),
-		unitVectorStyle: StylePropertiesSchema.default({ strokeStyle: "#0000FF", lineWidth: 2 })
+		unitVectorStyle: StylePropertiesSchema.default({ strokeStyle: "#0000FF", lineWidth: 2 }),
+		crosshairStyle: StylePropertiesSchema.default({ fillStyle: "#FFFFFF", strokeStyle: "#000000", lineWidth: 2 })
 	}).default({
 		radius: 100,
 		backgroundStyle: { strokeStyle: "#B4B4B4", lineWidth: 2, fillStyle: "rgba(0, 0, 0, 0)" },
@@ -118,7 +123,8 @@ const PlanarInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 		yLineStyle: { strokeStyle: "#00FF00", lineWidth: 2 },
 		deadzoneStyle: { fillStyle: "#524d4d" },
 		inputVectorStyle: { strokeStyle: "#FFFF00", lineWidth: 2 },
-		unitVectorStyle: { strokeStyle: "#0000FF", lineWidth: 2 }
+		unitVectorStyle: { strokeStyle: "#0000FF", lineWidth: 2 },
+		crosshairStyle: { fillStyle: "#FFFFFF", strokeStyle: "#000000", lineWidth: 2 }
 	})
 });
 
