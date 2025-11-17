@@ -53,6 +53,10 @@ Interactive menu with 4 options:
 
 **Cursor lag in The Finals (Windows 11):** When running The Finals in borderless windowed mode, the cursor may become laggy with the overlay active. This appears to be a game-specific issue with window composition. **Workaround:** Switch The Finals to exclusive fullscreen mode - the overlay will still work and cursor responsiveness returns to normal.
 
+## Known Issues
+
+**Cursor lag in The Finals (Windows 11):** When running The Finals in borderless windowed mode, the cursor may become laggy with the overlay active. This appears to be a game-specific issue with window composition. **Workaround:** Switch The Finals to exclusive fullscreen mode - the overlay will still work and cursor responsiveness returns to normal.
+
 ## Platform Support
 
 Developed and tested on **Windows 10/11**. Should work on macOS and Linux (GNOME, KDE, Hyprland) with mature Wayland/X11 compositors.
