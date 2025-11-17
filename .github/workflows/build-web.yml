@@ -47,16 +47,20 @@ jobs:
           if [ -z "${{ inputs.deploy-path }}" ]; then
             # Root deployment - replace everything
             git rm -rf . 2>/dev/null || true
-            cp -r ../* .
-            rm -rf node_modules gh-pages-temp
+            shopt -s extglob
+            cp -r ../!(node_modules|gh-pages-temp) .
           else
             # Subdirectory deployment - only update subdirectory
             mkdir -p ${{ inputs.deploy-path }}
             rm -rf ${{ inputs.deploy-path }}/*
-            cp -r ../* ${{ inputs.deploy-path }}/
-            rm -rf ${{ inputs.deploy-path }}/node_modules ${{ inputs.deploy-path }}/gh-pages-temp
+            shopt -s extglob
+            cp -r ../!(node_modules|gh-pages-temp) ${{ inputs.deploy-path }}/
           fi
 
           git add -A
-          git commit -m "Deploy to ${{ inputs.deploy-path || 'root' }}: ${{ github.sha }}" || echo "No changes"
-          git push origin gh-pages
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Deploy to ${{ inputs.deploy-path || 'root' }}: ${{ github.sha }}"
+            git push -u origin gh-pages
+          fi
