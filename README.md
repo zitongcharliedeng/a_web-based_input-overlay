@@ -49,6 +49,10 @@ Interactive menu with 4 options:
 3. Build and launch webapp (interactive mode)
 4. Build and launch webapp (clickthrough-readonly mode)
 
+### Versioning
+
+This project uses [Semantic Versioning](https://en.wikipedia.org/wiki/Software_versioning#Semantic_versioning) (MAJOR.MINOR.PATCH) where MAJOR indicates breaking changes, MINOR adds backwards-compatible features, and PATCH fixes bugs without adding features.
+
 ## Platform Support
 
 Developed and tested on **Windows 10/11**. Should work on macOS and Linux (GNOME, KDE, Hyprland) with mature Wayland/X11 compositors.
