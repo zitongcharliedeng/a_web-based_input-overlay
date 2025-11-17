@@ -1,5 +1,6 @@
 import type { CustomisableCanvasConfig } from './CustomisableCanvasConfig';
 import { validateCustomisableCanvasConfig } from './configSchema';
+import type { ZodIssue } from 'zod';
 
 export function loadConfigFromJSON(jsonString: string): { success: true; config: CustomisableCanvasConfig } | { success: false; error: string } {
 	try {
@@ -7,7 +8,7 @@ export function loadConfigFromJSON(jsonString: string): { success: true; config:
 		const validationResult = validateCustomisableCanvasConfig(parsed);
 
 		if (!validationResult.success) {
-			const errorMessages = validationResult.error.issues.map((issue: { path: (string | number)[]; message: string }) =>
+			const errorMessages = validationResult.error.issues.map((issue: ZodIssue) =>
 				`${issue.path.join('.')}: ${issue.message}`
 			).join('; ');
 			return { success: false, error: `Config validation failed: ${errorMessages}` };
