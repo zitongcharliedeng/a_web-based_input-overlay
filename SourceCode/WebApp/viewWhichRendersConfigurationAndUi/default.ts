@@ -199,7 +199,21 @@ window.addEventListener("load", function (): void {
 		if (userEditModeInteractionsController.hasSelection()) {
 			canvasRenderer.renderDebugHitboxes(frameObjects);
 		}
-		// Render drag preview (semi-transparent clone at drag position)
+		// Render original position ghost (semi-transparent at start position)
+		const dragOriginal = userEditModeInteractionsController.getDragOriginalPosition();
+		if (dragOriginal) {
+			const object = frameObjects[dragOriginal.objectIndex];
+			if (object) {
+				canvasRenderer.renderOverlay((canvas, ctx) => {
+					ctx.save();
+					ctx.globalAlpha = 0.3;
+					ctx.setTransform(1, 0, 0, 1, dragOriginal.x, dragOriginal.y);
+					object.drawDragPreview(canvas, ctx);
+					ctx.restore();
+				});
+			}
+		}
+		// Render drag preview (semi-transparent at current drag position)
 		const dragPreview = userEditModeInteractionsController.getDragPreview();
 		if (dragPreview) {
 			const object = frameObjects[dragPreview.objectIndex];
@@ -208,7 +222,7 @@ window.addEventListener("load", function (): void {
 					ctx.save();
 					ctx.globalAlpha = 0.5;
 					ctx.setTransform(1, 0, 0, 1, dragPreview.x, dragPreview.y);
-					object.draw(canvas, ctx);
+					object.drawDragPreview(canvas, ctx);
 					ctx.restore();
 				});
 			}

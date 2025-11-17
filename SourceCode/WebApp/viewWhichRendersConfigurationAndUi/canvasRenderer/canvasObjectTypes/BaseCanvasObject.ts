@@ -12,6 +12,10 @@ abstract class CanvasObjectInstance {
     abstract update(delta: number): boolean;
     abstract draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void;
 
+    drawDragPreview(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
+        this.draw(canvas, ctx);
+    }
+
     cleanup?(): void;
 }
 

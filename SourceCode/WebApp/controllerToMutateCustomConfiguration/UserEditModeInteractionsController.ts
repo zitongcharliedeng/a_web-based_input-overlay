@@ -212,4 +212,19 @@ export class UserEditModeInteractionsController {
 		}
 		return null;
 	}
+
+	/**
+	 * Get original position before drag started (for rendering ghost at start position)
+	 * Returns null if not dragging
+	 */
+	getDragOriginalPosition(): { objectIndex: number, x: number, y: number } | null {
+		if (this.clickedObjectIndex !== null && this.dragStartPosition && this.lastDragPosition) {
+			return {
+				objectIndex: this.clickedObjectIndex,
+				x: this.dragStartPosition.x,
+				y: this.dragStartPosition.y
+			};
+		}
+		return null;
+	}
 }

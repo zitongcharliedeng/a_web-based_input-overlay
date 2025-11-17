@@ -73,6 +73,32 @@ export class WebEmbed extends CanvasObjectInstance {
 		// No visual indicators needed - iframe is already visible
 	}
 
+	override drawDragPreview(_canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
+		// Draw visual placeholder during drag (since iframe can't be cloned to canvas)
+		const padding = 50;
+
+		// Outer magenta border (full hitbox)
+		ctx.strokeStyle = '#FF00FF';
+		ctx.lineWidth = 2;
+		ctx.strokeRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx);
+
+		// Inner gray border (actual iframe boundary)
+		ctx.strokeStyle = '#B4B4B4';
+		ctx.lineWidth = 2;
+		ctx.strokeRect(padding, padding, this.config.hitboxSize.widthInPx - padding * 2, this.config.hitboxSize.lengthInPx - padding * 2);
+
+		// URL label at top
+		ctx.fillStyle = 'black';
+		ctx.font = '14px monospace';
+		ctx.fillText(this.config.url, padding + 5, padding - 10);
+
+		// "WebEmbed" label in center
+		ctx.font = '20px sans-serif';
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText('WebEmbed', this.config.hitboxSize.widthInPx / 2, this.config.hitboxSize.lengthInPx / 2);
+	}
+
 	override cleanup(): void {
 		if (this.runtimeState.iframe && this.runtimeState.iframe.parentNode) {
 			this.runtimeState.iframe.parentNode.removeChild(this.runtimeState.iframe);
