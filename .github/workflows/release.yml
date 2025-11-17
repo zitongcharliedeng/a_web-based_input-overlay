@@ -20,11 +20,13 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: cd SourceCode/_devTools && npm ci
-
-      - name: Build web app
-        run: cd SourceCode/WebApp && node esbuild.config.js
+      - name: Install dependencies and build
+        run: |
+          cd SourceCode/_devTools
+          npm ci
+          npm run build
+          cd ../WebApp
+          node ../../../_devTools/node_modules/.bin/esbuild.js || node esbuild.config.js
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
