@@ -13,6 +13,10 @@ permissions:
 jobs:
   deploy-web:
     uses: ./.github/workflows/build-web.yml
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
     with:
       deploy-path: ''
 
