@@ -178,7 +178,7 @@ function createWindow(): BrowserWindow {
 		frame: enableFrame,
 		alwaysOnTop: true,
 		skipTaskbar: false,
-		backgroundColor: '#40404040',
+		backgroundColor: '#00000000',
 		webPreferences: {
 			nodeIntegration: false,
 			contextIsolation: true,

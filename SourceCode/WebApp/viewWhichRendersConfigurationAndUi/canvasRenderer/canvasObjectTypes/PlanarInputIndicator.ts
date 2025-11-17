@@ -95,12 +95,20 @@ export class PlanarInputIndicator extends CanvasObjectInstance {
 		}
 
 		ctx.beginPath();
+		if (this.config.display.xLineStyle.opacity !== undefined) {
+			ctx.globalAlpha = this.config.display.xLineStyle.opacity;
+		}
 		canvas_line(ctx, 0, 0, this.runtimeState.inputVector.x * radius, 0, this.config.display.xLineStyle);
 		ctx.stroke();
+		ctx.globalAlpha = 1.0;
 
 		ctx.beginPath();
+		if (this.config.display.yLineStyle.opacity !== undefined) {
+			ctx.globalAlpha = this.config.display.yLineStyle.opacity;
+		}
 		canvas_line(ctx, 0, 0, 0, this.runtimeState.inputVector.y * radius, this.config.display.yLineStyle);
 		ctx.stroke();
+		ctx.globalAlpha = 1.0;
 
 		if (this.runtimeState.inputVector.length() > deadzone) {
 			const normalizedInput = this.runtimeState.inputVector.unit();
@@ -110,12 +118,20 @@ export class PlanarInputIndicator extends CanvasObjectInstance {
 				.multiply((this.runtimeState.inputVector.length() - antiDeadzone) / (1 - antiDeadzone));
 
 			ctx.beginPath();
+			if (this.config.display.unitVectorStyle.opacity !== undefined) {
+				ctx.globalAlpha = this.config.display.unitVectorStyle.opacity;
+			}
 			canvas_arrow(ctx, 0, 0, normalizedInput.x * radius, normalizedInput.y * radius, this.config.display.unitVectorStyle);
 			ctx.stroke();
+			ctx.globalAlpha = 1.0;
 
 			ctx.beginPath();
+			if (this.config.display.inputVectorStyle.opacity !== undefined) {
+				ctx.globalAlpha = this.config.display.inputVectorStyle.opacity;
+			}
 			canvas_arrow(ctx, 0, 0, clampedInput.x * radius, clampedInput.y * radius, this.config.display.inputVectorStyle);
 			ctx.stroke();
+			ctx.globalAlpha = 1.0;
 		}
 
 		// Crosshair dot (center origin marker)
