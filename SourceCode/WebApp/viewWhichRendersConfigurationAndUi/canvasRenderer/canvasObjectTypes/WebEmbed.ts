@@ -74,24 +74,9 @@ export class WebEmbed extends CanvasObjectInstance {
 		return false;
 	}
 
-	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-		// Outer magenta border (full hitbox - for dragging and right-click)
-		ctx.strokeStyle = '#FF00FF';
-		ctx.lineWidth = 3;
-		ctx.strokeRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx);
-
-		// Inner gray border (iframe boundary)
-		const padding = 50;  // 50px border for dragging and right-click
-		ctx.strokeStyle = '#B4B4B4';
-		ctx.lineWidth = 1;
-		ctx.strokeRect(padding, padding, this.config.hitboxSize.widthInPx - padding * 2, this.config.hitboxSize.lengthInPx - padding * 2);
-
-		// URL label at top
-		ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-		ctx.fillRect(0, 0, this.config.hitboxSize.widthInPx, 12);
-		ctx.fillStyle = '#FFFFFF';
-		ctx.font = '10px Lucida Console';
-		ctx.fillText(this.config.url.substring(0, 50), 2, 10);
+	override draw(_canvas: HTMLCanvasElement, _ctx: CanvasRenderingContext2D): void {
+		// WebEmbed renders via iframe DOM element, not canvas
+		// No visual indicators needed - iframe is already visible
 	}
 
 	override cleanup(): void {
