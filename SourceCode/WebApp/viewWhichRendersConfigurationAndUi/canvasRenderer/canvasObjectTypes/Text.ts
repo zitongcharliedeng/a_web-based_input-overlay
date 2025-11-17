@@ -23,10 +23,10 @@ export class Text extends CanvasObjectInstance {
 	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
 		ctx.beginPath();
 		ctx.textBaseline = 'middle';
-		ctx.textAlign = 'center';
+		ctx.textAlign = 'left';
 
-		// Center text in hitbox
-		const x = this.config.hitboxSize.widthInPx / 2;
+		// Left-align text, vertically centered
+		const x = 0;
 		const y = this.config.hitboxSize.lengthInPx / 2;
 
 		if (this.config.shouldStroke) {

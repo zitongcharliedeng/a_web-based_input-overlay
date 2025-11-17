@@ -138,7 +138,7 @@ export class InteractionController {
 		}
 
 		// Drag release: save position using lastDragPosition (since objects are fresh from config)
-		if ((mouse.buttons[0] === false && mouse.buttons[2] === false) && clickedObject && this.dragStartPosition) {
+		if (mouse.buttons[0] === false && clickedObject && this.dragStartPosition) {
 			// Use lastDragPosition if available (was dragged), otherwise use current position (just clicked)
 			const finalX = this.lastDragPosition?.x ?? clickedObject.config.positionOnCanvas?.pxFromCanvasLeft;
 			const finalY = this.lastDragPosition?.y ?? clickedObject.config.positionOnCanvas?.pxFromCanvasTop;
