@@ -121,11 +121,14 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 	}
 
 	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-		// Background fill (always visible)
+		ctx.save();
+		// This save/restore respects parent context globalAlpha (drag preview opacity)
+
+		// Background fill
 		ctx.beginPath();
 		canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx, { fillStyle: this.config.display.fillStyleBackground });
 
-		// Foreground fill (progress bar with fade-out)
+		// Foreground fill with additional fade-out opacity
 		ctx.save();
 		ctx.globalAlpha *= this.runtimeState.opacity;
 		const reverseFillDirection = this.config.display.fillDirection === 'reversed';
@@ -136,7 +139,7 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 			canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: this.config.display.fillStyle });
 		ctx.restore();
 
-		// Text (always visible)
+		// Text
 		const keyText = this.config.display.text;
 		const fontStyle = this.config.display.fontStyle;
 		const textX = this.config.hitboxSize.widthInPx * 0.5;
@@ -146,5 +149,7 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 		ctx.lineWidth = fontStyle.strokeWidth ?? 3;
 		ctx.strokeText(keyText, textX, textY);
 		canvas_text(ctx, textX, textY, keyText, fontStyle);
+
+		ctx.restore();
 	}
 }
