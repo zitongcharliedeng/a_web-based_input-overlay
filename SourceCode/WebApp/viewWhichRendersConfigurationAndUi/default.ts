@@ -8,9 +8,6 @@ import { ConfigManager } from '../modelToSaveCustomConfigurationLocally/ConfigMa
 import type { CustomisableCanvasConfig, CanvasObjectConfig } from '../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
 import { ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME } from '../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
 import { showToast } from './uiComponents/Toast';
-
-// Injected at build time by esbuild define
-declare const CONFIG_VERSION: string;
 import type { CanvasObjectInstance } from './canvasRenderer/canvasObjectTypes/BaseCanvasObject';
 import { CanvasRenderer } from './canvasRenderer/CanvasRenderer';
 import { UserEditModeInteractionsController } from '../controllerToMutateCustomConfiguration/UserEditModeInteractionsController';
@@ -278,6 +275,10 @@ window.addEventListener("load", function (): void {
 	}
 	window.addEventListener("resize", resizeCanvas);
 }, false);
+
+// Build-time constant: injected by esbuild.config.ts define (current git hash)
+// See: SourceCode/WebApp/esbuild.config.ts line 41-43
+declare const CONFIG_VERSION: string;
 
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 
