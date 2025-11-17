@@ -2,9 +2,9 @@ import { z } from 'zod';
 
 // Primitive schemas with defaults
 const CanvasObjectPositionSchema = z.object({
-	pxFromCanvasLeft: z.number().default(0),
-	pxFromCanvasTop: z.number().default(0)
-}).default({ pxFromCanvasLeft: 0, pxFromCanvasTop: 0 });
+	pxFromCanvasLeft: z.number().default(100),
+	pxFromCanvasTop: z.number().default(100)
+}).default({ pxFromCanvasLeft: 100, pxFromCanvasTop: 100 });
 
 const CanvasObjectHitboxSchema = z.object({
 	widthInPx: z.number().default(100),

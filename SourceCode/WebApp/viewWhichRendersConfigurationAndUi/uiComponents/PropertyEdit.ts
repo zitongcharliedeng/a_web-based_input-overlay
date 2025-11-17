@@ -27,16 +27,24 @@ class PropertyEdit {
 			this.pendingChanges.clear();
 		}
 
-		// Canvas config editor: always apply current config
-		// (No stale config issue anymore - config is always current via ConfigManager)
+		// Canvas config editor: only apply if user modified it
+		// Skip if we're just closing after spawning (targetScene would be stale)
+		// The config is already updated via ConfigManager.addObject
 		if (sceneConfigText && !sceneConfigText.hidden && this.applySceneConfig) {
-			try {
-				const config = JSON.parse(sceneConfigText.value);
-				this.applySceneConfig(config);
-			} catch (parseError) {
-				console.error('Invalid JSON in canvas config:', parseError);
-				alert('Invalid JSON syntax. Please fix the configuration.');
-				return; // Don't close editor if JSON is invalid
+			// Only apply if the text was actually modified (has focus or was recently focused)
+			const textWasEdited = document.activeElement === sceneConfigText ||
+								 sceneConfigText.dataset.modified === 'true';
+
+			if (textWasEdited) {
+				try {
+					const config = JSON.parse(sceneConfigText.value);
+					this.applySceneConfig(config);
+					sceneConfigText.dataset.modified = 'false';
+				} catch (parseError) {
+					console.error('Invalid JSON in canvas config:', parseError);
+					alert('Invalid JSON syntax. Please fix the configuration.');
+					return; // Don't close editor if JSON is invalid
+				}
 			}
 		}
 
@@ -161,6 +169,12 @@ class PropertyEdit {
 
 		// Config is already serialized (from ConfigManager) - just display it
 		sceneConfigText.value = JSON.stringify(config, null, 2);
+		sceneConfigText.dataset.modified = 'false';  // Reset modified flag
+
+		// Track if user modifies the text
+		sceneConfigText.oninput = () => {
+			sceneConfigText.dataset.modified = 'true';
+		};
 
 		// Note: unifiedEditor visibility is managed by caller (showBothPanels)
 	}

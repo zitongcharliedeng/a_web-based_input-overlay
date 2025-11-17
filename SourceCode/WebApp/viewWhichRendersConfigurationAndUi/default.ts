@@ -517,6 +517,9 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		const unifiedEditor = document.getElementById("unifiedEditor");
 		if (unifiedEditor) unifiedEditor.hidden = false;
 
+		// Populate spawn buttons when showing panel
+		populateCreationPanel();
+
 		interactionController.setEditingProperties(true);
 	}
 
@@ -619,10 +622,6 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		configManager.deleteObject(objArrayIdx);
 	}
 
-
-	// Populate creation panel from registry (DRY)
-	populateCreationPanel();
-
 	// Setup creation panel button listeners (use event delegation)
 	const objectCreationContent = document.getElementById('objectCreationContent');
 	if (objectCreationContent) {
@@ -631,8 +630,8 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 			if (target.classList.contains('createObjectBtn')) {
 				const type = target.getAttribute('data-type');
 				if (type) {
-				createObject(type);
-				hideBothPanels();  // Close entire unified editor
+					createObject(type);
+					hideBothPanels();  // Close entire unified editor
 				}
 			}
 		});
