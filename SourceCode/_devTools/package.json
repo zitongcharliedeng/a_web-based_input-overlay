@@ -6,7 +6,7 @@
   "scripts": {
     "prebuild": "npx tsx ../WebApp/_helpers/generateVersionGitCommitHash.ts",
     "build": "npm run build:webapp && npm run build:desktop",
-    "build:webapp": "tsc -p tsconfig.webapp.json && NODE_PATH=./node_modules node ../WebApp/esbuild.config.js",
+    "build:webapp": "tsc -p tsconfig.webapp.json && node ../WebApp/esbuild.config.js",
     "build:desktop": "tsc -p tsconfig.desktop.json",
     "watch": "concurrently \"npm run watch:webapp\" \"npm run watch:desktop\"",
     "watch:webapp": "tsc -p tsconfig.webapp.json --watch",
