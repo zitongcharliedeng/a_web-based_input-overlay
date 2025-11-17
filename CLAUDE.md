@@ -1204,6 +1204,65 @@ When TypeScript complains about types and you reach for `any` or `as`, that's a 
 
 **Commit:** `447dc39` - refactor!: eliminate deepMerge anti-pattern, use idiomatic TypeScript object spreading
 
+### Latest Session Progress (2025-11-17)
+
+**WebEmbed Implementation + Bug Fixes + Naming Refactors**
+
+**What Was Accomplished:**
+- ✅ **WebEmbed Interaction Modes** - Added `interactionMode` enum: 'readonly' (pointer-events: none) vs 'interactableOnFocus' (pointer-events: auto)
+- ✅ **WebEmbed 50px Border** - Wider hitbox border for easier dragging/right-click without triggering iframe
+- ✅ **Text Left-Aligned** - Fixed Text rendering to left-align at x=0, vertically centered
+- ✅ **Drag Performance Fix** - Dragging now only updates config on mouse release (not every frame), shows semi-transparent preview during drag
+- ✅ **Naming Refactors** - OmniConfig → CustomisableCanvasConfig, toast.ts → Toast.ts (TypeScript conventions)
+- ✅ **Image Default Path Fix** - Changed broken GitHub URL to local path: `./viewWhichRendersConfigurationAndUi/_assets/images/KeyDefault.png`
+
+**Branch:** `claude/read-the-l-011CUyxYQP7k5L551y7LxcUT`
+**Latest Commit:** `0e032d6` - fix: use local path for default Image src
+
+**Key Design Decisions:**
+
+1. **WebEmbed Architecture:**
+   - Uses iframe with 50px magenta border (full hitbox for interaction)
+   - Inner gray border shows actual iframe boundary
+   - URL label at top for debugging
+   - iframe caching via global registry (prevents recreation on every frame)
+   - Cross-origin broadcast input is impossible (security restriction)
+
+2. **Drag Preview Pattern:**
+   - DRY approach: renders actual object with globalAlpha=0.5
+   - No config updates during drag (only on release)
+   - Removed unnecessary right-mouse-button check from drag release condition
+
+3. **Image Loading:**
+   - Simple HTMLImageElement with src property
+   - Accepts both local paths and HTTPS URLs agnostically
+   - Browser handles all loading/caching automatically
+   - No bundling, no custom asset management needed
+
+**Files Modified:**
+- `configSchema.ts` - Added WebEmbed schema with interactionMode, fixed Image default src
+- `WebEmbed.ts` - Implemented iframe rendering with 50px border and interaction modes
+- `Text.ts` - Changed to left-align (x=0, textAlign='left')
+- `InteractionController.ts` - Fixed drag release condition, removed per-frame config updates, added getDragPreview()
+- `ConfigManager.ts` - Wired up moveObject callback
+- `default.ts` - Added drag preview rendering using object.draw()
+- `CustomisableCanvasConfig.ts` (renamed from OmniConfig.ts)
+- `Toast.ts` (renamed from toast.ts)
+
+**Current Status:**
+- ✅ All object types spawnable: LinearInputIndicator, PlanarInputIndicator, Text, Image, WebEmbed
+- ✅ Drag and drop working with visual preview
+- ✅ PropertyEdit persists changes to localStorage
+- ✅ Config serialization/deserialization working
+- ✅ Image object shows default KeyDefault.png on spawn
+
+**Remaining TODOs:**
+- [ ] Rename `linkedAxis` to better mathematical term (radialCompensationAxis or perpendicularAxis)
+- [ ] Make KeyImage user-customizable property (currently hardcoded in default.js scene)
+- [ ] Remove temporary x/y/width/height getters from CanvasObject (optimization)
+
+---
+
 ### Latest Session Progress (2025-11-15)
 
 **Priority 0 Refactoring Complete: Code Clarity & Semantic Naming**
