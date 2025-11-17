@@ -31,32 +31,6 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 		};
 	}
 
-	private applyOpacityToColor(color: string, opacity: number): string {
-		const rgbaMatch = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
-		if (rgbaMatch) {
-			const r = rgbaMatch[1];
-			const g = rgbaMatch[2];
-			const b = rgbaMatch[3];
-			const a = rgbaMatch[4] ? parseFloat(rgbaMatch[4]) : 1.0;
-			const newAlpha = a * opacity;
-			return `rgba(${r}, ${g}, ${b}, ${newAlpha})`;
-		}
-
-		const hexMatch = color.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
-		if (hexMatch && hexMatch[1]) {
-			let hex = hexMatch[1];
-			if (hex.length === 3) {
-				hex = hex.split('').map(char => char + char).join('');
-			}
-			const r = parseInt(hex.substring(0, 2), 16);
-			const g = parseInt(hex.substring(2, 4), 16);
-			const b = parseInt(hex.substring(4, 6), 16);
-			return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-		}
-
-		return color;
-	}
-
 	override update(delta: number): boolean {
 		let value = 0;
 		let compensationAxisValue = 0;
@@ -147,20 +121,22 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 	}
 
 	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-		const fillStyleBackground = this.config.display.fillStyleBackground;
+		ctx.save();
+		ctx.globalAlpha *= this.runtimeState.opacity;
+
+		// Background fill
 		ctx.beginPath();
-		canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx, { fillStyle: fillStyleBackground });
+		canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx, { fillStyle: this.config.display.fillStyleBackground });
 
-		const fillStyle = this.config.display.fillStyle;
-		const fillStyleWithOpacity = this.applyOpacityToColor(fillStyle, this.runtimeState.opacity);
-
+		// Foreground fill (progress bar)
 		const reverseFillDirection = this.config.display.fillDirection === 'reversed';
 		ctx.beginPath();
 		if (reverseFillDirection)
-			canvas_fill_rec(ctx, 0, this.config.hitboxSize.lengthInPx, this.config.hitboxSize.widthInPx, -this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: fillStyleWithOpacity });
+			canvas_fill_rec(ctx, 0, this.config.hitboxSize.lengthInPx, this.config.hitboxSize.widthInPx, -this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: this.config.display.fillStyle });
 		else
-			canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: fillStyleWithOpacity });
+			canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: this.config.display.fillStyle });
 
+		// Text
 		const keyText = this.config.display.text;
 		const fontStyle = this.config.display.fontStyle;
 		const textX = this.config.hitboxSize.widthInPx * 0.5;
@@ -170,5 +146,7 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 		ctx.lineWidth = fontStyle.strokeWidth ?? 3;
 		ctx.strokeText(keyText, textX, textY);
 		canvas_text(ctx, textX, textY, keyText, fontStyle);
+
+		ctx.restore();
 	}
 }

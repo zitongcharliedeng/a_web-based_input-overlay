@@ -88,21 +88,23 @@ export class PlanarInputIndicator extends CanvasObjectInstance {
 			ctx.fill();
 		}
 
-		ctx.beginPath();
+		ctx.save();
 		if (this.config.display.xLineStyle.opacity !== undefined) {
-			ctx.globalAlpha = this.config.display.xLineStyle.opacity;
+			ctx.globalAlpha *= this.config.display.xLineStyle.opacity;
 		}
+		ctx.beginPath();
 		canvas_line(ctx, 0, 0, this.runtimeState.inputVector.x * radius, 0, this.config.display.xLineStyle);
 		ctx.stroke();
-		ctx.globalAlpha = 1.0;
+		ctx.restore();
 
-		ctx.beginPath();
+		ctx.save();
 		if (this.config.display.yLineStyle.opacity !== undefined) {
-			ctx.globalAlpha = this.config.display.yLineStyle.opacity;
+			ctx.globalAlpha *= this.config.display.yLineStyle.opacity;
 		}
+		ctx.beginPath();
 		canvas_line(ctx, 0, 0, 0, this.runtimeState.inputVector.y * radius, this.config.display.yLineStyle);
 		ctx.stroke();
-		ctx.globalAlpha = 1.0;
+		ctx.restore();
 
 		if (this.runtimeState.inputVector.length() > deadzone) {
 			const normalizedInput = this.runtimeState.inputVector.unit();
@@ -111,21 +113,23 @@ export class PlanarInputIndicator extends CanvasObjectInstance {
 			const clampedInput = Vector.fromAngles(currentAngles.theta, currentAngles.phi)
 				.multiply((this.runtimeState.inputVector.length() - antiDeadzone) / (1 - antiDeadzone));
 
-			ctx.beginPath();
+			ctx.save();
 			if (this.config.display.unitVectorStyle.opacity !== undefined) {
-				ctx.globalAlpha = this.config.display.unitVectorStyle.opacity;
+				ctx.globalAlpha *= this.config.display.unitVectorStyle.opacity;
 			}
+			ctx.beginPath();
 			canvas_arrow(ctx, 0, 0, normalizedInput.x * radius, normalizedInput.y * radius, this.config.display.unitVectorStyle);
 			ctx.stroke();
-			ctx.globalAlpha = 1.0;
+			ctx.restore();
 
-			ctx.beginPath();
+			ctx.save();
 			if (this.config.display.inputVectorStyle.opacity !== undefined) {
-				ctx.globalAlpha = this.config.display.inputVectorStyle.opacity;
+				ctx.globalAlpha *= this.config.display.inputVectorStyle.opacity;
 			}
+			ctx.beginPath();
 			canvas_arrow(ctx, 0, 0, clampedInput.x * radius, clampedInput.y * radius, this.config.display.inputVectorStyle);
 			ctx.stroke();
-			ctx.globalAlpha = 1.0;
+			ctx.restore();
 		}
 
 		// Crosshair dot (center origin marker)
