@@ -1,6 +1,6 @@
 {
   "name": "a-real-web-based-input-overlay",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Transparent input overlay for streamers - displays keyboard, mouse, and gamepad inputs",
   "author": "zitongcharliedeng",
   "repository": {
