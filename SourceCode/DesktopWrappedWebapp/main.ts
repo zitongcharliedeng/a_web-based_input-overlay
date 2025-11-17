@@ -1,5 +1,8 @@
 import { app, BrowserWindow, ipcMain, IpcMainEvent, screen } from 'electron';
 import * as path from 'path';
+import * as packageJson from '../_devTools/package.json';
+
+const APP_TITLE = packageJson.build.productName;
 
 process.env['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1';
 
@@ -179,7 +182,7 @@ function createWindow(): BrowserWindow {
 		alwaysOnTop: true,
 		skipTaskbar: false,
 		backgroundColor: '#00000000',
-		title: 'A Real Web Based Input Overlay',
+		title: APP_TITLE,
 		webPreferences: {
 			nodeIntegration: false,
 			contextIsolation: true,
