@@ -1,6 +1,5 @@
 node_modules/
 **/*.js*
 **/*.d.ts
-!SourceCode/WebApp/viewWhichRendersConfigurationAndUi/inputReaders/ElectronAppWrapper_API/types.d.ts
 **/*.tsbuildinfo
 **/_bundleAllCompiledJavascriptForWebapp/
