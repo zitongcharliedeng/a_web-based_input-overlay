@@ -72,7 +72,11 @@
 			57: 'Space', 28: 'Enter', 1: 'Escape', 14: 'Backspace',
 			15: 'Tab', 42: 'ShiftLeft', 54: 'ShiftRight',
 			29: 'ControlLeft', 97: 'ControlRight',
-			56: 'AltLeft', 100: 'AltRight'
+			56: 'AltLeft', 100: 'AltRight',
+			// Arrow keys (uiohook scan codes)
+			103: 'ArrowUp', 108: 'ArrowDown', 105: 'ArrowLeft', 106: 'ArrowRight',
+			// Arrow keys (alternative VC_* codes - 0xE048, 0xE050, 0xE04B, 0xE04D)
+			57416: 'ArrowUp', 57424: 'ArrowDown', 57419: 'ArrowLeft', 57421: 'ArrowRight'
 		};
 
 		if (window.electronAPI) {

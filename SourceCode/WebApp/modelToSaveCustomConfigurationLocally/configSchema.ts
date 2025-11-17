@@ -95,11 +95,11 @@ const PlanarInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 		yAxes: z.record(z.string(), z.boolean()).default({ "1": true }),
 		xKeyCodePositive: z.string().nullable().default("ArrowRight"),
 		xKeyCodeNegative: z.string().nullable().default("ArrowLeft"),
-		yKeyCodePositive: z.string().nullable().default("ArrowUp"),
-		yKeyCodeNegative: z.string().nullable().default("ArrowDown"),
+		yKeyCodePositive: z.string().nullable().default("ArrowDown"),
+		yKeyCodeNegative: z.string().nullable().default("ArrowUp"),
 		invertX: z.boolean().default(false),
 		invertY: z.boolean().default(false)
-	}).default({ xAxes: { "0": true }, yAxes: { "1": true }, xKeyCodePositive: "ArrowRight", xKeyCodeNegative: "ArrowLeft", yKeyCodePositive: "ArrowUp", yKeyCodeNegative: "ArrowDown", invertX: false, invertY: false }),
+	}).default({ xAxes: { "0": true }, yAxes: { "1": true }, xKeyCodePositive: "ArrowRight", xKeyCodeNegative: "ArrowLeft", yKeyCodePositive: "ArrowDown", yKeyCodeNegative: "ArrowUp", invertX: false, invertY: false }),
 	processing: z.object({
 		deadzone: z.number().default(0.03),
 		antiDeadzone: z.number().default(0)
