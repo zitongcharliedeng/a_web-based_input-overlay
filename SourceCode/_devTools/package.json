@@ -53,6 +53,7 @@
       "buildResources": "../../build"
     },
     "files": [
+      "package.json",
       {
         "from": "../DesktopWrappedWebapp",
         "to": ".",
