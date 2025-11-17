@@ -56,7 +56,7 @@
       {
         "from": "../DesktopWrappedWebapp",
         "to": ".",
-        "filter": ["**/*", "!**/*.ts", "!**/*.map"]
+        "filter": ["**/*", "!node_modules/**", "!**/*.ts", "!**/*.map"]
       },
       {
         "from": "../WebApp",
