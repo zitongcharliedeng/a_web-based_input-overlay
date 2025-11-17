@@ -10,11 +10,7 @@ abstract class CanvasObjectInstance {
     abstract readonly config: BaseCanvasObjectConfig; // All configs extend this base
 
     abstract update(delta: number): boolean;
-    abstract draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void;
-
-    drawDragPreview(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-        this.draw(canvas, ctx);
-    }
+    abstract draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, isDragPreview?: boolean): void;
 
     cleanup?(): void;
 }

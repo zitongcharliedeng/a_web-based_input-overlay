@@ -48,6 +48,7 @@ export class WebEmbed extends CanvasObjectInstance {
 		this.runtimeState.iframe.style.pointerEvents = this.config.interactionMode === 'readonly' ? 'none' : 'auto';
 		this.runtimeState.iframe.style.zIndex = '1';
 		this.runtimeState.iframe.setAttribute('allowfullscreen', '');
+		this.runtimeState.iframe.setAttribute('allowtransparency', 'true');
 
 		document.body.appendChild(this.runtimeState.iframe);
 
@@ -68,35 +69,41 @@ export class WebEmbed extends CanvasObjectInstance {
 		return false;
 	}
 
-	override draw(_canvas: HTMLCanvasElement, _ctx: CanvasRenderingContext2D): void {
-		// WebEmbed renders via iframe DOM element, not canvas
-		// No visual indicators needed - iframe is already visible
-	}
-
-	override drawDragPreview(_canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-		// Draw visual placeholder during drag (since iframe can't be cloned to canvas)
+	override draw(_canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, isDragPreview: boolean = false): void {
 		const padding = 50;
 
-		// Outer magenta border (full hitbox)
+		// Hide iframe during drag preview (DOM element, not affected by canvas globalAlpha)
+		if (this.runtimeState.iframe) {
+			this.runtimeState.iframe.style.display = isDragPreview ? 'none' : 'block';
+		}
+
+		// ALWAYS draw purple magenta border (full hitbox)
 		ctx.strokeStyle = '#FF00FF';
 		ctx.lineWidth = 2;
 		ctx.strokeRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx);
 
-		// Inner gray border (actual iframe boundary)
-		ctx.strokeStyle = '#B4B4B4';
-		ctx.lineWidth = 2;
-		ctx.strokeRect(padding, padding, this.config.hitboxSize.widthInPx - padding * 2, this.config.hitboxSize.lengthInPx - padding * 2);
+		// Only during drag: show gray background and labels
+		if (isDragPreview) {
+			// Gray background fill (only behind iframe content area)
+			ctx.fillStyle = '#808080';
+			ctx.fillRect(padding, padding, this.config.hitboxSize.widthInPx - padding * 2, this.config.hitboxSize.lengthInPx - padding * 2);
 
-		// URL label at top
-		ctx.fillStyle = 'black';
-		ctx.font = '14px monospace';
-		ctx.fillText(this.config.url, padding + 5, padding - 10);
+			// Inner gray border (actual iframe boundary)
+			ctx.strokeStyle = '#B4B4B4';
+			ctx.lineWidth = 2;
+			ctx.strokeRect(padding, padding, this.config.hitboxSize.widthInPx - padding * 2, this.config.hitboxSize.lengthInPx - padding * 2);
 
-		// "WebEmbed" label in center
-		ctx.font = '20px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillText('WebEmbed', this.config.hitboxSize.widthInPx / 2, this.config.hitboxSize.lengthInPx / 2);
+			// URL label at top
+			ctx.fillStyle = 'black';
+			ctx.font = '14px monospace';
+			ctx.fillText(this.config.url, padding + 5, padding - 10);
+
+			// "WebEmbed" label in center
+			ctx.font = '20px sans-serif';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillText('WebEmbed', this.config.hitboxSize.widthInPx / 2, this.config.hitboxSize.lengthInPx / 2);
+		}
 	}
 
 	override cleanup(): void {

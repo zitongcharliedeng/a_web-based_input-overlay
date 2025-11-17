@@ -60,7 +60,7 @@ const LinearInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 	display: z.object({
 		text: z.string().default(""),
 		fillStyle: z.string().default("#00ff00"),
-		fillStyleBackground: z.string().default("#222222"),
+		fillStyleBackground: z.string().default("#808080"),
 		fontStyle: z.object({
 			textAlign: z.enum(['left', 'right', 'center', 'start', 'end']).default('center'),
 			fillStyle: z.string().default("black"),
@@ -72,7 +72,7 @@ const LinearInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 	}).default({
 		text: "",
 		fillStyle: "#00ff00",
-		fillStyleBackground: "#222222",
+		fillStyleBackground: "#808080",
 		fontStyle: { textAlign: 'center', fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 },
 		fillDirection: 'normal'
 	})
