@@ -1,10 +1,10 @@
-import type { OmniConfig } from './OmniConfig';
-import { validateOmniConfig } from './configSchema';
+import type { CustomisableCanvasConfig } from './CustomisableCanvasConfig';
+import { validateCustomisableCanvasConfig } from './configSchema';
 
-export function loadConfigFromJSON(jsonString: string): { success: true; config: OmniConfig } | { success: false; error: string } {
+export function loadConfigFromJSON(jsonString: string): { success: true; config: CustomisableCanvasConfig } | { success: false; error: string } {
 	try {
 		const parsed = JSON.parse(jsonString);
-		const validationResult = validateOmniConfig(parsed);
+		const validationResult = validateCustomisableCanvasConfig(parsed);
 
 		if (!validationResult.success) {
 			const errorMessages = validationResult.error.issues.map(issue =>
@@ -13,7 +13,7 @@ export function loadConfigFromJSON(jsonString: string): { success: true; config:
 			return { success: false, error: `Config validation failed: ${errorMessages}` };
 		}
 
-		return { success: true, config: validationResult.data as OmniConfig };
+		return { success: true, config: validationResult.data as CustomisableCanvasConfig };
 	} catch (e) {
 		if (e instanceof SyntaxError) {
 			return { success: false, error: `Invalid JSON: ${e.message}` };
@@ -22,7 +22,7 @@ export function loadConfigFromJSON(jsonString: string): { success: true; config:
 	}
 }
 
-export function loadConfigFromLocalStorage(key: string): { success: true; config: OmniConfig } | { success: false; error: string } | { success: false; error: 'not_found' } {
+export function loadConfigFromLocalStorage(key: string): { success: true; config: CustomisableCanvasConfig } | { success: false; error: string } | { success: false; error: 'not_found' } {
 	const stored = localStorage.getItem(key);
 	if (!stored) {
 		return { success: false, error: 'not_found' };

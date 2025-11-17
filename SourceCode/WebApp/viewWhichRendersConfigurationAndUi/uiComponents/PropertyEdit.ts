@@ -1,5 +1,5 @@
 import type { ConfigManager } from '../../modelToSaveCustomConfigurationLocally/ConfigManager';
-import type { OmniConfig, CanvasObjectConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig';
+import type { CustomisableCanvasConfig, CanvasObjectConfig } from '../../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
 import type { CanvasObjectInstance } from '../canvasRenderer/canvasObjectTypes/BaseCanvasObject';
 
 class PropertyEdit {
@@ -8,8 +8,8 @@ class PropertyEdit {
 	targetObject: CanvasObjectInstance | null = null;
 	targetObjectIndex: number | null = null;  // Track object by array index
 	configManager: ConfigManager | null = null;  // ConfigManager reference
-	targetScene: OmniConfig | null = null;
-	applySceneConfig: ((config: OmniConfig) => void) | null = null;
+	targetScene: CustomisableCanvasConfig | null = null;
+	applySceneConfig: ((config: CustomisableCanvasConfig) => void) | null = null;
 	deleteCallback: (() => void) | null = null;
 	pendingChanges: Map<string, { path: string[], value: unknown }> = new Map();  // Accumulate changes until Done
 
@@ -148,7 +148,7 @@ class PropertyEdit {
 		unifiedEditor.hidden = false;
 	}
 
-	showCanvasConfig(config: OmniConfig, canvas: HTMLCanvasElement, applyCallback: (config: OmniConfig) => void): void {
+	showCanvasConfig(config: CustomisableCanvasConfig, canvas: HTMLCanvasElement, applyCallback: (config: CustomisableCanvasConfig) => void): void {
 		this.targetScene = config;
 		this.applySceneConfig = applyCallback;
 

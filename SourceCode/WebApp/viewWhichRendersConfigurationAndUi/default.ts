@@ -4,16 +4,16 @@ import { deserializeCanvasObject } from './canvasRenderer/canvasObjectTypes/inde
 import { PropertyEdit } from './uiComponents/PropertyEdit';
 import { loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLocally/configSerializer';
 import { ConfigManager } from '../modelToSaveCustomConfigurationLocally/ConfigManager';
-import type { OmniConfig, CanvasObjectConfig } from '../modelToSaveCustomConfigurationLocally/OmniConfig';
-import { ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME } from '../modelToSaveCustomConfigurationLocally/OmniConfig';
+import type { CustomisableCanvasConfig, CanvasObjectConfig } from '../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
+import { ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME } from '../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
 import { CONFIG_VERSION } from '../_helpers/version';
-import { showToast } from './uiComponents/toast';
+import { showToast } from './uiComponents/Toast';
 import type { CanvasObjectInstance } from './canvasRenderer/canvasObjectTypes/BaseCanvasObject';
 import { CanvasRenderer } from './canvasRenderer/CanvasRenderer';
 import { InteractionController } from '../controllerToMutateCustomConfiguration/InteractionController';
 import { LinearInputIndicatorSchema, PlanarInputIndicatorSchema, TextSchema, ImageSchema, WebEmbedSchema } from '../modelToSaveCustomConfigurationLocally/configSchema';
 import type { z } from 'zod';
-import type { CanvasObjectClassName } from '../modelToSaveCustomConfigurationLocally/OmniConfig';
+import type { CanvasObjectClassName } from '../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
 
 // Map class names to their Zod schemas for proper default generation
 const CANVAS_OBJECT_SCHEMAS: Record<CanvasObjectClassName, z.ZodSchema<any>> = {
@@ -255,7 +255,7 @@ window.addEventListener("load", function (): void {
 
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 
-function saveSceneConfig(config: OmniConfig): void {
+function saveSceneConfig(config: CustomisableCanvasConfig): void {
 	try {
 		const versionedConfig = { version: CONFIG_VERSION, ...config };
 		localStorage.setItem(SCENE_CONFIG_KEY, JSON.stringify(versionedConfig));
@@ -301,8 +301,8 @@ function loadSceneConfig() {
 // 	return img;
 // }
 
-// Create default scene configuration (OmniConfig)
-function createDefaultConfig(canvas: HTMLCanvasElement): OmniConfig {
+// Create default scene configuration (CustomisableCanvasConfig)
+function createDefaultConfig(canvas: HTMLCanvasElement): CustomisableCanvasConfig {
 	const objects: CanvasObjectConfig[] = [
 		{ Text: TextSchema.parse({
 			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: 20 },

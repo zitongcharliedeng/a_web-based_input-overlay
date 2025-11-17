@@ -2,7 +2,7 @@
  * CanvasRenderer: Pure MVC View
  *
  * Responsibilities:
- * - Deserialize OmniConfig to canvas objects
+ * - Deserialize CustomisableCanvasConfig to canvas objects
  * - Render canvas objects
  * - Call update() on objects
  * - NO state management (stateless - reads from config parameter)
@@ -12,14 +12,14 @@
  * Phase2: Removed cachedObjects, deserializes from config every frame
  */
 
-import type { OmniConfig, CanvasObjectConfig } from '../../modelToSaveCustomConfigurationLocally/OmniConfig';
+import type { CustomisableCanvasConfig, CanvasObjectConfig } from '../../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
 import type { CanvasObjectInstance } from './canvasObjectTypes/index';
 
 export class CanvasRenderer {
 	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
 	private deserializer: (objData: CanvasObjectConfig, objArrayIdx: number) => CanvasObjectInstance;
-	private cache: { config: OmniConfig; objects: CanvasObjectInstance[] } | null = null;
+	private cache: { config: CustomisableCanvasConfig; objects: CanvasObjectInstance[] } | null = null;
 
 	constructor(canvas: HTMLCanvasElement, deserializer: (objData: CanvasObjectConfig, objArrayIdx: number) => CanvasObjectInstance) {
 		this.canvas = canvas;
@@ -32,7 +32,7 @@ export class CanvasRenderer {
 	/**
 	 * Deserialize config to canvas objects (pure function)
 	 */
-	private deserializeObjects(config: OmniConfig): CanvasObjectInstance[] {
+	private deserializeObjects(config: CustomisableCanvasConfig): CanvasObjectInstance[] {
 		const objects: CanvasObjectInstance[] = [];
 		for (let objArrayIdx = 0; objArrayIdx < config.objects.length; objArrayIdx++) {
 			const objConfig = config.objects[objArrayIdx];
@@ -52,7 +52,7 @@ export class CanvasRenderer {
 	 * Caches objects - only rebuilds when config reference changes (preserves runtime state like opacity for fades)
 	 * Contract: ConfigManager must return new config reference on mutation (immutability)
 	 */
-	update(config: OmniConfig, delta: number): readonly CanvasObjectInstance[] {
+	update(config: CustomisableCanvasConfig, delta: number): readonly CanvasObjectInstance[] {
 		if (this.cache?.config !== config) {
 			this.cache = {
 				config,

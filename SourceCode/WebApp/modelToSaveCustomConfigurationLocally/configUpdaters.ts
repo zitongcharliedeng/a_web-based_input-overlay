@@ -1,11 +1,11 @@
-import type { OmniConfig, CanvasObjectConfig } from './OmniConfig';
+import type { CustomisableCanvasConfig, CanvasObjectConfig } from './CustomisableCanvasConfig';
 
 export function updateObjectPosition(
-	config: OmniConfig,
+	config: CustomisableCanvasConfig,
 	objectIndex: number,
 	x: number,
 	y: number
-): OmniConfig {
+): CustomisableCanvasConfig {
 	if (objectIndex < 0 || objectIndex >= config.objects.length) {
 		return config;
 	}
@@ -35,10 +35,10 @@ export function updateObjectPosition(
 
 
 export function updateCanvasDimensions(
-	config: OmniConfig,
+	config: CustomisableCanvasConfig,
 	width: number,
 	height: number
-): OmniConfig {
+): CustomisableCanvasConfig {
 	return {
 		...config,
 		canvas: {
@@ -50,9 +50,9 @@ export function updateCanvasDimensions(
 }
 
 export function addObject(
-	config: OmniConfig,
+	config: CustomisableCanvasConfig,
 	objectConfig: CanvasObjectConfig
-): OmniConfig {
+): CustomisableCanvasConfig {
 	return {
 		...config,
 		objects: [...config.objects, objectConfig]
@@ -60,9 +60,9 @@ export function addObject(
 }
 
 export function removeObject(
-	config: OmniConfig,
+	config: CustomisableCanvasConfig,
 	objectIndex: number
-): OmniConfig {
+): CustomisableCanvasConfig {
 	if (objectIndex < 0 || objectIndex >= config.objects.length) {
 		return config;
 	}
@@ -74,10 +74,10 @@ export function removeObject(
 }
 
 export function updateObjectByIndex(
-	config: OmniConfig,
+	config: CustomisableCanvasConfig,
 	objectIndex: number,
 	updates: Map<string, { path: string[], value: unknown }>
-): OmniConfig {
+): CustomisableCanvasConfig {
 	if (objectIndex < 0 || objectIndex >= config.objects.length || updates.size === 0) {
 		return config;
 	}

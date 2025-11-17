@@ -1,11 +1,11 @@
 // ConfigManager: Single Source of Truth for canvas state
-// Manages OmniConfig with pure functional updates
+// Manages CustomisableCanvasConfig with pure functional updates
 
-import type { OmniConfig, CanvasObjectConfig } from './OmniConfig';
+import type { CustomisableCanvasConfig, CanvasObjectConfig } from './CustomisableCanvasConfig';
 import { updateObjectPosition, updateCanvasDimensions, addObject, removeObject, updateObjectByIndex } from './configUpdaters';
 
 // Callback type for when config changes
-type ConfigChangeCallback = (newConfig: OmniConfig) => void;
+type ConfigChangeCallback = (newConfig: CustomisableCanvasConfig) => void;
 
 /**
  * ConfigManager: Single source of truth for canvas configuration
@@ -17,18 +17,18 @@ type ConfigChangeCallback = (newConfig: OmniConfig) => void;
  * - Auto-save handled centrally
  */
 export class ConfigManager {
-	private _config: OmniConfig;
+	private _config: CustomisableCanvasConfig;
 	private changeCallbacks: ConfigChangeCallback[] = [];
-	private saveCallback: ((config: OmniConfig) => void) | null = null;
+	private saveCallback: ((config: CustomisableCanvasConfig) => void) | null = null;
 
-	constructor(initialConfig: OmniConfig) {
+	constructor(initialConfig: CustomisableCanvasConfig) {
 		this._config = initialConfig;
 	}
 
 	/**
 	 * Get current config (read-only)
 	 */
-	get config(): OmniConfig {
+	get config(): CustomisableCanvasConfig {
 		return this._config;
 	}
 
@@ -36,7 +36,7 @@ export class ConfigManager {
 	 * Update config (immutable - sets new config)
 	 * Notifies all observers and triggers save
 	 */
-	setConfig(newConfig: OmniConfig): void {
+	setConfig(newConfig: CustomisableCanvasConfig): void {
 		// Don't update if config hasn't actually changed
 		if (newConfig === this._config) return;
 
@@ -67,7 +67,7 @@ export class ConfigManager {
 	/**
 	 * Set save callback (called when config changes)
 	 */
-	onSave(callback: (config: OmniConfig) => void): void {
+	onSave(callback: (config: CustomisableCanvasConfig) => void): void {
 		this.saveCallback = callback;
 	}
 

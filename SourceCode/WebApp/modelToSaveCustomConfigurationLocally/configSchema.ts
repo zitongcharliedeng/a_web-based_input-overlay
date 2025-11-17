@@ -164,7 +164,7 @@ const CanvasObjectConfigSchema = z.union([
 	z.object({ WebEmbed: WebEmbedSchema })
 ]);
 
-export const OmniConfigSchema = z.object({
+export const CustomisableCanvasConfigSchema = z.object({
 	canvas: CanvasConfigSchema,
 	objects: z.array(CanvasObjectConfigSchema)
 });
@@ -182,7 +182,7 @@ export {
 // Export types derived from schemas
 export type CanvasConfig = z.infer<typeof CanvasConfigSchema>;
 export type CanvasObjectConfig = z.infer<typeof CanvasObjectConfigSchema>;
-export type OmniConfig = z.infer<typeof OmniConfigSchema>;
+export type CustomisableCanvasConfig = z.infer<typeof CustomisableCanvasConfigSchema>;
 export type StyleProperties = z.infer<typeof StylePropertiesSchema>;
 export type BaseCanvasObjectConfig = z.infer<typeof BaseCanvasObjectSchema>;
 
@@ -192,8 +192,8 @@ export type TextConfig = z.infer<typeof TextSchema>;
 export type ImageConfig = z.infer<typeof ImageSchema>;
 export type WebEmbedConfig = z.infer<typeof WebEmbedSchema>;
 
-export function validateOmniConfig(data: unknown): { success: true; data: z.infer<typeof OmniConfigSchema> } | { success: false; error: z.ZodError } {
-	const result = OmniConfigSchema.safeParse(data);
+export function validateCustomisableCanvasConfig(data: unknown): { success: true; data: z.infer<typeof CustomisableCanvasConfigSchema> } | { success: false; error: z.ZodError } {
+	const result = CustomisableCanvasConfigSchema.safeParse(data);
 	if (result.success) {
 		return { success: true, data: result.data };
 	} else {

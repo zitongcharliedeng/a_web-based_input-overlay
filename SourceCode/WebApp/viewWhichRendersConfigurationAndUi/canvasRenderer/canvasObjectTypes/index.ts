@@ -1,4 +1,4 @@
-import { ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME, type CanvasObjectClassName, type CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/OmniConfig';
+import { ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME, type CanvasObjectClassName, type CanvasObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
 import type { CanvasObjectInstance } from './BaseCanvasObject';
 
 export type { CanvasObjectInstance } from './BaseCanvasObject';

@@ -6,7 +6,7 @@ import { WebEmbed } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/c
 import type { CanvasObjectClass } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/BaseCanvasObject';
 
 // Import Zod-derived types (single source of truth)
-export type { CanvasConfig, CanvasObjectConfig, OmniConfig } from './configSchema';
+export type { CanvasConfig, CanvasObjectConfig, CustomisableCanvasConfig } from './configSchema';
 
 // Runtime registry for looking up classes by name
 export const ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME = {
