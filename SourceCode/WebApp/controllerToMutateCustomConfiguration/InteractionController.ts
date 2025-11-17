@@ -128,16 +128,12 @@ export class InteractionController {
 		// Find clicked object in current frame's objects (by array index)
 		const clickedObject = this.clickedObjectIndex !== null ? objects[this.clickedObjectIndex] : undefined;
 
-		// Dragging: update config immediately for real-time feedback
+		// Dragging: store drag position for visual preview, don't update config yet
 		if (clickedObject && mouse.buttons[0] === true) {
 			const newX = Math.round((mouse.x + this.draggingOffset.x)/this.gridsize)*this.gridsize;
 			const newY = Math.round((mouse.y + this.draggingOffset.y)/this.gridsize)*this.gridsize;
 
-			// Update config immediately through callback (don't mutate cached object)
-			if (this.clickedObjectIndex !== null && this.onMoveObject) {
-				this.onMoveObject(this.clickedObjectIndex, newX, newY);
-			}
-
+			// Store drag position for preview rendering (don't update config until release)
 			this.lastDragPosition = { x: newX, y: newY };
 		}
 
@@ -188,5 +184,20 @@ export class InteractionController {
 	 */
 	hasSelection(): boolean {
 		return this.clickedObjectIndex !== null;
+	}
+
+	/**
+	 * Get drag preview position (for rendering ghost during drag)
+	 * Returns null if not dragging
+	 */
+	getDragPreview(): { objectIndex: number, x: number, y: number } | null {
+		if (this.clickedObjectIndex !== null && this.lastDragPosition) {
+			return {
+				objectIndex: this.clickedObjectIndex,
+				x: this.lastDragPosition.x,
+				y: this.lastDragPosition.y
+			};
+		}
+		return null;
 	}
 }

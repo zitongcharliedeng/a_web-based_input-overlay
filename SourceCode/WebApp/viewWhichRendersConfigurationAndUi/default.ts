@@ -189,6 +189,20 @@ window.addEventListener("load", function (): void {
 		if (interactionController.hasSelection()) {
 			canvasRenderer.renderDebugHitboxes(frameObjects);
 		}
+		// Render drag preview (semi-transparent clone at drag position)
+		const dragPreview = interactionController.getDragPreview();
+		if (dragPreview) {
+			const object = frameObjects[dragPreview.objectIndex];
+			if (object) {
+				canvasRenderer.renderOverlay((canvas, ctx) => {
+					ctx.save();
+					ctx.globalAlpha = 0.5;
+					ctx.setTransform(1, 0, 0, 1, dragPreview.x, dragPreview.y);
+					object.draw(canvas, ctx);
+					ctx.restore();
+				});
+			}
+		}
 	}
 
 	let previousTime = 0;

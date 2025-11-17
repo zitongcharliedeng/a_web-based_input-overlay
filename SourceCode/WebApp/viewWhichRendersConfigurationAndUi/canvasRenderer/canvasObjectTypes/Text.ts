@@ -22,11 +22,18 @@ export class Text extends CanvasObjectInstance {
 
 	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
 		ctx.beginPath();
+		ctx.textBaseline = 'middle';
+		ctx.textAlign = 'center';
+
+		// Center text in hitbox
+		const x = this.config.hitboxSize.widthInPx / 2;
+		const y = this.config.hitboxSize.lengthInPx / 2;
+
 		if (this.config.shouldStroke) {
 			ctx.strokeStyle = this.config.textStyle.strokeStyle ?? "white";
 			ctx.lineWidth = this.config.textStyle.strokeWidth ?? 3;
-			ctx.strokeText(this.config.text, 0, 0);
+			ctx.strokeText(this.config.text, x, y);
 		}
-		canvas_text(ctx, 0, 0, this.config.text, this.config.textStyle);
+		canvas_text(ctx, x, y, this.config.text, this.config.textStyle);
 	}
 }
