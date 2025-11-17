@@ -25,6 +25,7 @@ jobs:
           cd SourceCode/_devTools
           npm ci
           ln -s $(pwd)/node_modules ../WebApp/node_modules
+          ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules
           npm run build
 
       - name: Upload artifact
@@ -53,6 +54,7 @@ jobs:
           cd SourceCode/_devTools
           npm ci
           ln -s $(pwd)/node_modules ../WebApp/node_modules
+          ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules
 
       - name: Build TypeScript
         run: cd SourceCode/_devTools && npm run build
