@@ -1,6 +1,13 @@
 # Web-Based Input Overlay
 
-Transparent overlay for streamers. Shows input visualization (keyboard, mouse, gamepad), camera, audio, and chat in an always-on-top window.
+> The Ultimate Transparent Streamer Overlay - Because streamers should see their own overlays too!
+
+## What Makes This Different
+
+**Traditional overlays:** Only visible in OBS output (viewers see it, streamer doesn't)
+**This overlay:** Transparent window that's visible to BOTH the streamer AND viewers in real-time
+
+Think of it as a HUD for streamers - displaying input visualization (keyboard, mouse, gamepad), camera feeds, audio levels, and web embeds (chat, GIFs, etc.) in a customizable transparent overlay.
 
 ## For End Users
 
@@ -36,43 +43,6 @@ Interactive menu with 4 options:
 2. Build and launch website version
 3. Build and launch webapp (interactive mode)
 4. Build and launch webapp (clickthrough-readonly mode)
-
-### Project Structure
-
-```
-/                                # Root: Documentation only
-├── README.md
-├── CLAUDE.md
-├── .gitignore
-└── SourceCode/                  # ALL source code related files
-    │
-    ├── _devTools/               # Build configs and scripts
-    │   ├── node_modules/        # Installed dependencies (gitignored)
-    │   ├── package.json         # Dependencies and npm scripts
-    │   ├── package-lock.json
-    │   ├── tsconfig.json        # Base TypeScript config
-    │   ├── tsconfig.webapp.json # WebApp (ES2022 modules)
-    │   ├── tsconfig.desktop.json # Desktop (CommonJS)
-    │   ├── .eslintrc.cjs
-    │   └── buildForWindowsDevelopment.ps1
-    │
-    ├── WebApp/                  # Web application (browser + Electron renderer)
-    │   ├── viewWhichRendersConfigurationAndUi/
-    │   │   ├── canvasRenderer/  # Rendering engine
-    │   │   ├── inputReaders/    # Input listeners
-    │   │   └── uiComponents/    # UI components
-    │   ├── modelToSaveCustomConfigurationLocally/
-    │   ├── _helpers/
-    │   └── index.html
-    │
-    └── DesktopWrappedWebapp/    # Electron wrapper (main process)
-        ├── main.ts              # Window management
-        └── preload.ts           # IPC bridge
-```
-
-All `.js`, `.d.ts`, `.js.map` files are gitignored build artifacts.
-
-See [CLAUDE.md](CLAUDE.md) for full technical details and architecture.
 
 ## Platform Support
 
