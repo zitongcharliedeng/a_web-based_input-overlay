@@ -1,21 +1,15 @@
 import { CanvasObjectInstance } from './BaseCanvasObject';
-import { deepMerge } from '../_helpers/deepMerge';
-import type { DeepPartial } from '../../../_helpers/TypeUtilities';
 import { ImageSchema, type ImageConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
 export class Image extends CanvasObjectInstance {
-	// Single source of truth: Zod schema with defaults
-	static readonly configDefaults: ImageConfig = ImageSchema.parse({});
-
 	override readonly config: ImageConfig;
 	runtimeState: {
 		imageElement: HTMLImageElement;
 	};
 
-	constructor(configOverrides: DeepPartial<ImageConfig>, objArrayIdx: number) {
-		const config = deepMerge(Image.configDefaults, configOverrides || {});
+	constructor(configOverrides: Partial<ImageConfig> | undefined, objArrayIdx: number) {
 		super(objArrayIdx);
-		this.config = config;
+		this.config = ImageSchema.parse(configOverrides || {});
 		this.runtimeState = {
 			imageElement: new window.Image()
 		};

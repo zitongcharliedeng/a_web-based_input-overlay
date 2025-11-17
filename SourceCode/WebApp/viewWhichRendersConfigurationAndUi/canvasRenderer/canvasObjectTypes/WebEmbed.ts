@@ -1,24 +1,18 @@
 import { CanvasObjectInstance } from './BaseCanvasObject';
-import { deepMerge } from '../_helpers/deepMerge';
-import type { DeepPartial } from '../../../_helpers/TypeUtilities';
 import { WebEmbedSchema, type WebEmbedConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
 // Global iframe registry to prevent duplicates when objects are recreated each frame
 const iframeRegistry = new Map<number, HTMLIFrameElement>();
 
 export class WebEmbed extends CanvasObjectInstance {
-	// Single source of truth: Zod schema with defaults
-	static readonly configDefaults: WebEmbedConfig = WebEmbedSchema.parse({});
-
 	override readonly config: WebEmbedConfig;
 	runtimeState: {
 		iframe: HTMLIFrameElement | null;
 	};
 
-	constructor(configOverrides: DeepPartial<WebEmbedConfig>, objArrayIdx: number) {
-		const config = deepMerge(WebEmbed.configDefaults, configOverrides || {});
+	constructor(configOverrides: Partial<WebEmbedConfig> | undefined, objArrayIdx: number) {
 		super(objArrayIdx);
-		this.config = config;
+		this.config = WebEmbedSchema.parse(configOverrides || {});
 		this.runtimeState = {
 			iframe: null
 		};

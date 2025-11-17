@@ -4,14 +4,6 @@
  */
 
 /**
- * Deep Partial - makes all nested properties optional recursively
- * Used for config objects where users can provide partial updates
- */
-export type DeepPartial<T> = T extends object ? {
-	[P in keyof T]?: DeepPartial<T[P]>;
-} : T;
-
-/**
  * Require - makes specified keys required while keeping others as-is
  * Example: Require<{ a?: string, b?: number }, 'a'> → { a: string, b?: number }
  */

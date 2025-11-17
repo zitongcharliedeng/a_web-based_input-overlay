@@ -18,7 +18,6 @@ abstract class CanvasObjectInstance {
 // Part 2: Class contract (what constructors must have)
 interface CanvasObjectClass<TConfig extends BaseCanvasObjectConfig> {
     new (configOverrides: any, objArrayIdx: number): CanvasObjectInstance;
-    readonly configDefaults: TConfig;
 }
 
 export { CanvasObjectInstance };

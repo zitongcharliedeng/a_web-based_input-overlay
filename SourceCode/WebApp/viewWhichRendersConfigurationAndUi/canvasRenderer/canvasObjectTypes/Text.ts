@@ -1,19 +1,13 @@
 import { CanvasObjectInstance } from './BaseCanvasObject';
 import { canvas_text } from '../canvasDrawingHelpers';
-import { deepMerge } from '../_helpers/deepMerge';
-import type { DeepPartial } from '../../../_helpers/TypeUtilities';
 import { TextSchema, type TextConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
 export class Text extends CanvasObjectInstance {
-	// Single source of truth: Zod schema with defaults
-	static readonly configDefaults: TextConfig = TextSchema.parse({});
-
 	override readonly config: TextConfig;
 
-	constructor(configOverrides: DeepPartial<TextConfig>, objArrayIdx: number) {
-		const config = deepMerge(Text.configDefaults, configOverrides || {});
+	constructor(configOverrides: Partial<TextConfig> | undefined, objArrayIdx: number) {
 		super(objArrayIdx);
-		this.config = config;
+		this.config = TextSchema.parse(configOverrides || {});
 	}
 
 	override update(): boolean {

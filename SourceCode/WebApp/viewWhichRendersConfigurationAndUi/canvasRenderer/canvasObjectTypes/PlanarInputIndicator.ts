@@ -1,14 +1,9 @@
 import { CanvasObjectInstance } from './BaseCanvasObject';
 import { Vector } from '../../../_helpers/Vector';
-import { deepMerge } from '../_helpers/deepMerge';
 import { canvas_properties, canvas_arc, canvas_line, canvas_arrow } from '../canvasDrawingHelpers';
-import type { DeepPartial } from '../../../_helpers/TypeUtilities';
 import { PlanarInputIndicatorSchema, type PlanarInputIndicatorConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
 export class PlanarInputIndicator extends CanvasObjectInstance {
-	// Single source of truth: Zod schema with defaults
-	static readonly configDefaults: PlanarInputIndicatorConfig = PlanarInputIndicatorSchema.parse({});
-
 	override readonly config: PlanarInputIndicatorConfig;
 	runtimeState: {
 		inputVector: Vector;
@@ -16,10 +11,9 @@ export class PlanarInputIndicator extends CanvasObjectInstance {
 		previousY: number;
 	};
 
-	constructor(configOverrides: DeepPartial<PlanarInputIndicatorConfig>, objArrayIdx: number) {
-		const config = deepMerge(PlanarInputIndicator.configDefaults, configOverrides || {});
+	constructor(configOverrides: Partial<PlanarInputIndicatorConfig> | undefined, objArrayIdx: number) {
 		super(objArrayIdx);
-		this.config = config;
+		this.config = PlanarInputIndicatorSchema.parse(configOverrides || {});
 		this.runtimeState = {
 			inputVector: new Vector(0, 0),
 			previousX: 0,

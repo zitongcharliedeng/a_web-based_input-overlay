@@ -1,7 +1,5 @@
 import { CanvasObjectInstance } from './BaseCanvasObject';
 import { canvas_fill_rec, canvas_text, canvas_properties } from '../canvasDrawingHelpers';
-import { deepMerge } from '../_helpers/deepMerge';
-import type { DeepPartial } from '../../../_helpers/TypeUtilities';
 import { LinearInputIndicatorSchema, type LinearInputIndicatorConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
 type GamepadStickInput = {
@@ -16,9 +14,6 @@ function asConventionalGamepadAxisNumber(stick: GamepadStickInput): number | nul
 }
 
 export class LinearInputIndicator extends CanvasObjectInstance {
-	// Single source of truth: Zod schema with defaults
-	static readonly configDefaults: LinearInputIndicatorConfig = LinearInputIndicatorSchema.parse({});
-
 	override readonly config: LinearInputIndicatorConfig;
 	runtimeState: {
 		value: number;
@@ -26,10 +21,9 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 		opacity: number;
 	};
 
-	constructor(configOverrides: DeepPartial<LinearInputIndicatorConfig>, objArrayIdx: number) {
-		const config = deepMerge(LinearInputIndicator.configDefaults, configOverrides || {});
+	constructor(configOverrides: Partial<LinearInputIndicatorConfig> | undefined, objArrayIdx: number) {
 		super(objArrayIdx);
-		this.config = config;
+		this.config = LinearInputIndicatorSchema.parse(configOverrides || {});
 		this.runtimeState = {
 			value: 0,
 			previousValue: 0,
