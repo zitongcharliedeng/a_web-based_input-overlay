@@ -41,9 +41,6 @@ interface UIHelpers {
 	hideBothPanels: () => void;
 }
 
-// Legacy interface name for compatibility
-type CanvasObjectCollection = UIHelpers;
-
 window.gamepads = null;
 window.keyboard = keyboard;
 window.mouse = mouse;
@@ -293,13 +290,6 @@ function loadSceneConfig() {
 		return null;
 	}
 }
-
-// Unused for now - may be needed for future deserialization
-// function deserializeImage(src: string): HTMLImageElement {
-// 	const img = new Image();
-// 	img.src = src;
-// 	return img;
-// }
 
 // Create default scene configuration (CustomisableCanvasConfig)
 function createDefaultConfig(canvas: HTMLCanvasElement): CustomisableCanvasConfig {
