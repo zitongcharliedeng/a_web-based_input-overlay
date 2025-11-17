@@ -1,7 +1,7 @@
 node_modules/
 **/*.js
-!SourceCode/WebApp/esbuild.config.js
 **/*.js.map
 **/*.d.ts
 !SourceCode/WebApp/viewWhichRendersConfigurationAndUi/inputReaders/ElectronAppWrapper_API/types.d.ts
 **/*.tsbuildinfo
+dist/
