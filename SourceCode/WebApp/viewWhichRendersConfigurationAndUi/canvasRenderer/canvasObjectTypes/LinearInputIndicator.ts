@@ -121,22 +121,22 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 	}
 
 	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-		ctx.save();
-		ctx.globalAlpha *= this.runtimeState.opacity;
-
-		// Background fill
+		// Background fill (always visible)
 		ctx.beginPath();
 		canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx, { fillStyle: this.config.display.fillStyleBackground });
 
-		// Foreground fill (progress bar)
+		// Foreground fill (progress bar with fade-out)
+		ctx.save();
+		ctx.globalAlpha *= this.runtimeState.opacity;
 		const reverseFillDirection = this.config.display.fillDirection === 'reversed';
 		ctx.beginPath();
 		if (reverseFillDirection)
 			canvas_fill_rec(ctx, 0, this.config.hitboxSize.lengthInPx, this.config.hitboxSize.widthInPx, -this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: this.config.display.fillStyle });
 		else
 			canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: this.config.display.fillStyle });
+		ctx.restore();
 
-		// Text
+		// Text (always visible)
 		const keyText = this.config.display.text;
 		const fontStyle = this.config.display.fontStyle;
 		const textX = this.config.hitboxSize.widthInPx * 0.5;
@@ -146,7 +146,5 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 		ctx.lineWidth = fontStyle.strokeWidth ?? 3;
 		ctx.strokeText(keyText, textX, textY);
 		canvas_text(ctx, textX, textY, keyText, fontStyle);
-
-		ctx.restore();
 	}
 }
