@@ -15,8 +15,6 @@ jobs:
     uses: ./.github/workflows/build-web.yml
     permissions:
       contents: write
-      pages: write
-      id-token: write
     with:
       deploy-path: ''
 

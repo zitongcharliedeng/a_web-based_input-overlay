@@ -7,15 +7,11 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   deploy-experimental:
     uses: ./.github/workflows/build-web.yml
     permissions:
       contents: write
-      pages: write
-      id-token: write
     with:
       deploy-path: 'experimental'
