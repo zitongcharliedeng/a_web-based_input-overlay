@@ -151,7 +151,8 @@ const WebEmbedSchema = BaseCanvasObjectSchema.extend({
 		lengthInPx: z.number().default(480)
 	}).default({ widthInPx: 640, lengthInPx: 480 }),
 	url: z.string().default("https://www.youtube.com/embed/dQw4w9WgXcQ"),
-	opacity: z.number().min(0).max(1).default(1.0)
+	opacity: z.number().min(0).max(1).default(1.0),
+	interactionMode: z.enum(['readonly', 'interactableOnFocus']).default('interactableOnFocus')
 });
 
 // Union using class names as keys (NixOS style)

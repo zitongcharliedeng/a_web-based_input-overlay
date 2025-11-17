@@ -1101,6 +1101,9 @@ All core objects, helpers, and input listeners are now in TypeScript. The only r
 - [ ] Rename `linkedAxis` to better mathematical term (radialCompensationAxis or perpendicularAxis)
 - [ ] Make KeyImage user-customizable property (currently hardcoded in default.js scene)
 - [ ] Remove temporary x/y/width/height getters from CanvasObject (optimization)
+- [ ] **Bug: Text object renders text above hitbox** - Text content appears above the hitbox rectangle instead of inside it
+- [ ] **Bug: Dragging updates position every tick** - Drag movement updates config and saves to localStorage on every frame; should only update when drag is released (mouse up)
+  - **Proposed solution:** Show visual preview during drag (hitbox outline or object clone), keep actual object at original position until mouse release
 
 **Click-Through Investigation (COSMIC Limitation):**
 - ⚠️ `setIgnoreMouseEvents(true)` does NOT work on COSMIC compositor (both Wayland and X11/XWayland modes)

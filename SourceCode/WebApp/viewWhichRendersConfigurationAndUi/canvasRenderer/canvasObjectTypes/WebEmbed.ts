@@ -51,7 +51,7 @@ export class WebEmbed extends CanvasObjectInstance {
 
 		this.runtimeState.iframe.style.opacity = this.config.opacity.toString();
 		this.runtimeState.iframe.style.border = '2px solid #B4B4B4';
-		this.runtimeState.iframe.style.pointerEvents = 'none';
+		this.runtimeState.iframe.style.pointerEvents = this.config.interactionMode === 'readonly' ? 'none' : 'auto';
 		this.runtimeState.iframe.style.zIndex = '1';
 		this.runtimeState.iframe.setAttribute('allowfullscreen', '');
 
@@ -69,6 +69,7 @@ export class WebEmbed extends CanvasObjectInstance {
 			this.runtimeState.iframe.style.width = (this.config.hitboxSize.widthInPx - padding * 2) + 'px';
 			this.runtimeState.iframe.style.height = (this.config.hitboxSize.lengthInPx - padding * 2) + 'px';
 			this.runtimeState.iframe.style.opacity = this.config.opacity.toString();
+			this.runtimeState.iframe.style.pointerEvents = this.config.interactionMode === 'readonly' ? 'none' : 'auto';
 		}
 		return false;
 	}
