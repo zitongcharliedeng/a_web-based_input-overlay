@@ -9,11 +9,16 @@
 
 Think of it as a HUD for streamers - displaying input visualization (keyboard, mouse, gamepad), camera feeds, audio levels, and web embeds (chat, GIFs, etc.) in a customizable transparent overlay.
 
-## For End Users
+## Quick Start
 
-**Download the latest release from the [Releases](https://github.com/zitongcharliedeng/a_web-based_input-overlay/releases) tab.**
+**Try it now (web version):** [https://zitongcharliedeng.github.io/a_web-based_input-overlay/](https://zitongcharliedeng.github.io/a_web-based_input-overlay/)
 
-Extract and run the executable. No installation required.
+**Download desktop app:** [Latest Release](https://github.com/zitongcharliedeng/a_web-based_input-overlay/releases/latest)
+- Windows: `.exe` installer
+- macOS: `.dmg` file
+- Linux: `.AppImage` file
+
+No installation required for web version (use as OBS Browser Source).
 
 ## For Developers
 
