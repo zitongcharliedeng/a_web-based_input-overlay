@@ -4,3 +4,4 @@ node_modules/
 **/*.d.ts
 **/*.tsbuildinfo
 **/_bundleAllCompiledJavascriptForWebapp/
+SourceCode/WebApp/_helpers/version.ts
