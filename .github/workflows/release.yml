@@ -24,9 +24,8 @@ jobs:
         run: |
           cd SourceCode/_devTools
           npm ci
+          ln -s $(pwd)/node_modules ../WebApp/node_modules
           npm run build
-          cd ../WebApp
-          node ../../../_devTools/node_modules/.bin/esbuild.js || node esbuild.config.js
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -50,7 +49,10 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: cd SourceCode/_devTools && npm ci
+        run: |
+          cd SourceCode/_devTools
+          npm ci
+          ln -s $(pwd)/node_modules ../WebApp/node_modules
 
       - name: Build TypeScript
         run: cd SourceCode/_devTools && npm run build
