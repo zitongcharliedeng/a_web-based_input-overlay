@@ -196,9 +196,10 @@ function createWindow(): BrowserWindow {
 
 	// In packaged app: __dirname is where main.js is, WebApp is sibling directory
 	// In dev: __dirname is DesktopWrappedWebapp, need to go up and into WebApp
+	// Use index-electron.html which references compiled .js files (Electron can't run .ts without Vite)
 	const indexPath = app.isPackaged
-		? path.join(__dirname, 'WebApp', 'index.html')
-		: path.join(__dirname, '..', 'WebApp', 'index.html');
+		? path.join(__dirname, 'WebApp', 'index-electron.html')
+		: path.join(__dirname, '..', 'WebApp', 'index-electron.html');
 
 	console.log('[Main] Loading index.html from:', indexPath);
 	win.loadFile(indexPath);
