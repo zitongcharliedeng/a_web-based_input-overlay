@@ -136,6 +136,11 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 			ctx.fillRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx * this.runtimeState.value);
 		ctx.globalAlpha = savedAlpha;
 
+		// Border
+		ctx.strokeStyle = this.config.display.strokeStyle;
+		ctx.lineWidth = this.config.display.strokeWidth;
+		ctx.strokeRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx);
+
 		// Text
 		const keyText = this.config.display.text;
 		const fontStyle = this.config.display.fontStyle;
