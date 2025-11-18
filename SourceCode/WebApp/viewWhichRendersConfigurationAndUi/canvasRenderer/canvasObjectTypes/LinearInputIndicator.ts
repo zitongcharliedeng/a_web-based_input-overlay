@@ -120,7 +120,12 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 		return true;
 	}
 
-	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
+	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, isDragPreview?: boolean): void {
+		// DEBUG: Log globalAlpha to diagnose drag ghost opacity issue
+		if (isDragPreview) {
+			console.log('[LinearInputIndicator] draw() globalAlpha:', ctx.globalAlpha, 'isDragPreview:', isDragPreview);
+		}
+
 		// Background fill - direct Canvas API calls to avoid helper function issues with globalAlpha
 		ctx.fillStyle = this.config.display.fillStyleBackground;
 		ctx.fillRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx);
