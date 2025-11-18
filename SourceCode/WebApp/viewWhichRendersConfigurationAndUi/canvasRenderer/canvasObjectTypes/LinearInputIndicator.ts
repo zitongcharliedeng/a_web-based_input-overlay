@@ -124,15 +124,15 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 		// Background fill
 		canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx, { fillStyle: this.config.display.fillStyleBackground });
 
-		// Foreground fill (with fade-out animation opacity)
-		ctx.save();
+		// Foreground fill (with fade-out animation opacity) - manual alpha management to avoid save/restore issues
+		const savedAlpha = ctx.globalAlpha;
 		ctx.globalAlpha *= this.runtimeState.opacity;
 		const reverseFillDirection = this.config.display.fillDirection === 'reversed';
 		if (reverseFillDirection)
 			canvas_fill_rec(ctx, 0, this.config.hitboxSize.lengthInPx, this.config.hitboxSize.widthInPx, -this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: this.config.display.fillStyle });
 		else
 			canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: this.config.display.fillStyle });
-		ctx.restore();
+		ctx.globalAlpha = savedAlpha;
 
 		// Text
 		const keyText = this.config.display.text;
