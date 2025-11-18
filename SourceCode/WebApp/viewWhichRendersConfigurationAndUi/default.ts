@@ -7,7 +7,6 @@ import { loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLoc
 import { ConfigManager } from '../modelToSaveCustomConfigurationLocally/ConfigManager';
 import type { CustomisableCanvasConfig, CanvasObjectConfig } from '../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
 import { ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME } from '../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
-import { CONFIG_VERSION } from '../_helpers/version';
 import { showToast } from './uiComponents/Toast';
 import type { CanvasObjectInstance } from './canvasRenderer/canvasObjectTypes/BaseCanvasObject';
 import { CanvasRenderer } from './canvasRenderer/CanvasRenderer';
@@ -194,13 +193,16 @@ window.addEventListener("load", function (): void {
 
 	// Phase2: Render from config (pure MVC - no cache)
 	function frameUpdate(): void {
-		canvasRenderer.render(frameObjects);
+		// Skip rendering dragged object in normal loop to prevent full-opacity ghost
+		const dragOriginal = userEditModeInteractionsController.getDragOriginalPosition();
+		const skipIndex = dragOriginal ? dragOriginal.objectIndex : undefined;
+
+		canvasRenderer.render(frameObjects, skipIndex);
 		// Phase3: View renders hitboxes when Controller has selection
 		if (userEditModeInteractionsController.hasSelection()) {
 			canvasRenderer.renderDebugHitboxes(frameObjects);
 		}
 		// Render original position ghost (half opacity at start position)
-		const dragOriginal = userEditModeInteractionsController.getDragOriginalPosition();
 		if (dragOriginal) {
 			const object = frameObjects[dragOriginal.objectIndex];
 			if (object) {
@@ -277,11 +279,17 @@ window.addEventListener("load", function (): void {
 	window.addEventListener("resize", resizeCanvas);
 }, false);
 
+/**
+ * Build-time constant injected by esbuild's define plugin
+ * @generated esbuild.config.ts (define configuration)
+ */
+declare const __CURRENT_PROJECT_GIT_HASH__: string;
+
 const SCENE_CONFIG_KEY = 'analogKeyboardOverlay_sceneConfig';
 
 function saveSceneConfig(config: CustomisableCanvasConfig): void {
 	try {
-		const versionedConfig = { version: CONFIG_VERSION, ...config };
+		const versionedConfig = { version: __CURRENT_PROJECT_GIT_HASH__, ...config };
 		localStorage.setItem(SCENE_CONFIG_KEY, JSON.stringify(versionedConfig));
 	} catch (e) {
 		console.error('[Config] Failed to save:', e);
@@ -297,8 +305,8 @@ function loadSceneConfig() {
 
 		// Parse to check version
 		const parsed = JSON.parse(raw);
-		if (parsed.version !== CONFIG_VERSION) {
-			console.warn(`[Config] Version mismatch: stored=${parsed.version}, current=${CONFIG_VERSION}. Clearing localStorage.`);
+		if (parsed.version !== __CURRENT_PROJECT_GIT_HASH__) {
+			console.warn(`[Config] Version mismatch: stored=${parsed.version}, current=${__CURRENT_PROJECT_GIT_HASH__}. Clearing localStorage.`);
 			localStorage.removeItem(SCENE_CONFIG_KEY);
 			showToast(`Config version changed - reset to defaults`);
 			return null;

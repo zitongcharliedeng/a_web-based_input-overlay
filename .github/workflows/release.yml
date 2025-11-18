@@ -12,29 +12,11 @@ permissions:
 
 jobs:
   deploy-web:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies and build
-        run: |
-          cd SourceCode/_devTools
-          npm ci
-          ln -s $(pwd)/node_modules ../WebApp/node_modules
-          ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules
-          npm run build
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: SourceCode/WebApp
-
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+    uses: ./.github/workflows/build-web.yml
+    permissions:
+      contents: write
+    with:
+      deploy-path: ''
 
   build-electron:
     runs-on: ${{ matrix.os }}

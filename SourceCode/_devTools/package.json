@@ -1,6 +1,6 @@
 {
   "name": "a-real-web-based-input-overlay",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Transparent input overlay for streamers - displays keyboard, mouse, and gamepad inputs",
   "author": "zitongcharliedeng",
   "repository": {
@@ -9,9 +9,8 @@
   },
   "main": "main.js",
   "scripts": {
-    "prebuild": "npx tsx ../WebApp/_helpers/generateVersionGitCommitHash.ts",
     "build": "npm run build:webapp && npm run build:desktop",
-    "build:webapp": "tsc -p tsconfig.webapp.json && node ../WebApp/esbuild.config.js",
+    "build:webapp": "cd ../WebApp && vite build",
     "build:desktop": "tsc -p tsconfig.desktop.json",
     "watch": "concurrently \"npm run watch:webapp\" \"npm run watch:desktop\"",
     "watch:webapp": "tsc -p tsconfig.webapp.json --watch",
@@ -36,7 +35,8 @@
     "node-addon-api": "^8.5.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.4"
+    "typescript-eslint": "^8.46.4",
+    "vite": "^6.0.0"
   },
   "dependencies": {
     "@kmamal/sdl": "^0.11.13",

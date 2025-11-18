@@ -186,7 +186,9 @@ function createWindow(): BrowserWindow {
 		webPreferences: {
 			nodeIntegration: false,
 			contextIsolation: true,
-			preload: path.join(__dirname, 'preload.js')
+			preload: path.join(__dirname, 'preload.js'),
+			autoplayPolicy: 'no-user-gesture-required',  // Allow video embeds to autoplay (recommended Electron approach)
+			webSecurity: true  // Keep security enabled while allowing media
 		}
 	});
 

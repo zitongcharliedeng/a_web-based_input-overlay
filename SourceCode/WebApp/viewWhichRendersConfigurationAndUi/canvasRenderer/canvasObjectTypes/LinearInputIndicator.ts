@@ -1,5 +1,5 @@
 import { CanvasObjectInstance } from './BaseCanvasObject';
-import { canvas_fill_rec, canvas_text, canvas_properties } from '../canvasDrawingHelpers';
+import { canvas_text, canvas_properties } from '../canvasDrawingHelpers';
 import { LinearInputIndicatorSchema, type LinearInputIndicatorConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
 type GamepadStickInput = {
@@ -29,32 +29,6 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 			previousValue: 0,
 			opacity: 1.0
 		};
-	}
-
-	private applyOpacityToColor(color: string, opacity: number): string {
-		const rgbaMatch = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
-		if (rgbaMatch) {
-			const r = rgbaMatch[1];
-			const g = rgbaMatch[2];
-			const b = rgbaMatch[3];
-			const a = rgbaMatch[4] ? parseFloat(rgbaMatch[4]) : 1.0;
-			const newAlpha = a * opacity;
-			return `rgba(${r}, ${g}, ${b}, ${newAlpha})`;
-		}
-
-		const hexMatch = color.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
-		if (hexMatch && hexMatch[1]) {
-			let hex = hexMatch[1];
-			if (hex.length === 3) {
-				hex = hex.split('').map(char => char + char).join('');
-			}
-			const r = parseInt(hex.substring(0, 2), 16);
-			const g = parseInt(hex.substring(2, 4), 16);
-			const b = parseInt(hex.substring(4, 6), 16);
-			return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-		}
-
-		return color;
 	}
 
 	override update(delta: number): boolean {
@@ -146,21 +120,28 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 		return true;
 	}
 
-	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-		const fillStyleBackground = this.config.display.fillStyleBackground;
-		ctx.beginPath();
-		canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx, { fillStyle: fillStyleBackground });
+	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, isDragPreview?: boolean): void {
+		// Background fill
+		ctx.fillStyle = this.config.display.fillStyleBackground;
+		ctx.fillRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx);
 
-		const fillStyle = this.config.display.fillStyle;
-		const fillStyleWithOpacity = this.applyOpacityToColor(fillStyle, this.runtimeState.opacity);
-
+		// Foreground fill (with fade-out animation opacity) - manual alpha management to avoid save/restore issues
+		const savedAlpha = ctx.globalAlpha;
+		ctx.globalAlpha *= this.runtimeState.opacity;
+		ctx.fillStyle = this.config.display.fillStyle;
 		const reverseFillDirection = this.config.display.fillDirection === 'reversed';
-		ctx.beginPath();
 		if (reverseFillDirection)
-			canvas_fill_rec(ctx, 0, this.config.hitboxSize.lengthInPx, this.config.hitboxSize.widthInPx, -this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: fillStyleWithOpacity });
+			ctx.fillRect(0, this.config.hitboxSize.lengthInPx, this.config.hitboxSize.widthInPx, -this.config.hitboxSize.lengthInPx * this.runtimeState.value);
 		else
-			canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: fillStyleWithOpacity });
+			ctx.fillRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx * this.runtimeState.value);
+		ctx.globalAlpha = savedAlpha;
 
+		// Border
+		ctx.strokeStyle = this.config.display.strokeStyle;
+		ctx.lineWidth = this.config.display.strokeWidth;
+		ctx.strokeRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx);
+
+		// Text
 		const keyText = this.config.display.text;
 		const fontStyle = this.config.display.fontStyle;
 		const textX = this.config.hitboxSize.widthInPx * 0.5;

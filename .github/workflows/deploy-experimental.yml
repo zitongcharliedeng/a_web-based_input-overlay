@@ -1,0 +1,17 @@
+name: Deploy Experimental Branch
+
+on:
+  push:
+    branches:
+      - 'claude/experimental-01GVQNvaEXT11NUP4p9Vdo3q'
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-experimental:
+    uses: ./.github/workflows/build-web.yml
+    permissions:
+      contents: write
+    with:
+      deploy-path: 'experimental'

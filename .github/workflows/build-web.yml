@@ -1,0 +1,44 @@
+name: Build Web App (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      deploy-path:
+        description: 'Deployment path (empty for root, "experimental" for subdirectory)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies and build
+        run: |
+          cd SourceCode/_devTools
+          npm ci
+          ln -s $(pwd)/node_modules ../WebApp/node_modules
+          ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules
+          npm run build
+
+      - name: Prepare deployment directory
+        run: |
+          mkdir -p deploy
+          cp -r SourceCode/WebApp/_bundleAllCompiledJavascriptForWebapp/* deploy/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./deploy
+          destination_dir: ${{ inputs.deploy-path }}
+          keep_files: true

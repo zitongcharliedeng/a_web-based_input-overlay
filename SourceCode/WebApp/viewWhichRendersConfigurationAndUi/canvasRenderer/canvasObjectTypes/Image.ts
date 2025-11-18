@@ -23,8 +23,8 @@ export class Image extends CanvasObjectInstance {
 	override draw(_canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
 		if (!this.runtimeState.imageElement.complete) return;
 
-		const prevAlpha = ctx.globalAlpha;
-		ctx.globalAlpha = this.config.opacity;
+		ctx.save();
+		ctx.globalAlpha *= this.config.opacity;
 
 		try {
 			ctx.drawImage(
@@ -37,6 +37,6 @@ export class Image extends CanvasObjectInstance {
 		} catch {
 		}
 
-		ctx.globalAlpha = prevAlpha;
+		ctx.restore();
 	}
 }
