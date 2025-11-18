@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>A Real Web-based Input Overlay</title>
+  <script type="module" crossorigin src="./bundle.js"></script>
+  <link rel="stylesheet" crossorigin href="./index.css">
+</head>
+
+<body>
+
+	<canvas id="canvas" oncontextmenu="return false">
+		Your browser does not support the HTML5 canvas tag.
+	</canvas>
+
+	<div id="toastContainer"></div>
+
+	<div id="containerForPossibleEditorWindows" hidden oncontextmenu="return false">
+		<p id="editorTitle" class="windowTitle">Editor</p>
+
+		<div id="leftPanel" hidden>
+			<table id="propertyTable" hidden></table>
+			<textarea id="sceneConfigText" hidden spellcheck="false"></textarea>
+		</div>
+
+		<div id="rightPanel" hidden>
+			<p class="panelTitle">Create New Object</p>
+			<div id="objectCreationContent"></div>
+		</div>
+
+		<button id="doneContainerForPossibleEditorWindows" class="ButtonWhichUserCanPressToUpdateState">Done</button>
+	</div>
+
+</body>
+
+</html>
