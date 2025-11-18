@@ -80,9 +80,13 @@ export class CanvasRenderer {
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		for (let i = 0; i < objects.length; i++) {
+		// Sort objects by layerLevel (lower numbers render first, higher numbers on top)
+		// Create array of [index, object] pairs to preserve original index for skipObjectIndex
+		const indexedObjects = objects.map((obj, idx) => ({ obj, idx }));
+		const sortedObjects = indexedObjects.sort((a, b) => a.obj.config.layerLevel - b.obj.config.layerLevel);
+
+		for (const { obj: object, idx: i } of sortedObjects) {
 			if (i === skipObjectIndex) continue; // Skip dragged object to prevent full-opacity ghost
-			const object = objects[i];
 			if (!object) continue;
 			this.ctx.setTransform(
 				1, 0, 0, 1,
