@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import { execSync } from 'child_process';
 
 export default defineConfig({
+	base: './', // Relative paths for subdirectory deployments (GitHub Pages /experimental/)
 	build: {
 		outDir: '_bundleAllCompiledJavascriptForWebapp',
 		emptyOutDir: true,
