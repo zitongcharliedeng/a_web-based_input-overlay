@@ -123,20 +123,20 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
 		ctx.save();
 
-		// Background fill (respects parent globalAlpha for drag preview)
+		// Apply fade-out opacity to entire object (background, foreground, text)
+		ctx.globalAlpha *= this.runtimeState.opacity;
+
+		// Background fill
 		canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx, { fillStyle: this.config.display.fillStyleBackground });
 
-		// Foreground fill (with additional fade-out opacity)
-		ctx.save();
-		ctx.globalAlpha *= this.runtimeState.opacity;
+		// Foreground fill
 		const reverseFillDirection = this.config.display.fillDirection === 'reversed';
 		if (reverseFillDirection)
 			canvas_fill_rec(ctx, 0, this.config.hitboxSize.lengthInPx, this.config.hitboxSize.widthInPx, -this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: this.config.display.fillStyle });
 		else
 			canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: this.config.display.fillStyle });
-		ctx.restore();
 
-		// Text (respects parent globalAlpha for drag preview)
+		// Text
 		const keyText = this.config.display.text;
 		const fontStyle = this.config.display.fontStyle;
 		const textX = this.config.hitboxSize.widthInPx * 0.5;
