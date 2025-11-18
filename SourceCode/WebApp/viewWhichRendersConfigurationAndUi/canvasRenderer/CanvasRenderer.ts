@@ -74,12 +74,14 @@ export class CanvasRenderer {
 
 	/**
 	 * Render all objects to canvas from config (pure MVC)
+	 * @param skipObjectIndex Optional index of object to skip (used during drag to prevent double-rendering)
 	 */
-	render(objects: readonly CanvasObjectInstance[]): void {
+	render(objects: readonly CanvasObjectInstance[], skipObjectIndex?: number): void {
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
 		for (let i = 0; i < objects.length; i++) {
+			if (i === skipObjectIndex) continue; // Skip dragged object to prevent full-opacity ghost
 			const object = objects[i];
 			if (!object) continue;
 			this.ctx.setTransform(

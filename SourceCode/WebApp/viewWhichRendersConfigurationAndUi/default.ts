@@ -193,13 +193,16 @@ window.addEventListener("load", function (): void {
 
 	// Phase2: Render from config (pure MVC - no cache)
 	function frameUpdate(): void {
-		canvasRenderer.render(frameObjects);
+		// Skip rendering dragged object in normal loop to prevent full-opacity ghost
+		const dragOriginal = userEditModeInteractionsController.getDragOriginalPosition();
+		const skipIndex = dragOriginal ? dragOriginal.objectIndex : undefined;
+
+		canvasRenderer.render(frameObjects, skipIndex);
 		// Phase3: View renders hitboxes when Controller has selection
 		if (userEditModeInteractionsController.hasSelection()) {
 			canvasRenderer.renderDebugHitboxes(frameObjects);
 		}
 		// Render original position ghost (half opacity at start position)
-		const dragOriginal = userEditModeInteractionsController.getDragOriginalPosition();
 		if (dragOriginal) {
 			const object = frameObjects[dragOriginal.objectIndex];
 			if (object) {
