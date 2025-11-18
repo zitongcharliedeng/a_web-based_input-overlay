@@ -1,5 +1,5 @@
 import { CanvasObjectInstance } from './BaseCanvasObject';
-import { canvas_fill_rec, canvas_text, canvas_properties } from '../canvasDrawingHelpers';
+import { canvas_text, canvas_properties } from '../canvasDrawingHelpers';
 import { LinearInputIndicatorSchema, type LinearInputIndicatorConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
 type GamepadStickInput = {
@@ -121,17 +121,19 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 	}
 
 	override draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-		// Background fill
-		canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx, { fillStyle: this.config.display.fillStyleBackground });
+		// Background fill - direct Canvas API calls to avoid helper function issues with globalAlpha
+		ctx.fillStyle = this.config.display.fillStyleBackground;
+		ctx.fillRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx);
 
 		// Foreground fill (with fade-out animation opacity) - manual alpha management to avoid save/restore issues
 		const savedAlpha = ctx.globalAlpha;
 		ctx.globalAlpha *= this.runtimeState.opacity;
+		ctx.fillStyle = this.config.display.fillStyle;
 		const reverseFillDirection = this.config.display.fillDirection === 'reversed';
 		if (reverseFillDirection)
-			canvas_fill_rec(ctx, 0, this.config.hitboxSize.lengthInPx, this.config.hitboxSize.widthInPx, -this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: this.config.display.fillStyle });
+			ctx.fillRect(0, this.config.hitboxSize.lengthInPx, this.config.hitboxSize.widthInPx, -this.config.hitboxSize.lengthInPx * this.runtimeState.value);
 		else
-			canvas_fill_rec(ctx, 0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx * this.runtimeState.value, { fillStyle: this.config.display.fillStyle });
+			ctx.fillRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx * this.runtimeState.value);
 		ctx.globalAlpha = savedAlpha;
 
 		// Text
