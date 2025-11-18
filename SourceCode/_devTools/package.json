@@ -12,15 +12,15 @@
     "build": "npm run build:webapp && npm run build:desktop",
     "build:webapp": "cd ../WebApp && vite build",
     "build:desktop": "tsc -p tsconfig.desktop.json",
-    "watch": "concurrently \"npm run watch:webapp\" \"npm run watch:desktop\"",
-    "watch:webapp": "tsc -p tsconfig.webapp.json --watch",
+    "dev": "concurrently \"npm run dev:webapp\" \"npm run watch:desktop\"",
+    "dev:webapp": "cd ../WebApp && vite",
     "watch:desktop": "tsc -p tsconfig.desktop.json --watch",
-    "type-check": "tsc -p tsconfig.webapp.json --noEmit && tsc -p tsconfig.desktop.json --noEmit",
+    "type-check": "tsc -p tsconfig.desktop.json --noEmit",
     "lint": "eslint .. --ext .ts --config .eslintrc.cjs",
-    "clean": "find .. -name '*.js' -not -path '*/node_modules/*' -delete && find .. -name '*.js.map' -delete",
-    "electron:dev": "npm run build && electron ../DesktopWrappedWebapp/main.js",
-    "electron:clickthrough-readonly": "npm run build && electron ../DesktopWrappedWebapp/main.js --clickthrough-readonly",
-    "serve": "http-server ../WebApp -p 8080 -o"
+    "clean": "find .. -name '*.js' -not -path '*/node_modules/*' -not -path '*/_bundleAllCompiledJavascriptForWebapp/*' -delete && find .. -name '*.js.map' -delete",
+    "electron:dev": "npm run build && electron ../DesktopWrappedWebapp/main.js --with-dev-console",
+    "electron:clickthrough-readonly": "npm run build && electron ../DesktopWrappedWebapp/main.js --in-clickthrough-readonly-mode",
+    "serve": "cd ../WebApp && vite preview"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
@@ -59,9 +59,9 @@
         "filter": ["**/*", "!node_modules/**", "!**/*.ts", "!**/*.map"]
       },
       {
-        "from": "../WebApp",
+        "from": "../WebApp/_bundleAllCompiledJavascriptForWebapp",
         "to": "WebApp",
-        "filter": ["**/*", "!node_modules/**", "!**/*.ts", "!**/*.map"]
+        "filter": ["**/*"]
       }
     ],
     "extraResources": [
