@@ -85,8 +85,31 @@ const UIOHOOK_TO_KEYCODE: Record<number, string> = {
 // sdl2-gamecontroller runs SDL_PumpEvents() in separate thread
 // This works with Electron's event loop and provides unfocused input
 let sdlGamepadState: Gamepad | null = null;
-let originalGetGamepads: typeof navigator.getGamepads | null = null;
 let bridgesInitialized = false;
+
+/**
+ * Merge native browser gamepads with SDL gamepads (additive pattern)
+ * Council-approved architecture: Never override native APIs, always merge
+ *
+ * Benefits:
+ * - Both native and SDL gamepads work simultaneously
+ * - If SDL breaks, native still works
+ * - If native breaks, SDL still works
+ * - No monkey-patching (clean)
+ */
+export function getMergedGamepads(): (Gamepad | null)[] {
+	// Always start with native gamepads (never block native API)
+	const native = navigator.getGamepads();
+	const merged = Array.from(native);
+
+	// Add SDL gamepad to index 0 if available and connected
+	if (sdlGamepadState && sdlGamepadState.connected) {
+		// SDL takes priority at index 0 (most games expect gamepad at index 0)
+		merged[0] = sdlGamepadState;
+	}
+
+	return merged;
+}
 
 // Initialize electron API bridges
 export function initializeElectronBridges(): void {
@@ -100,18 +123,6 @@ export function initializeElectronBridges(): void {
 		return;
 	}
 	bridgesInitialized = true;
-
-	// Override navigator.getGamepads() to return SDL state if available
-	// Must happen AFTER checking window.electronAPI to avoid polluting web version
-	originalGetGamepads = navigator.getGamepads.bind(navigator);
-	navigator.getGamepads = function() {
-		if (sdlGamepadState && sdlGamepadState.connected) {
-			// Return SDL gamepad at index 0
-			return [sdlGamepadState, null, null, null];
-		}
-		// Fallback to native Gamepad API (web version or no SDL)
-		return originalGetGamepads!();
-	};
 
 	// Bridge uiohook events to synthetic DOM KeyboardEvents
 	window.electronAPI.onGlobalKeyDown((data: { keycode: number }) => {

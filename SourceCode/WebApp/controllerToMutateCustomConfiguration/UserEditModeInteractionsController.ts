@@ -17,7 +17,7 @@ import type { CanvasObjectInstance } from '../viewWhichRendersConfigurationAndUi
 import { mouse } from '../viewWhichRendersConfigurationAndUi/inputReaders/DOM_API/mouse';
 
 export class UserEditModeInteractionsController {
-	private clickedObjectIndex: number | null = null;  // Track by array index
+	private selectedObjectIndices: Set<number> = new Set();  // Multi-select support
 	private draggingOffset = new Vector(0, 0);
 	private gridsize = 10;
 	private editingProperties = false;
@@ -25,6 +25,11 @@ export class UserEditModeInteractionsController {
 	private dragStartPosition: { x: number, y: number } | null = null;  // Original position when drag started
 	private lastDragPosition: { x: number, y: number } | null = null;  // Last dragged position (for release frame)
 	private disableInteractions = false;  // Disable all UI interactions in readonly/clickthrough mode
+
+	// Selection box for drag-to-select
+	private selectionBoxStart: { x: number, y: number } | null = null;
+	private selectionBoxEnd: { x: number, y: number } | null = null;
+	private isSelectingBox = false;
 
 	// Callbacks
 	private onMoveObject: ((objectIndex: number, x: number, y: number) => void) | null = null;
@@ -90,17 +95,43 @@ export class UserEditModeInteractionsController {
 	}
 
 	/**
-	 * Get currently selected object index
+	 * Get all selected object indices
 	 */
-	getClickedObjectIndex(): number | null {
-		return this.clickedObjectIndex;
+	getSelectedIndices(): ReadonlySet<number> {
+		return this.selectedObjectIndices;
+	}
+
+	/**
+	 * Check if an object is selected
+	 */
+	isSelected(index: number): boolean {
+		return this.selectedObjectIndices.has(index);
 	}
 
 	/**
 	 * Clear selection state (called when objects are rebuilt from config)
 	 */
 	clearSelection(): void {
-		this.clickedObjectIndex = null;
+		this.selectedObjectIndices.clear();
+		this.selectionBoxStart = null;
+		this.selectionBoxEnd = null;
+		this.isSelectingBox = false;
+	}
+
+	/**
+	 * Delete all selected objects (calls onDeleteObject for each)
+	 */
+	deleteSelectedObjects(): void {
+		if (!this.onDeleteObject) return;
+
+		// Sort indices in descending order to delete from end (preserve earlier indices)
+		const sortedIndices = Array.from(this.selectedObjectIndices).sort((a, b) => b - a);
+
+		for (const index of sortedIndices) {
+			this.onDeleteObject(index);
+		}
+
+		this.clearSelection();
 	}
 
 	/**
@@ -111,12 +142,11 @@ export class UserEditModeInteractionsController {
 		// Readonly/clickthrough mode - disable all UI interactions
 		if (this.disableInteractions) return false;
 
-		// Click detection: find which object was clicked (track by array index)
-		if (mouse.clicks[0] === true || mouse.clicks[2] === true) {
-			this.clickedObjectIndex = null;
-			this.dragStartPosition = null;
-			this.lastDragPosition = null;
-			for (let i = 0; i < objects.length; i++) {
+		// LEFT CLICK: Select/deselect logic
+		if (mouse.clicks[0] === true) {
+			// Find which object was clicked (if any)
+			let clickedObjectIndex: number | null = null;
+			for (let i = objects.length - 1; i >= 0; i--) {  // Iterate backwards (top object first)
 				const object = objects[i];
 				if (!object) continue;
 
@@ -125,66 +155,152 @@ export class UserEditModeInteractionsController {
 
 				if ((mouse.x > positionOnCanvas.pxFromCanvasLeft && mouse.y > positionOnCanvas.pxFromCanvasTop)
 				&& (mouse.x < positionOnCanvas.pxFromCanvasLeft + hitboxSize.widthInPx && mouse.y < positionOnCanvas.pxFromCanvasTop + hitboxSize.lengthInPx)) {
-					this.draggingOffset.x = positionOnCanvas.pxFromCanvasLeft - mouse.x;
-					this.draggingOffset.y = positionOnCanvas.pxFromCanvasTop - mouse.y;
-					this.clickedObjectIndex = i;  // Store array index
-					this.dragStartPosition = {
-						x: positionOnCanvas.pxFromCanvasLeft,
-						y: positionOnCanvas.pxFromCanvasTop
-					};
+					clickedObjectIndex = i;
 					break;
 				}
 			}
-		}
 
-		// Find clicked object in current frame's objects (by array index)
-		const clickedObject = this.clickedObjectIndex !== null ? objects[this.clickedObjectIndex] : undefined;
+			if (clickedObjectIndex !== null) {
+				// Clicked on an object
+				const object = objects[clickedObjectIndex];
+				const { positionOnCanvas } = object.config;
 
-		// Dragging: store drag position for visual preview, don't update config yet
-		if (clickedObject && mouse.buttons[0] === true) {
-			const newX = Math.round((mouse.x + this.draggingOffset.x)/this.gridsize)*this.gridsize;
-			const newY = Math.round((mouse.y + this.draggingOffset.y)/this.gridsize)*this.gridsize;
+				if (this.selectedObjectIndices.has(clickedObjectIndex)) {
+					// Clicking on already-selected object → prepare to drag all selected
+					// Don't change selection, just set up drag offset
+					if (positionOnCanvas) {
+						this.draggingOffset.x = positionOnCanvas.pxFromCanvasLeft - mouse.x;
+						this.draggingOffset.y = positionOnCanvas.pxFromCanvasTop - mouse.y;
+						this.dragStartPosition = {
+							x: positionOnCanvas.pxFromCanvasLeft,
+							y: positionOnCanvas.pxFromCanvasTop
+						};
+					}
+				} else {
+					// Clicking on non-selected object → select only this object
+					this.selectedObjectIndices.clear();
+					this.selectedObjectIndices.add(clickedObjectIndex);
 
-			// Store drag position for preview rendering (don't update config until release)
-			this.lastDragPosition = { x: newX, y: newY };
-		}
+					if (positionOnCanvas) {
+						this.draggingOffset.x = positionOnCanvas.pxFromCanvasLeft - mouse.x;
+						this.draggingOffset.y = positionOnCanvas.pxFromCanvasTop - mouse.y;
+						this.dragStartPosition = {
+							x: positionOnCanvas.pxFromCanvasLeft,
+							y: positionOnCanvas.pxFromCanvasTop
+						};
+					}
+				}
 
-		// Drag release: save position using lastDragPosition (since objects are fresh from config)
-		if (mouse.buttons[0] === false && clickedObject && this.dragStartPosition) {
-			// Use lastDragPosition if available (was dragged), otherwise use current position (just clicked)
-			const finalX = this.lastDragPosition?.x ?? clickedObject.config.positionOnCanvas?.pxFromCanvasLeft;
-			const finalY = this.lastDragPosition?.y ?? clickedObject.config.positionOnCanvas?.pxFromCanvasTop;
-
-			if (finalX === undefined || finalY === undefined) {
-				console.warn('[UserEditModeInteractionsController] Object missing positionOnCanvas on release');
+				this.isSelectingBox = false;
+			} else {
+				// Clicked on empty canvas → start selection box OR clear selection
+				this.selectedObjectIndices.clear();
+				this.selectionBoxStart = { x: mouse.x, y: mouse.y };
+				this.selectionBoxEnd = { x: mouse.x, y: mouse.y };
+				this.isSelectingBox = true;
 				this.dragStartPosition = null;
 				this.lastDragPosition = null;
-				return false;
 			}
+		}
 
-			const positionChanged = finalX !== this.dragStartPosition.x || finalY !== this.dragStartPosition.y;
+		// MOUSE DRAG: Update selection box or drag objects
+		if (mouse.buttons[0] === true) {
+			if (this.isSelectingBox && this.selectionBoxStart) {
+				// Update selection box end position
+				this.selectionBoxEnd = { x: mouse.x, y: mouse.y };
+			} else if (this.selectedObjectIndices.size > 0 && this.dragStartPosition) {
+				// Dragging selected objects
+				const newX = Math.round((mouse.x + this.draggingOffset.x)/this.gridsize)*this.gridsize;
+				const newY = Math.round((mouse.y + this.draggingOffset.y)/this.gridsize)*this.gridsize;
+				this.lastDragPosition = { x: newX, y: newY };
+			}
+		}
 
-			if (positionChanged) {
-				if (this.clickedObjectIndex !== null && this.onMoveObject) {
-					this.onMoveObject(this.clickedObjectIndex, finalX, finalY);
+		// MOUSE RELEASE: Finalize selection box or drag
+		if (mouse.buttons[0] === false) {
+			if (this.isSelectingBox && this.selectionBoxStart && this.selectionBoxEnd) {
+				// Finalize selection box - select all objects intersecting
+				const minX = Math.min(this.selectionBoxStart.x, this.selectionBoxEnd.x);
+				const maxX = Math.max(this.selectionBoxStart.x, this.selectionBoxEnd.x);
+				const minY = Math.min(this.selectionBoxStart.y, this.selectionBoxEnd.y);
+				const maxY = Math.max(this.selectionBoxStart.y, this.selectionBoxEnd.y);
+
+				this.selectedObjectIndices.clear();
+				for (let i = 0; i < objects.length; i++) {
+					const object = objects[i];
+					if (!object) continue;
+
+					const { positionOnCanvas, hitboxSize } = object.config;
+					if (!positionOnCanvas || !hitboxSize) continue;
+
+					// Check if object intersects with selection box
+					const objLeft = positionOnCanvas.pxFromCanvasLeft;
+					const objRight = objLeft + hitboxSize.widthInPx;
+					const objTop = positionOnCanvas.pxFromCanvasTop;
+					const objBottom = objTop + hitboxSize.lengthInPx;
+
+					if (!(objRight < minX || objLeft > maxX || objBottom < minY || objTop > maxY)) {
+						this.selectedObjectIndices.add(i);
+					}
+				}
+
+				this.selectionBoxStart = null;
+				this.selectionBoxEnd = null;
+				this.isSelectingBox = false;
+			} else if (this.selectedObjectIndices.size > 0 && this.dragStartPosition && this.lastDragPosition) {
+				// Finalize drag - move all selected objects
+				const deltaX = this.lastDragPosition.x - this.dragStartPosition.x;
+				const deltaY = this.lastDragPosition.y - this.dragStartPosition.y;
+
+				if (deltaX !== 0 || deltaY !== 0) {
+					if (this.onMoveObject) {
+						for (const index of this.selectedObjectIndices) {
+							const object = objects[index];
+							if (!object) continue;
+
+							const { positionOnCanvas } = object.config;
+							if (!positionOnCanvas) continue;
+
+							const newX = positionOnCanvas.pxFromCanvasLeft + deltaX;
+							const newY = positionOnCanvas.pxFromCanvasTop + deltaY;
+							this.onMoveObject(index, newX, newY);
+						}
+					}
+				}
+
+				this.dragStartPosition = null;
+				this.lastDragPosition = null;
+			}
+		}
+
+		// RIGHT CLICK: Show PropertyEdit or creation panel
+		if (mouse.clicks[2] === true) {
+			// Find which object was clicked
+			let clickedObjectIndex: number | null = null;
+			for (let i = objects.length - 1; i >= 0; i--) {
+				const object = objects[i];
+				if (!object) continue;
+
+				const { positionOnCanvas, hitboxSize } = object.config;
+				if (!positionOnCanvas || !hitboxSize) continue;
+
+				if ((mouse.x > positionOnCanvas.pxFromCanvasLeft && mouse.y > positionOnCanvas.pxFromCanvasTop)
+				&& (mouse.x < positionOnCanvas.pxFromCanvasLeft + hitboxSize.widthInPx && mouse.y < positionOnCanvas.pxFromCanvasTop + hitboxSize.lengthInPx)) {
+					clickedObjectIndex = i;
+					break;
 				}
 			}
-			// Don't clear clickedObjectIndex - keep selection active until next click
-			this.dragStartPosition = null;
-			this.lastDragPosition = null;
-		}
 
-		// Right-click object - show PropertyEdit (only when no editors open)
-		if (mouse.clicks[2] === true && clickedObject && !this.editingProperties && !this.creationPanelActive) {
-			if (this.onShowPropertyEdit) {
-				this.onShowPropertyEdit(clickedObject);
-			}
-		}
-
-		// Right-click background - show both panels (only when no editors open)
-		if (mouse.clicks[2] === true && !clickedObject && !this.editingProperties && !this.creationPanelActive) {
-			if (this.onShowCreationPanel) {
-				this.onShowCreationPanel();
+			if (clickedObjectIndex !== null && !this.editingProperties && !this.creationPanelActive) {
+				// Right-click on object → show PropertyEdit
+				if (this.onShowPropertyEdit) {
+					this.onShowPropertyEdit(objects[clickedObjectIndex]!);
+				}
+			} else if (clickedObjectIndex === null && !this.editingProperties && !this.creationPanelActive) {
+				// Right-click on canvas → show creation panel
+				if (this.onShowCreationPanel) {
+					this.onShowCreationPanel();
+				}
 			}
 		}
 
@@ -195,32 +311,46 @@ export class UserEditModeInteractionsController {
 	 * Check if any object is selected (for View to decide whether to render hitboxes)
 	 */
 	hasSelection(): boolean {
-		return this.clickedObjectIndex !== null;
+		return this.selectedObjectIndices.size > 0;
 	}
 
 	/**
-	 * Get drag preview position (for rendering ghost during drag)
-	 * Returns null if not dragging
+	 * Get selection box coordinates (for rendering during drag-to-select)
+	 * Returns null if not selecting
 	 */
-	getDragPreview(): { objectIndex: number, x: number, y: number } | null {
-		if (this.clickedObjectIndex !== null && this.lastDragPosition) {
+	getSelectionBox(): { startX: number, startY: number, endX: number, endY: number } | null {
+		if (this.isSelectingBox && this.selectionBoxStart && this.selectionBoxEnd) {
 			return {
-				objectIndex: this.clickedObjectIndex,
-				x: this.lastDragPosition.x,
-				y: this.lastDragPosition.y
+				startX: this.selectionBoxStart.x,
+				startY: this.selectionBoxStart.y,
+				endX: this.selectionBoxEnd.x,
+				endY: this.selectionBoxEnd.y
 			};
 		}
 		return null;
 	}
 
 	/**
-	 * Get original position before drag started (for rendering ghost at start position)
+	 * Get drag preview offset (for rendering ghosts during multi-drag)
 	 * Returns null if not dragging
 	 */
-	getDragOriginalPosition(): { objectIndex: number, x: number, y: number } | null {
-		if (this.clickedObjectIndex !== null && this.dragStartPosition && this.lastDragPosition) {
+	getDragPreview(): { deltaX: number, deltaY: number } | null {
+		if (this.selectedObjectIndices.size > 0 && this.dragStartPosition && this.lastDragPosition) {
 			return {
-				objectIndex: this.clickedObjectIndex,
+				deltaX: this.lastDragPosition.x - this.dragStartPosition.x,
+				deltaY: this.lastDragPosition.y - this.dragStartPosition.y
+			};
+		}
+		return null;
+	}
+
+	/**
+	 * Get original drag position (for rendering ghost at start position)
+	 * Returns null if not dragging
+	 */
+	getDragOriginalPosition(): { x: number, y: number } | null {
+		if (this.selectedObjectIndices.size > 0 && this.dragStartPosition && this.lastDragPosition) {
+			return {
 				x: this.dragStartPosition.x,
 				y: this.dragStartPosition.y
 			};
