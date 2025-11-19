@@ -47,6 +47,11 @@
     "appId": "com.zitongcharliedeng.inputoverlay",
     "productName": "A Real Web-based Input Overlay",
     "npmRebuild": false,
+    "publish": {
+      "provider": "github",
+      "owner": "zitongcharliedeng",
+      "repo": "a_web-based_input-overlay"
+    },
     "directories": {
       "output": "../dist",
       "buildResources": "../build"
