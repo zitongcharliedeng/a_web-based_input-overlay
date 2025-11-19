@@ -1,6 +1,6 @@
 {
   "name": "a-real-web-based-input-overlay",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "A Real Web-based Input Overlay - displays keyboard, mouse, and gamepad inputs",
   "author": "zitongcharliedeng",
   "repository": {
@@ -61,12 +61,19 @@
       {
         "from": "./DesktopWrappedWebapp",
         "to": ".",
-        "filter": ["**/*", "!node_modules/**", "!**/*.ts", "!**/*.map"]
+        "filter": [
+          "**/*",
+          "!node_modules/**",
+          "!**/*.ts",
+          "!**/*.map"
+        ]
       },
       {
         "from": "./WebApp/_bundleAllCompiledJavascriptForWebapp",
         "to": "WebApp",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "extraResources": [
