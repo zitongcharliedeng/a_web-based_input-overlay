@@ -1,6 +1,6 @@
 import { mouse } from './inputReaders/DOM_API/mouse';
 import { keyboard } from './inputReaders/DOM_API/keyboard';
-import { initializeElectronBridges } from './inputReaders/ElectronAppWrapper_API';
+import { initializeElectronBridges, getMergedGamepads } from './inputReaders/ElectronAppWrapper_API';
 
 // Initialize Electron bridge explicitly (ensures it runs even if Vite tree-shakes)
 initializeElectronBridges();
@@ -249,7 +249,8 @@ window.addEventListener("load", function (): void {
 
 		let updateScreen = false;
 
-		window.gamepads = navigator.getGamepads();
+		// Use merge function to combine native + SDL gamepads (council-approved pattern)
+		window.gamepads = getMergedGamepads();
 
 		if (!window._gamepadDebugLogged) {
 			const pads = window.gamepads;
