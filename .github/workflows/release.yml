@@ -31,22 +31,12 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install dependencies and build
         shell: bash
         run: |
-          cd SourceCode/_devTools
+          cd SourceCode
           npm ci
-          # On Windows, copy node_modules (symlinks require admin). On Unix, use symlinks.
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            cp -r node_modules ../WebApp/
-            cp -r node_modules ../DesktopWrappedWebapp/
-          else
-            ln -s $(pwd)/node_modules ../WebApp/node_modules
-            ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules
-          fi
-
-      - name: Build TypeScript
-        run: cd SourceCode/_devTools && npm run build
+          npm run build
 
       - name: Smoke test - run app to catch runtime errors
         shell: bash
@@ -75,4 +65,4 @@ jobs:
       - name: Build and release Electron app
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: cd SourceCode/_devTools && npx electron-builder --publish always
+        run: cd SourceCode && npx electron-builder --publish always

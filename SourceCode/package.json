@@ -10,17 +10,17 @@
   "main": "main.js",
   "scripts": {
     "build": "npm run build:webapp && npm run build:desktop",
-    "build:webapp": "cd ../WebApp && vite build",
-    "build:desktop": "tsc -p tsconfig.desktop.json",
+    "build:webapp": "cd WebApp && vite build",
+    "build:desktop": "tsc -p DesktopWrappedWebapp/tsconfig.json",
     "dev": "concurrently \"npm run dev:webapp\" \"npm run watch:desktop\"",
-    "dev:webapp": "cd ../WebApp && vite",
-    "watch:desktop": "tsc -p tsconfig.desktop.json --watch",
-    "type-check": "tsc -p tsconfig.desktop.json --noEmit",
-    "lint": "eslint .. --ext .ts --config .eslintrc.cjs",
-    "clean": "find .. -name '*.js' -not -path '*/node_modules/*' -not -path '*/_bundleAllCompiledJavascriptForWebapp/*' -delete && find .. -name '*.js.map' -delete",
-    "electron:dev": "npm run build && electron ../DesktopWrappedWebapp/main.js --with-dev-console",
-    "electron:clickthrough-readonly": "npm run build && electron ../DesktopWrappedWebapp/main.js --in-clickthrough-readonly-mode",
-    "serve": "cd ../WebApp && vite preview"
+    "dev:webapp": "cd WebApp && vite",
+    "watch:desktop": "tsc -p DesktopWrappedWebapp/tsconfig.json --watch",
+    "type-check": "tsc -p DesktopWrappedWebapp/tsconfig.json --noEmit",
+    "lint": "eslint . --ext .ts --config _devTools/.eslintrc.cjs",
+    "clean": "find . -name '*.js' -not -path '*/node_modules/*' -not -path '*/_bundleAllCompiledJavascriptForWebapp/*' -delete && find . -name '*.js.map' -delete",
+    "electron:dev": "npm run build && electron DesktopWrappedWebapp/main.js --with-dev-console",
+    "electron:clickthrough-readonly": "npm run build && electron DesktopWrappedWebapp/main.js --in-clickthrough-readonly-mode",
+    "serve": "cd WebApp && vite preview"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
@@ -48,18 +48,18 @@
     "productName": "A Real Web-based Input Overlay",
     "npmRebuild": false,
     "directories": {
-      "output": "../../dist",
-      "buildResources": "../../build"
+      "output": "../dist",
+      "buildResources": "../build"
     },
     "files": [
       "package.json",
       {
-        "from": "../DesktopWrappedWebapp",
+        "from": "./DesktopWrappedWebapp",
         "to": ".",
         "filter": ["**/*", "!node_modules/**", "!**/*.ts", "!**/*.map"]
       },
       {
-        "from": "../WebApp/_bundleAllCompiledJavascriptForWebapp",
+        "from": "./WebApp/_bundleAllCompiledJavascriptForWebapp",
         "to": "WebApp",
         "filter": ["**/*"]
       }
