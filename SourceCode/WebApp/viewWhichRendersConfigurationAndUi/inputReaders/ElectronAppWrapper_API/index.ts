@@ -85,23 +85,33 @@ const UIOHOOK_TO_KEYCODE: Record<number, string> = {
 // sdl2-gamecontroller runs SDL_PumpEvents() in separate thread
 // This works with Electron's event loop and provides unfocused input
 let sdlGamepadState: Gamepad | null = null;
-const originalGetGamepads = navigator.getGamepads.bind(navigator);
-
-// Override navigator.getGamepads() to return SDL state if available
-navigator.getGamepads = function() {
-	if (sdlGamepadState && sdlGamepadState.connected) {
-		// Return SDL gamepad at index 0
-		return [sdlGamepadState, null, null, null];
-	}
-	// Fallback to native Gamepad API (web version or no SDL)
-	return originalGetGamepads();
-};
+let originalGetGamepads: typeof navigator.getGamepads | null = null;
+let bridgesInitialized = false;
 
 // Initialize electron API bridges
 export function initializeElectronBridges(): void {
 	if (!window.electronAPI) {
 		return; // Not running in Electron
 	}
+
+	// Guard against double initialization
+	if (bridgesInitialized) {
+		console.warn('[ElectronBridge] Already initialized, skipping');
+		return;
+	}
+	bridgesInitialized = true;
+
+	// Override navigator.getGamepads() to return SDL state if available
+	// Must happen AFTER checking window.electronAPI to avoid polluting web version
+	originalGetGamepads = navigator.getGamepads.bind(navigator);
+	navigator.getGamepads = function() {
+		if (sdlGamepadState && sdlGamepadState.connected) {
+			// Return SDL gamepad at index 0
+			return [sdlGamepadState, null, null, null];
+		}
+		// Fallback to native Gamepad API (web version or no SDL)
+		return originalGetGamepads!();
+	};
 
 	// Bridge uiohook events to synthetic DOM KeyboardEvents
 	window.electronAPI.onGlobalKeyDown((data: { keycode: number }) => {
@@ -198,5 +208,5 @@ export function initializeElectronBridges(): void {
 	});
 }
 
-// Auto-initialize when module is imported (function already exported on line 101)
-initializeElectronBridges();
+// Note: Function is called explicitly from default.ts to ensure Vite doesn't tree-shake it
+// Do NOT call here to avoid double initialization

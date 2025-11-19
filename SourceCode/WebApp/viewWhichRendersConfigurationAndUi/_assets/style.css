@@ -180,6 +180,42 @@
 	}
 }
 
+/* Toggle Readonly Clickthrough Mode Button (Electron only) */
+.toggleReadonlyButton {
+	position: fixed;
+	bottom: 5.5em;
+	right: 2em;
+	background-color: #00CED1;  /* Cyan background */
+	color: #000000;             /* Black text */
+	border: 2px solid #000000;
+	padding: 0.8em 1.5em;
+	font-size: 1em;
+	font-family: 'Lucida Console', monospace;
+	cursor: pointer;
+	transition: background-color 0.2s;
+	width: auto;
+	z-index: 101;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.3em;
+}
+
+.toggleReadonlyButton:hover {
+	background-color: #00B8BB;  /* Darker cyan on hover */
+}
+
+.toggleReadonlyButtonTitle {
+	font-weight: bold;
+	font-size: 1em;
+}
+
+.toggleReadonlyButtonWarning {
+	font-size: 0.75em;
+	font-style: italic;
+	text-align: center;
+}
+
 body {
 	font: 1em Lucida Console;
 	background-color: transparent;

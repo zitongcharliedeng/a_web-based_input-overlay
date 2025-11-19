@@ -13,7 +13,6 @@ if (process.platform === 'linux') {
 let isReadonly = process.argv.includes('--in-clickthrough-readonly-mode');
 const enableFrame = process.argv.includes('--with-window-frame');
 const enableDevTools = process.argv.includes('--with-dev-console');
-const skipModeSelector = process.argv.includes('--in-clickthrough-readonly-mode') || process.argv.includes('--skip-mode-selector');
 let globalInputAvailable = false;
 
 interface UIOHookKeyEvent {
@@ -95,6 +94,8 @@ interface SDL {
 
 let uIOhook: UIOHook | null = null;
 let mainWindow: BrowserWindow | null = null;
+let gamepadPollInterval: NodeJS.Timeout | null = null;
+let keepOnTopInterval: NodeJS.Timeout | null = null;
 
 try {
 	const uiohook = require('uiohook-napi');
@@ -131,43 +132,20 @@ ipcMain.on('has-global-input', (event: IpcMainEvent) => {
 	event.returnValue = globalInputAvailable;
 });
 
-ipcMain.on('launch-mode', (_event: IpcMainEvent, mode: 'interactive' | 'readonly') => {
-	console.log('[Main] User selected mode:', mode);
-	isReadonly = mode === 'readonly';
+// IPC handler for runtime mode toggle (from canvas menu button)
+ipcMain.on('toggle-readonly-mode', (_event: IpcMainEvent) => {
+	console.log('[Main] Toggling to readonly clickthrough mode');
+	isReadonly = true;
 
-	// Close all windows (mode selector)
-	BrowserWindow.getAllWindows().forEach(win => win.close());
-
-	// Launch overlay window
-	mainWindow = createWindow();
-	startInputHooks();
+	if (mainWindow) {
+		mainWindow.setIgnoreMouseEvents(true);
+		console.log('[Main] Clickthrough enabled - use Task Manager to close app');
+	}
 });
 
-console.log('[Main] Starting overlay...');
+console.log('[Main] Starting overlay in interactive mode...');
 console.log('[Main] Readonly mode:', isReadonly);
 console.log('[Main] Preload script path:', path.join(__dirname, 'preload.js'));
-
-function createModeSelectorWindow(): BrowserWindow {
-	const win = new BrowserWindow({
-		width: 540,
-		height: 400,
-		resizable: false,
-		frame: true,
-		alwaysOnTop: false,
-		backgroundColor: '#667eea',
-		webPreferences: {
-			nodeIntegration: false,
-			contextIsolation: true,
-			preload: path.join(__dirname, 'modeSelectorPreload.js')
-		}
-	});
-
-	const selectorPath = path.join(__dirname, 'modeSelector.html');
-	console.log('[Main] Loading mode selector from:', selectorPath);
-	win.loadFile(selectorPath);
-
-	return win;
-}
 
 function createWindow(): BrowserWindow {
 	// Get primary display dimensions
@@ -208,18 +186,35 @@ function createWindow(): BrowserWindow {
 		win.setIgnoreMouseEvents(true);
 		console.log('[Main] Readonly mode - click-through enabled, UI editing disabled');
 
-		const keepOnTop = setInterval(() => {
-			if (!win.isDestroyed()) {
-				win.moveTop();
-			}
+		keepOnTopInterval = setInterval(() => {
+			if (win.isDestroyed()) return;
+			win.moveTop();
 		}, 1000);
-
-		win.on('closed', () => {
-			clearInterval(keepOnTop);
-		});
 	} else {
 		console.log('[Main] Interactive mode - can drag and edit objects');
 	}
+
+	// Clean up on window close
+	win.on('closed', () => {
+		console.log('[Main] Window closed - cleaning up...');
+
+		if (keepOnTopInterval) {
+			clearInterval(keepOnTopInterval);
+			keepOnTopInterval = null;
+		}
+
+		if (gamepadPollInterval) {
+			clearInterval(gamepadPollInterval);
+			gamepadPollInterval = null;
+		}
+
+		if (uIOhook) {
+			console.log('[Main] Stopping global input hooks...');
+			uIOhook.stop();
+		}
+
+		mainWindow = null;
+	});
 
 	if (enableDevTools) {
 		console.log('[Main] DevTools enabled (transparency will break)');
@@ -334,9 +329,12 @@ function startInputHooks(): void {
 					connected: true
 				};
 
-				const pollInterval = setInterval(() => {
-					if (!sdlController) {
-						clearInterval(pollInterval);
+				gamepadPollInterval = setInterval(() => {
+					if (!sdlController || !mainWindow || mainWindow.isDestroyed()) {
+						if (gamepadPollInterval) {
+							clearInterval(gamepadPollInterval);
+							gamepadPollInterval = null;
+						}
 						return;
 					}
 
@@ -366,7 +364,7 @@ function startInputHooks(): void {
 					gamepadState.buttons[16] = { pressed: buttons.guide ?? false, value: buttons.guide ? 1.0 : 0 };
 
 					gamepadState.timestamp = Date.now();
-					mainWindow?.webContents.send('global-gamepad-state', gamepadState);
+					mainWindow.webContents.send('global-gamepad-state', gamepadState);
 				}, 16);
 
 				console.log('[Main] ✓ SDL gamepad polling started (60fps via setInterval)');
@@ -382,28 +380,20 @@ function startInputHooks(): void {
 }
 
 app.whenReady().then(() => {
-	if (skipModeSelector) {
-		console.log('[Main] Skipping mode selector, launching directly');
-		mainWindow = createWindow();
-		startInputHooks();
-	} else {
-		console.log('[Main] Showing mode selector');
-		createModeSelectorWindow();
-	}
+	// Always start in interactive mode (user can toggle to readonly from canvas menu)
+	mainWindow = createWindow();
+	startInputHooks();
 
 	app.on('activate', () => {
 		if (BrowserWindow.getAllWindows().length === 0) {
-			createWindow();
+			mainWindow = createWindow();
+			startInputHooks();
 		}
 	});
 });
 
 app.on('window-all-closed', () => {
-	if (uIOhook) {
-		console.log('[Main] Stopping global input hooks...');
-		uIOhook.stop();
-	}
-
+	// Cleanup already done in window 'closed' handler
 	if (process.platform !== 'darwin') {
 		app.quit();
 	}
