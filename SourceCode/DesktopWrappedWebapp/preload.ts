@@ -51,6 +51,7 @@ declare global {
 			onGlobalGamepadState: (callback: (state: GlobalGamepadState) => void) => void;
 			isAppInReadonlyClickthroughMode: () => boolean;
 			hasGlobalInput: () => boolean;
+			toggleReadonlyMode: () => void;
 		};
 	}
 }
@@ -89,6 +90,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 	hasGlobalInput: (): boolean => {
 		return ipcRenderer.sendSync('has-global-input') as boolean;
+	},
+
+	toggleReadonlyMode: (): void => {
+		ipcRenderer.send('toggle-readonly-mode');
 	}
 });
 
