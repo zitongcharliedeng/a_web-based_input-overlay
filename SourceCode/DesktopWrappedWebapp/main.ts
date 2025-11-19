@@ -1,8 +1,15 @@
 import { app, BrowserWindow, ipcMain, IpcMainEvent, screen } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
+import serve from 'electron-serve';
 
 const APP_TITLE = 'A Real Web-based Input Overlay';
+
+const loadURL = serve({
+	directory: app.isPackaged
+		? path.join(__dirname, 'WebApp')
+		: path.join(__dirname, '..', 'WebApp', '_bundleAllCompiledJavascriptForWebapp')
+});
 
 process.env['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1';
 
@@ -147,7 +154,7 @@ console.log('[Main] Starting overlay in interactive mode...');
 console.log('[Main] Readonly mode:', isReadonly);
 console.log('[Main] Preload script path:', path.join(__dirname, 'preload.js'));
 
-function createWindow(): BrowserWindow {
+async function createWindow(): Promise<BrowserWindow> {
 	// Get primary display dimensions
 	const primaryDisplay = screen.getPrimaryDisplay();
 	const { width, height } = primaryDisplay.workAreaSize;
@@ -165,23 +172,15 @@ function createWindow(): BrowserWindow {
 			nodeIntegration: false,
 			contextIsolation: true,
 			preload: path.join(__dirname, 'preload.js'),
-			autoplayPolicy: 'no-user-gesture-required',  // Allow video embeds to autoplay
-			webSecurity: true,  // Keep security enabled while allowing media
-			webviewTag: true  // Enable <webview> tag for proper external content embedding (YouTube, etc.)
+			autoplayPolicy: 'no-user-gesture-required',
+			webSecurity: true
 		}
 	});
 
 	win.setAlwaysOnTop(true, 'screen-saver', 1);
 
-	// Load from Vite build output (same bundle as website)
-	// In packaged app: __dirname is where main.js is, WebApp is sibling directory
-	// In dev: __dirname is DesktopWrappedWebapp, Vite output is at ../WebApp/_bundleAllCompiledJavascriptForWebapp
-	const indexPath = app.isPackaged
-		? path.join(__dirname, 'WebApp', 'index.html')
-		: path.join(__dirname, '..', 'WebApp', '_bundleAllCompiledJavascriptForWebapp', 'index.html');
-
-	console.log('[Main] Loading index.html from:', indexPath);
-	win.loadFile(indexPath);
+	console.log('[Main] Loading app via electron-serve (app:// protocol)');
+	await loadURL(win);
 
 	if (isReadonly) {
 		win.setIgnoreMouseEvents(true);
@@ -380,14 +379,14 @@ function startInputHooks(): void {
 	}
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
 	// Always start in interactive mode (user can toggle to readonly from canvas menu)
-	mainWindow = createWindow();
+	mainWindow = await createWindow();
 	startInputHooks();
 
-	app.on('activate', () => {
+	app.on('activate', async () => {
 		if (BrowserWindow.getAllWindows().length === 0) {
-			mainWindow = createWindow();
+			mainWindow = await createWindow();
 			startInputHooks();
 		}
 	});
