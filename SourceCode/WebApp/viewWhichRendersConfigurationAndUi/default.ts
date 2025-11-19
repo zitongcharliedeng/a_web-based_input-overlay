@@ -732,18 +732,16 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 	// Setup Toggle Readonly Mode button (Electron only)
 	const toggleReadonlyBtn = document.getElementById("toggleReadonlyModeButton");
 	if (toggleReadonlyBtn && window.electronAPI) {
-		// Show button only in Electron
 		toggleReadonlyBtn.style.display = 'flex';
 
 		toggleReadonlyBtn.addEventListener("click", () => {
-			// Disable all canvas interactions FIRST (controller owns interaction behavior)
+			const confirmed = confirm('Switch to readonly clickthrough mode?\n\nYou will need Task Manager to close the app.');
+			if (!confirmed) return;
+
 			userEditModeInteractionsController.setDisableInteractions(true);
-
-			// Then notify main process (main owns window click-through behavior)
 			window.electronAPI!.toggleReadonlyMode();
-
-			showToast('Switched to readonly clickthrough mode - use Task Manager to close app');
-			hideBothPanels();  // Close edit menu like other buttons
+			showToast('Readonly mode active - use Task Manager to close');
+			hideBothPanels();
 		});
 	}
 

@@ -60,11 +60,26 @@ export class WebEmbed extends CanvasObjectInstance {
 
 		let embedElement: EmbedElement;
 		if (isElectron) {
-			embedElement = document.createElement('webview') as HTMLElement;
-			embedElement.setAttribute('src', this.config.url);
-			embedElement.setAttribute('webpreferences', 'javascript=yes');
-			embedElement.setAttribute('allowpopups', '');
-			console.log('[WebEmbed] Using <webview> tag for Electron');
+			const webview = document.createElement('webview') as any;
+			webview.setAttribute('src', this.config.url);
+			webview.setAttribute('partition', 'persist:webembed');
+			webview.setAttribute('useragent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+			webview.setAttribute('allowpopups', '');
+
+			webview.addEventListener('did-fail-load', (e: any) => {
+				console.error('[WebEmbed] Failed to load:', e.errorCode, e.errorDescription);
+			});
+
+			webview.addEventListener('console-message', (e: any) => {
+				console.log('[WebEmbed Console]', e.level, e.message);
+			});
+
+			webview.addEventListener('did-finish-load', () => {
+				console.log('[WebEmbed] Successfully loaded:', this.config.url);
+			});
+
+			embedElement = webview;
+			console.log('[WebEmbed] Using <webview> tag for Electron with user-agent spoofing');
 		} else {
 			const iframe = document.createElement('iframe');
 			iframe.src = this.config.url;
