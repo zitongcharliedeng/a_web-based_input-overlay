@@ -24,10 +24,8 @@ jobs:
 
       - name: Install dependencies and build
         run: |
-          cd SourceCode/_devTools
+          cd SourceCode
           npm ci
-          ln -s $(pwd)/node_modules ../WebApp/node_modules
-          ln -s $(pwd)/node_modules ../DesktopWrappedWebapp/node_modules
           npm run build
 
       - name: Prepare deployment directory

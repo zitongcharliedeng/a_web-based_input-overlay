@@ -1,6 +1,10 @@
 import { mouse } from './inputReaders/DOM_API/mouse';
 import { keyboard } from './inputReaders/DOM_API/keyboard';
-import './inputReaders/ElectronAppWrapper_API';
+import { initializeElectronBridges } from './inputReaders/ElectronAppWrapper_API';
+
+// Electron bridge auto-initializes on import, but we import the function
+// to prevent Vite from tree-shaking the module (side-effect-only imports get removed)
+void initializeElectronBridges;
 import { deserializeCanvasObject } from './canvasRenderer/canvasObjectTypes/index.js';
 import { PropertyEdit } from './uiComponents/PropertyEdit';
 import { loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLocally/configSerializer';

@@ -200,3 +200,6 @@ export function initializeElectronBridges(): void {
 
 // Auto-initialize when module is imported
 initializeElectronBridges();
+
+// Export to prevent Vite tree-shaking (side-effect-only imports get removed)
+export { initializeElectronBridges };
