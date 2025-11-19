@@ -94,6 +94,8 @@ interface SDL {
 
 let uIOhook: UIOHook | null = null;
 let mainWindow: BrowserWindow | null = null;
+let gamepadPollInterval: NodeJS.Timeout | null = null;
+let keepOnTopInterval: NodeJS.Timeout | null = null;
 
 try {
 	const uiohook = require('uiohook-napi');
@@ -137,8 +139,14 @@ ipcMain.on('toggle-readonly-mode', (_event: IpcMainEvent) => {
 
 	if (mainWindow) {
 		mainWindow.setIgnoreMouseEvents(true);
-		console.log('[Main] Clickthrough enabled - use Task Manager to close app');
+		console.log('[Main] Clickthrough enabled - press ESC to close app');
 	}
+});
+
+// IPC handler to close app (triggered by ESC in readonly mode)
+ipcMain.on('close-app', (_event: IpcMainEvent) => {
+	console.log('[Main] Received close-app request');
+	app.quit();
 });
 
 console.log('[Main] Starting overlay in interactive mode...');
@@ -184,18 +192,35 @@ function createWindow(): BrowserWindow {
 		win.setIgnoreMouseEvents(true);
 		console.log('[Main] Readonly mode - click-through enabled, UI editing disabled');
 
-		const keepOnTop = setInterval(() => {
-			if (!win.isDestroyed()) {
-				win.moveTop();
-			}
+		keepOnTopInterval = setInterval(() => {
+			if (win.isDestroyed()) return;
+			win.moveTop();
 		}, 1000);
-
-		win.on('closed', () => {
-			clearInterval(keepOnTop);
-		});
 	} else {
 		console.log('[Main] Interactive mode - can drag and edit objects');
 	}
+
+	// Clean up on window close
+	win.on('closed', () => {
+		console.log('[Main] Window closed - cleaning up...');
+
+		if (keepOnTopInterval) {
+			clearInterval(keepOnTopInterval);
+			keepOnTopInterval = null;
+		}
+
+		if (gamepadPollInterval) {
+			clearInterval(gamepadPollInterval);
+			gamepadPollInterval = null;
+		}
+
+		if (uIOhook) {
+			console.log('[Main] Stopping global input hooks...');
+			uIOhook.stop();
+		}
+
+		mainWindow = null;
+	});
 
 	if (enableDevTools) {
 		console.log('[Main] DevTools enabled (transparency will break)');
@@ -310,9 +335,12 @@ function startInputHooks(): void {
 					connected: true
 				};
 
-				const pollInterval = setInterval(() => {
-					if (!sdlController) {
-						clearInterval(pollInterval);
+				gamepadPollInterval = setInterval(() => {
+					if (!sdlController || !mainWindow || mainWindow.isDestroyed()) {
+						if (gamepadPollInterval) {
+							clearInterval(gamepadPollInterval);
+							gamepadPollInterval = null;
+						}
 						return;
 					}
 
@@ -342,7 +370,7 @@ function startInputHooks(): void {
 					gamepadState.buttons[16] = { pressed: buttons.guide ?? false, value: buttons.guide ? 1.0 : 0 };
 
 					gamepadState.timestamp = Date.now();
-					mainWindow?.webContents.send('global-gamepad-state', gamepadState);
+					mainWindow.webContents.send('global-gamepad-state', gamepadState);
 				}, 16);
 
 				console.log('[Main] ✓ SDL gamepad polling started (60fps via setInterval)');
@@ -371,11 +399,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-	if (uIOhook) {
-		console.log('[Main] Stopping global input hooks...');
-		uIOhook.stop();
-	}
-
+	// Cleanup already done in window 'closed' handler
 	if (process.platform !== 'darwin') {
 		app.quit();
 	}
