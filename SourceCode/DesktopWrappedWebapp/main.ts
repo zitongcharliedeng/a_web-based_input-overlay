@@ -194,11 +194,12 @@ function createWindow(): BrowserWindow {
 
 	win.setAlwaysOnTop(true, 'screen-saver', 1);
 
+	// Load from Vite build output (same bundle as website)
 	// In packaged app: __dirname is where main.js is, WebApp is sibling directory
-	// In dev: __dirname is DesktopWrappedWebapp, need to go up and into WebApp
+	// In dev: __dirname is DesktopWrappedWebapp, Vite output is at ../WebApp/_bundleAllCompiledJavascriptForWebapp
 	const indexPath = app.isPackaged
 		? path.join(__dirname, 'WebApp', 'index.html')
-		: path.join(__dirname, '..', 'WebApp', 'index.html');
+		: path.join(__dirname, '..', 'WebApp', '_bundleAllCompiledJavascriptForWebapp', 'index.html');
 
 	console.log('[Main] Loading index.html from:', indexPath);
 	win.loadFile(indexPath);
