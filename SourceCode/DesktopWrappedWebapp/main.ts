@@ -139,14 +139,8 @@ ipcMain.on('toggle-readonly-mode', (_event: IpcMainEvent) => {
 
 	if (mainWindow) {
 		mainWindow.setIgnoreMouseEvents(true);
-		console.log('[Main] Clickthrough enabled - press ESC to close app');
+		console.log('[Main] Clickthrough enabled - use Task Manager to close app');
 	}
-});
-
-// IPC handler to close app (triggered by ESC in readonly mode)
-ipcMain.on('close-app', (_event: IpcMainEvent) => {
-	console.log('[Main] Received close-app request');
-	app.quit();
 });
 
 console.log('[Main] Starting overlay in interactive mode...');

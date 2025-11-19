@@ -52,7 +52,6 @@ declare global {
 			isAppInReadonlyClickthroughMode: () => boolean;
 			hasGlobalInput: () => boolean;
 			toggleReadonlyMode: () => void;
-			closeApp: () => void;
 		};
 	}
 }
@@ -95,10 +94,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 	toggleReadonlyMode: (): void => {
 		ipcRenderer.send('toggle-readonly-mode');
-	},
-
-	closeApp: (): void => {
-		ipcRenderer.send('close-app');
 	}
 });
 

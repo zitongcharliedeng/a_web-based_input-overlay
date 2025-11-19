@@ -80,14 +80,6 @@ window.addEventListener("load", function (): void {
 		const isAppInReadonlyClickthroughMode = window.electronAPI.isAppInReadonlyClickthroughMode();
 		userEditModeInteractionsController.setDisableInteractions(isAppInReadonlyClickthroughMode);
 		console.log('[default.ts] Readonly/clickthrough mode:', isAppInReadonlyClickthroughMode);
-
-		// ESC key to close app (works even in readonly mode via global keyboard hook)
-		document.addEventListener('keydown', (e: KeyboardEvent) => {
-			if (e.code === 'Escape' && isAppInReadonlyClickthroughMode) {
-				console.log('[default.ts] ESC pressed in readonly mode - closing app');
-				window.electronAPI!.closeApp();
-			}
-		});
 	}
 
 	// SpawnMenu removed - using existing showBothPanels UI instead
@@ -704,7 +696,7 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 
 		toggleReadonlyBtn.addEventListener("click", () => {
 			window.electronAPI!.toggleReadonlyMode();
-			showToast('Switched to readonly clickthrough mode - press ESC to close app');
+			showToast('Switched to readonly clickthrough mode - use Task Manager to close app');
 		});
 	}
 
