@@ -106,11 +106,14 @@ export class CanvasRenderer {
 	}
 
 	/**
-	 * Render debug overlay (hitboxes for all objects)
+	 * Render debug overlay (hitboxes for selected objects only)
 	 * Phase3: Moved from InteractionController (MVC violation fix)
 	 */
-	renderDebugHitboxes(objects: readonly CanvasObjectInstance[]): void {
+	renderDebugHitboxes(objects: readonly CanvasObjectInstance[], selectedIndices?: ReadonlySet<number>): void {
 		for (let i = 0; i < objects.length; i++) {
+			// Only render hitboxes for selected objects (if selection exists)
+			if (selectedIndices && !selectedIndices.has(i)) continue;
+
 			const object = objects[i];
 			if (!object) continue;
 			this.ctx.setTransform(1, 0, 0, 1, object.config.positionOnCanvas.pxFromCanvasLeft, object.config.positionOnCanvas.pxFromCanvasTop);
@@ -120,5 +123,24 @@ export class CanvasRenderer {
 			this.ctx.rect(0, 0, object.config.hitboxSize.widthInPx, object.config.hitboxSize.lengthInPx);
 			this.ctx.stroke();
 		}
+	}
+
+	/**
+	 * Render selection box (for drag-to-select)
+	 */
+	renderSelectionBox(startX: number, startY: number, endX: number, endY: number): void {
+		const minX = Math.min(startX, endX);
+		const maxX = Math.max(startX, endX);
+		const minY = Math.min(startY, endY);
+		const maxY = Math.max(startY, endY);
+
+		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+		this.ctx.beginPath();
+		this.ctx.strokeStyle = "rgba(0, 120, 255, 0.8)";
+		this.ctx.fillStyle = "rgba(0, 120, 255, 0.1)";
+		this.ctx.lineWidth = 2;
+		this.ctx.rect(minX, minY, maxX - minX, maxY - minY);
+		this.ctx.fill();
+		this.ctx.stroke();
 	}
 }

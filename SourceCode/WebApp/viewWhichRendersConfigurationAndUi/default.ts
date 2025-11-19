@@ -196,37 +196,45 @@ window.addEventListener("load", function (): void {
 
 	// Phase2: Render from config (pure MVC - no cache)
 	function frameUpdate(): void {
-		// Skip rendering dragged object in normal loop to prevent full-opacity ghost
-		const dragOriginal = userEditModeInteractionsController.getDragOriginalPosition();
-		const skipIndex = dragOriginal ? dragOriginal.objectIndex : undefined;
+		// Render all objects (skip logic removed - we render ghosts separately)
+		canvasRenderer.render(frameObjects);
 
-		canvasRenderer.render(frameObjects, skipIndex);
-		// Phase3: View renders hitboxes when Controller has selection
-		if (userEditModeInteractionsController.hasSelection()) {
-			canvasRenderer.renderDebugHitboxes(frameObjects);
+		// Render selection box if drag-to-select is active
+		const selectionBox = userEditModeInteractionsController.getSelectionBox();
+		if (selectionBox) {
+			canvasRenderer.renderSelectionBox(
+				selectionBox.startX,
+				selectionBox.startY,
+				selectionBox.endX,
+				selectionBox.endY
+			);
 		}
-		// Render original position ghost (half opacity at start position)
-		if (dragOriginal) {
-			const object = frameObjects[dragOriginal.objectIndex];
-			if (object) {
+
+		// Phase3: View renders hitboxes for selected objects only
+		const selectedIndices = userEditModeInteractionsController.getSelectedIndices();
+		if (userEditModeInteractionsController.hasSelection()) {
+			canvasRenderer.renderDebugHitboxes(frameObjects, selectedIndices);
+		}
+
+		// Render drag ghosts for multi-select
+		const dragPreview = userEditModeInteractionsController.getDragPreview();
+		if (dragPreview && selectedIndices.size > 0) {
+			for (const index of selectedIndices) {
+				const object = frameObjects[index];
+				if (!object) continue;
+
+				const { positionOnCanvas } = object.config;
+				if (!positionOnCanvas) continue;
+
+				// Render ghost at new position (semi-transparent)
 				canvasRenderer.renderOverlay((canvas, ctx) => {
 					ctx.save();
 					ctx.globalAlpha = 0.5;
-					ctx.setTransform(1, 0, 0, 1, dragOriginal.x, dragOriginal.y);
-					object.draw(canvas, ctx, true);
-					ctx.restore();
-				});
-			}
-		}
-		// Render drag preview (full opacity at current drag position)
-		const dragPreview = userEditModeInteractionsController.getDragPreview();
-		if (dragPreview) {
-			const object = frameObjects[dragPreview.objectIndex];
-			if (object) {
-				canvasRenderer.renderOverlay((canvas, ctx) => {
-					ctx.save();
-					ctx.globalAlpha = 1.0;
-					ctx.setTransform(1, 0, 0, 1, dragPreview.x, dragPreview.y);
+					ctx.setTransform(
+						1, 0, 0, 1,
+						positionOnCanvas.pxFromCanvasLeft + dragPreview.deltaX,
+						positionOnCanvas.pxFromCanvasTop + dragPreview.deltaY
+					);
 					object.draw(canvas, ctx, true);
 					ctx.restore();
 				});
@@ -262,6 +270,9 @@ window.addEventListener("load", function (): void {
 		// InteractionController updates (handles dragging, clicks, etc.)
 		userEditModeInteractionsController.update(frameObjects);
 
+		// Update delete snackbar visibility
+		updateDeleteSnackbarVisibility();
+
 		if (updateScreen) {
 			frameUpdate();
 		}
@@ -280,6 +291,35 @@ window.addEventListener("load", function (): void {
 		frameUpdate();
 	}
 	window.addEventListener("resize", resizeCanvas);
+
+	// Delete snackbar setup
+	const deleteSelectedSnackbar = document.getElementById("deleteSelectedSnackbar");
+
+	function updateDeleteSnackbarVisibility(): void {
+		if (!deleteSelectedSnackbar) return;
+
+		if (userEditModeInteractionsController.hasSelection()) {
+			deleteSelectedSnackbar.style.display = 'block';
+		} else {
+			deleteSelectedSnackbar.style.display = 'none';
+		}
+	}
+
+	// Backspace key handler for multi-select delete
+	document.addEventListener("keydown", (e: KeyboardEvent) => {
+		if (e.key === "Backspace" && userEditModeInteractionsController.hasSelection()) {
+			e.preventDefault();  // Prevent browser back navigation
+
+			const selectedCount = userEditModeInteractionsController.getSelectedIndices().size;
+			const message = selectedCount === 1
+				? "Delete this object?"
+				: `Delete ${selectedCount} objects?`;
+
+			if (confirm(message)) {
+				userEditModeInteractionsController.deleteSelectedObjects();
+			}
+		}
+	});
 }, false);
 
 /**
@@ -697,6 +737,7 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		toggleReadonlyBtn.addEventListener("click", () => {
 			window.electronAPI!.toggleReadonlyMode();
 			showToast('Switched to readonly clickthrough mode - use Task Manager to close app');
+			hideBothPanels();  // Close edit menu like other buttons
 		});
 	}
 
