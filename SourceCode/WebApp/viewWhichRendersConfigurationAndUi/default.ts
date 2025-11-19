@@ -736,7 +736,12 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		toggleReadonlyBtn.style.display = 'flex';
 
 		toggleReadonlyBtn.addEventListener("click", () => {
+			// Disable all canvas interactions FIRST (controller owns interaction behavior)
+			userEditModeInteractionsController.setDisableInteractions(true);
+
+			// Then notify main process (main owns window click-through behavior)
 			window.electronAPI!.toggleReadonlyMode();
+
 			showToast('Switched to readonly clickthrough mode - use Task Manager to close app');
 			hideBothPanels();  // Close edit menu like other buttons
 		});
