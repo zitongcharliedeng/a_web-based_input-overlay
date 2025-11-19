@@ -1,74 +1,97 @@
 import { CanvasObjectInstance } from './BaseCanvasObject';
 import { WebEmbedSchema, type WebEmbedConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
-// Global iframe registry to prevent duplicates when objects are recreated each frame
-const iframeRegistry = new Map<number, HTMLIFrameElement>();
+// Type for embed elements (iframe in web, webview in Electron)
+type EmbedElement = HTMLIFrameElement | HTMLElement;
+
+// Global embed registry to prevent duplicates when objects are recreated each frame
+const embedRegistry = new Map<number, EmbedElement>();
 
 export class WebEmbed extends CanvasObjectInstance {
 	override readonly config: WebEmbedConfig;
 	runtimeState: {
-		iframe: HTMLIFrameElement | null;
+		embedElement: EmbedElement | null;
 	};
 
 	constructor(configOverrides: Partial<WebEmbedConfig> | undefined, objArrayIdx: number) {
 		super(objArrayIdx);
 		this.config = WebEmbedSchema.parse(configOverrides || {});
 		this.runtimeState = {
-			iframe: null
+			embedElement: null
 		};
 
-		this.findOrCreateIframe();
+		this.findOrCreateEmbed();
 	}
 
-	private findOrCreateIframe(): void {
-		// Check if iframe already exists for this object index
-		const existing = iframeRegistry.get(this.objArrayIdx);
+	private findOrCreateEmbed(): void {
+		// Check if embed already exists for this object index
+		const existing = embedRegistry.get(this.objArrayIdx);
 		if (existing && existing.parentNode) {
-			this.runtimeState.iframe = existing;
+			this.runtimeState.embedElement = existing;
 			// Update URL if changed
-			if (this.runtimeState.iframe.src !== this.config.url) {
-				this.runtimeState.iframe.src = this.config.url;
+			const currentSrc = existing.getAttribute('src');
+			if (currentSrc !== this.config.url) {
+				existing.setAttribute('src', this.config.url);
 			}
 			return;
 		}
 
-		// Create new iframe only if it doesn't exist
-		this.runtimeState.iframe = document.createElement('iframe');
-		this.runtimeState.iframe.src = this.config.url;
-		this.runtimeState.iframe.style.position = 'absolute';
+		// Detect if running in Electron (check for electronAPI global)
+		const isElectron = typeof window !== 'undefined' && 'electronAPI' in window;
+
+		// Create appropriate embed element
+		let embedElement: EmbedElement;
+		if (isElectron) {
+			// Electron: Use <webview> tag (proper external content embedding)
+			embedElement = document.createElement('webview') as HTMLElement;
+			embedElement.setAttribute('src', this.config.url);
+			embedElement.setAttribute('webpreferences', 'javascript=yes');
+			embedElement.setAttribute('allowpopups', '');
+			console.log('[WebEmbed] Using <webview> tag for Electron (proper YouTube support)');
+		} else {
+			// Web: Use <iframe> with referrer policy
+			const iframe = document.createElement('iframe');
+			iframe.src = this.config.url;
+			iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+			iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+			embedElement = iframe;
+			console.log('[WebEmbed] Using <iframe> tag for web browser');
+		}
+
+		// Common styling (works for both iframe and webview)
+		embedElement.style.position = 'absolute';
 
 		const padding = 50;  // 50px border for dragging and right-click
-		this.runtimeState.iframe.style.left = (this.config.positionOnCanvas.pxFromCanvasLeft + padding) + 'px';
-		this.runtimeState.iframe.style.top = (this.config.positionOnCanvas.pxFromCanvasTop + padding) + 'px';
-		this.runtimeState.iframe.style.width = (this.config.hitboxSize.widthInPx - padding * 2) + 'px';
-		this.runtimeState.iframe.style.height = (this.config.hitboxSize.lengthInPx - padding * 2) + 'px';
+		embedElement.style.left = (this.config.positionOnCanvas.pxFromCanvasLeft + padding) + 'px';
+		embedElement.style.top = (this.config.positionOnCanvas.pxFromCanvasTop + padding) + 'px';
+		embedElement.style.width = (this.config.hitboxSize.widthInPx - padding * 2) + 'px';
+		embedElement.style.height = (this.config.hitboxSize.lengthInPx - padding * 2) + 'px';
 
-		this.runtimeState.iframe.style.opacity = this.config.opacity.toString();
-		this.runtimeState.iframe.style.border = '2px solid #B4B4B4';
-		this.runtimeState.iframe.style.pointerEvents = this.config.interactionMode === 'readonly' ? 'none' : 'auto';
-		this.runtimeState.iframe.style.zIndex = '1';
-		this.runtimeState.iframe.setAttribute('allowfullscreen', '');
-		this.runtimeState.iframe.setAttribute('allowtransparency', 'true');
+		embedElement.style.opacity = this.config.opacity.toString();
+		embedElement.style.border = '2px solid #B4B4B4';
+		embedElement.style.pointerEvents = this.config.interactionMode === 'readonly' ? 'none' : 'auto';
+		embedElement.style.zIndex = '1';
 
-		// Fix YouTube Error 153: YouTube requires referrer policy and permissions
-		this.runtimeState.iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
-		this.runtimeState.iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+		// Common attributes
+		embedElement.setAttribute('allowfullscreen', '');
+		embedElement.setAttribute('allowtransparency', 'true');
 
-		document.body.appendChild(this.runtimeState.iframe);
+		document.body.appendChild(embedElement);
 
-		// Register iframe to prevent duplicates
-		iframeRegistry.set(this.objArrayIdx, this.runtimeState.iframe);
+		// Register embed to prevent duplicates
+		this.runtimeState.embedElement = embedElement;
+		embedRegistry.set(this.objArrayIdx, embedElement);
 	}
 
 	override update(): boolean {
-		if (this.runtimeState.iframe) {
+		if (this.runtimeState.embedElement) {
 			const padding = 50;  // 50px border for dragging and right-click
-			this.runtimeState.iframe.style.left = (this.config.positionOnCanvas.pxFromCanvasLeft + padding) + 'px';
-			this.runtimeState.iframe.style.top = (this.config.positionOnCanvas.pxFromCanvasTop + padding) + 'px';
-			this.runtimeState.iframe.style.width = (this.config.hitboxSize.widthInPx - padding * 2) + 'px';
-			this.runtimeState.iframe.style.height = (this.config.hitboxSize.lengthInPx - padding * 2) + 'px';
-			this.runtimeState.iframe.style.opacity = this.config.opacity.toString();
-			this.runtimeState.iframe.style.pointerEvents = this.config.interactionMode === 'readonly' ? 'none' : 'auto';
+			this.runtimeState.embedElement.style.left = (this.config.positionOnCanvas.pxFromCanvasLeft + padding) + 'px';
+			this.runtimeState.embedElement.style.top = (this.config.positionOnCanvas.pxFromCanvasTop + padding) + 'px';
+			this.runtimeState.embedElement.style.width = (this.config.hitboxSize.widthInPx - padding * 2) + 'px';
+			this.runtimeState.embedElement.style.height = (this.config.hitboxSize.lengthInPx - padding * 2) + 'px';
+			this.runtimeState.embedElement.style.opacity = this.config.opacity.toString();
+			this.runtimeState.embedElement.style.pointerEvents = this.config.interactionMode === 'readonly' ? 'none' : 'auto';
 		}
 		return false;
 	}
@@ -76,9 +99,9 @@ export class WebEmbed extends CanvasObjectInstance {
 	override draw(_canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, isDragPreview: boolean = false): void {
 		const padding = 50;
 
-		// Hide iframe during drag preview (DOM element, not affected by canvas globalAlpha)
-		if (this.runtimeState.iframe) {
-			this.runtimeState.iframe.style.display = isDragPreview ? 'none' : 'block';
+		// Hide embed during drag preview (DOM element, not affected by canvas globalAlpha)
+		if (this.runtimeState.embedElement) {
+			this.runtimeState.embedElement.style.display = isDragPreview ? 'none' : 'block';
 		}
 
 		// ALWAYS draw purple magenta border (full hitbox)
@@ -111,11 +134,11 @@ export class WebEmbed extends CanvasObjectInstance {
 	}
 
 	override cleanup(): void {
-		if (this.runtimeState.iframe && this.runtimeState.iframe.parentNode) {
-			this.runtimeState.iframe.parentNode.removeChild(this.runtimeState.iframe);
-			this.runtimeState.iframe = null;
+		if (this.runtimeState.embedElement && this.runtimeState.embedElement.parentNode) {
+			this.runtimeState.embedElement.parentNode.removeChild(this.runtimeState.embedElement);
+			this.runtimeState.embedElement = null;
 		}
 		// Remove from registry to allow proper cleanup
-		iframeRegistry.delete(this.objArrayIdx);
+		embedRegistry.delete(this.objArrayIdx);
 	}
 }
