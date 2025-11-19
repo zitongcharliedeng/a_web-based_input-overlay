@@ -2,9 +2,8 @@ import { mouse } from './inputReaders/DOM_API/mouse';
 import { keyboard } from './inputReaders/DOM_API/keyboard';
 import { initializeElectronBridges } from './inputReaders/ElectronAppWrapper_API';
 
-// Electron bridge auto-initializes on import, but we import the function
-// to prevent Vite from tree-shaking the module (side-effect-only imports get removed)
-void initializeElectronBridges;
+// Initialize Electron bridge explicitly (ensures it runs even if Vite tree-shakes)
+initializeElectronBridges();
 import { deserializeCanvasObject } from './canvasRenderer/canvasObjectTypes/index.js';
 import { PropertyEdit } from './uiComponents/PropertyEdit';
 import { loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLocally/configSerializer';
@@ -686,6 +685,18 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 		doneBtn.addEventListener("click", () => {
 			hideBothPanels();
 			// Phase2: Config already updated by editor callbacks - no need to sync
+		});
+	}
+
+	// Setup Toggle Readonly Mode button (Electron only)
+	const toggleReadonlyBtn = document.getElementById("toggleReadonlyModeButton");
+	if (toggleReadonlyBtn && window.electronAPI) {
+		// Show button only in Electron
+		toggleReadonlyBtn.style.display = 'flex';
+
+		toggleReadonlyBtn.addEventListener("click", () => {
+			window.electronAPI!.toggleReadonlyMode();
+			showToast('Switched to readonly clickthrough mode - use Task Manager to close app');
 		});
 	}
 

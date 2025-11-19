@@ -13,7 +13,6 @@ if (process.platform === 'linux') {
 let isReadonly = process.argv.includes('--in-clickthrough-readonly-mode');
 const enableFrame = process.argv.includes('--with-window-frame');
 const enableDevTools = process.argv.includes('--with-dev-console');
-const skipModeSelector = process.argv.includes('--in-clickthrough-readonly-mode') || process.argv.includes('--skip-mode-selector');
 let globalInputAvailable = false;
 
 interface UIOHookKeyEvent {
@@ -131,43 +130,20 @@ ipcMain.on('has-global-input', (event: IpcMainEvent) => {
 	event.returnValue = globalInputAvailable;
 });
 
-ipcMain.on('launch-mode', (_event: IpcMainEvent, mode: 'interactive' | 'readonly') => {
-	console.log('[Main] User selected mode:', mode);
-	isReadonly = mode === 'readonly';
+// IPC handler for runtime mode toggle (from canvas menu button)
+ipcMain.on('toggle-readonly-mode', (_event: IpcMainEvent) => {
+	console.log('[Main] Toggling to readonly clickthrough mode');
+	isReadonly = true;
 
-	// Close all windows (mode selector)
-	BrowserWindow.getAllWindows().forEach(win => win.close());
-
-	// Launch overlay window
-	mainWindow = createWindow();
-	startInputHooks();
+	if (mainWindow) {
+		mainWindow.setIgnoreMouseEvents(true);
+		console.log('[Main] Clickthrough enabled - use Task Manager to close app');
+	}
 });
 
-console.log('[Main] Starting overlay...');
+console.log('[Main] Starting overlay in interactive mode...');
 console.log('[Main] Readonly mode:', isReadonly);
 console.log('[Main] Preload script path:', path.join(__dirname, 'preload.js'));
-
-function createModeSelectorWindow(): BrowserWindow {
-	const win = new BrowserWindow({
-		width: 540,
-		height: 400,
-		resizable: false,
-		frame: true,
-		alwaysOnTop: false,
-		backgroundColor: '#667eea',
-		webPreferences: {
-			nodeIntegration: false,
-			contextIsolation: true,
-			preload: path.join(__dirname, 'modeSelectorPreload.js')
-		}
-	});
-
-	const selectorPath = path.join(__dirname, 'modeSelector.html');
-	console.log('[Main] Loading mode selector from:', selectorPath);
-	win.loadFile(selectorPath);
-
-	return win;
-}
 
 function createWindow(): BrowserWindow {
 	// Get primary display dimensions
@@ -382,18 +358,14 @@ function startInputHooks(): void {
 }
 
 app.whenReady().then(() => {
-	if (skipModeSelector) {
-		console.log('[Main] Skipping mode selector, launching directly');
-		mainWindow = createWindow();
-		startInputHooks();
-	} else {
-		console.log('[Main] Showing mode selector');
-		createModeSelectorWindow();
-	}
+	// Always start in interactive mode (user can toggle to readonly from canvas menu)
+	mainWindow = createWindow();
+	startInputHooks();
 
 	app.on('activate', () => {
 		if (BrowserWindow.getAllWindows().length === 0) {
-			createWindow();
+			mainWindow = createWindow();
+			startInputHooks();
 		}
 	});
 });
