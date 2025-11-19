@@ -50,6 +50,10 @@ export class WebEmbed extends CanvasObjectInstance {
 		this.runtimeState.iframe.setAttribute('allowfullscreen', '');
 		this.runtimeState.iframe.setAttribute('allowtransparency', 'true');
 
+		// Fix YouTube Error 153: YouTube requires referrer policy and permissions
+		this.runtimeState.iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+		this.runtimeState.iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+
 		document.body.appendChild(this.runtimeState.iframe);
 
 		// Register iframe to prevent duplicates
