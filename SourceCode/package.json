@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@kmamal/sdl": "^0.11.13",
+    "electron-serve": "^3.0.0",
     "uiohook-napi": "^1.5.4",
     "zod": "^4.1.12"
   },
