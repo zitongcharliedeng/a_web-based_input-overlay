@@ -858,6 +858,105 @@ localStorage.getItem('customisableCanvasConfig')
 
 ---
 
+## Current Session Notes (2025-11-20)
+
+### Session Context: Branch Reorganization & Dependency Fixes
+
+**What We Just Accomplished:**
+
+1. **Branch Structure Cleanup**
+   - Renamed `claude/experimental-01GVQNvaEXT11NUP4p9Vdo3q` → `experimental`
+   - Archived old feature branches with `archive/` prefix:
+     - `claude/claude-md-*` → `archive/claude/claude-md-*`
+     - `claude/fix-todo-*` → `archive/claude/fix-todo-*`
+   - **Active branches now:** `main` (production) and `experimental` (testing)
+
+2. **Merged Valuable Commits into Experimental**
+   - `81468f2` - CLAUDE.md documentation rewrite (v1.0.23 architecture)
+   - `c14482b` - Color constants refactoring (debug visuals, selection box)
+
+3. **Fixed Critical Dependency Issue**
+   - **Problem:** `electron-serve` was in root `package.json` (wrong location)
+   - **Solution:** Moved to `SourceCode/package.json` dependencies
+   - **Also:** Removed redundant root `package.json` (build happens in SourceCode/)
+   - **Commits:** `05af391`, `dcb3286`
+
+4. **Verified Build Works**
+   - Cleaned stale `.js` files with `npm run clean`
+   - Confirmed `npm run build` compiles successfully
+   - TypeScript compilation passes
+   - Vite bundling produces `bundle.js` (106.59 kB)
+
+### Current Experimental Branch Status
+
+**Latest commits on experimental:**
+```
+dcb3286 - chore: remove redundant root package.json
+05af391 - fix: add electron-serve to SourceCode/package.json dependencies
+c14482b - refactor: extract hardcoded colors to named constants in CanvasRenderer
+81468f2 - docs: complete CLAUDE.md rewrite to reflect actual v1.0.23 architecture
+7853d24 - fix(embed): use electron-serve + iframe to fix YouTube Error 153
+f06354c - fix(webview): add partition, user-agent, and debug listeners for Error 153
+```
+
+**Experimental is 6 commits ahead of main (v1.0.23)**
+
+### What Needs Testing on Windows
+
+**YouTube Embed Fix (Critical):**
+- Root cause: `file://` protocol lacks HTTP Referer header (YouTube blocks embeds)
+- Solution: `electron-serve` creates custom `app://` protocol with proper headers
+- Replaced deprecated `<webview>` tag with standard `<iframe>` everywhere
+- Should fix "Error 153" that plagued previous versions
+
+**Test Commands (Windows PowerShell/CMD):**
+```powershell
+cd SourceCode
+npm install         # Installs electron-serve and all deps
+npm run electron:dev  # Launch with DevTools for debugging
+```
+
+**What to Verify:**
+1. App launches without "Cannot find module electron-serve" error
+2. Can spawn WebEmbed object from spawn menu
+3. YouTube embed loads without Error 153
+4. Gamepad/keyboard inputs still work correctly
+5. Multi-select and drag-to-select functionality works
+
+### Key Technical Details for Next Session
+
+**Build System:**
+- All source code in `SourceCode/` directory
+- `package.json` only exists in `SourceCode/` (not at repo root)
+- Two build steps: `npm run build:webapp` (Vite) + `npm run build:desktop` (tsc)
+- Output: `WebApp/_bundleAllCompiledJavascriptForWebapp/bundle.js`
+
+**electron-serve Integration:**
+- Added to dependencies in `SourceCode/package.json`
+- Used in `DesktopWrappedWebapp/main.ts` for custom protocol
+- Enables iframe YouTube embeds in Electron (works like http://)
+
+**Recent Architecture Changes:**
+- Removed `deepMerge()` utility (anti-pattern, required `any` types)
+- Use explicit object spreading for config merging (idiomatic TypeScript)
+- `getMergedGamepads()` exported from ElectronAppWrapper_API (merge pattern, not override)
+
+### Next Steps
+
+1. **Windows Testing** - User will test experimental branch on Windows
+2. **If Tests Pass** - Flatten commit history and merge to main
+3. **Release v1.0.24** - YouTube embed fix + documentation updates
+4. **Continue Development** - Move to next features (camera feeds, audio viz)
+
+### Important Reminders
+
+- **Always verify builds compile before asking user to test** (learned this lesson today)
+- Build happens in `SourceCode/`, not repo root
+- Clean stale JS files with `npm run clean` if build fails mysteriously
+- Experimental branch is for testing, main is production-ready
+
+---
+
 **Last Updated:** 2025-11-20
 **AI Assistant:** Claude Sonnet 4.5
 **Document Version:** 2.0 (Complete rewrite to match actual codebase)
