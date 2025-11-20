@@ -15,6 +15,13 @@
 import type { CustomisableCanvasConfig, CanvasObjectConfig } from '../../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
 import type { CanvasObjectInstance } from './canvasObjectTypes/index';
 
+// Debug visualization colors
+const DEBUG_HITBOX_COLOR = '#FF00FF';
+const DEBUG_HITBOX_LINE_WIDTH = 1;
+const SELECTION_BOX_STROKE_COLOR = 'rgba(0, 120, 255, 0.8)';
+const SELECTION_BOX_FILL_COLOR = 'rgba(0, 120, 255, 0.1)';
+const SELECTION_BOX_LINE_WIDTH = 2;
+
 export class CanvasRenderer {
 	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
@@ -118,8 +125,8 @@ export class CanvasRenderer {
 			if (!object) continue;
 			this.ctx.setTransform(1, 0, 0, 1, object.config.positionOnCanvas.pxFromCanvasLeft, object.config.positionOnCanvas.pxFromCanvasTop);
 			this.ctx.beginPath();
-			this.ctx.strokeStyle = "#FF00FF";
-			this.ctx.lineWidth = 1;
+			this.ctx.strokeStyle = DEBUG_HITBOX_COLOR;
+			this.ctx.lineWidth = DEBUG_HITBOX_LINE_WIDTH;
 			this.ctx.rect(0, 0, object.config.hitboxSize.widthInPx, object.config.hitboxSize.lengthInPx);
 			this.ctx.stroke();
 		}
@@ -136,9 +143,9 @@ export class CanvasRenderer {
 
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.beginPath();
-		this.ctx.strokeStyle = "rgba(0, 120, 255, 0.8)";
-		this.ctx.fillStyle = "rgba(0, 120, 255, 0.1)";
-		this.ctx.lineWidth = 2;
+		this.ctx.strokeStyle = SELECTION_BOX_STROKE_COLOR;
+		this.ctx.fillStyle = SELECTION_BOX_FILL_COLOR;
+		this.ctx.lineWidth = SELECTION_BOX_LINE_WIDTH;
 		this.ctx.rect(minX, minY, maxX - minX, maxY - minY);
 		this.ctx.fill();
 		this.ctx.stroke();
