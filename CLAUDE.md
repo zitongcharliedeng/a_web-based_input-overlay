@@ -1,1222 +1,962 @@
-# a_web-based_input-overlay
+# A Web-Based Input Overlay - Developer Guide for AI Assistants
 
 > The Ultimate Transparent Streamer Overlay Platform - Because streamers should see their own overlays too!
 
-## 🎯 Project Vision
+**Repository:** https://github.com/zitongcharliedeng/a_web-based_input-overlay
+**Current Version:** 1.0.23
+**Status:** Production (Active Development)
+**License:** MIT
+**Primary Platform:** Windows 10/11 (macOS and Linux supported)
 
-This project transforms the concept of streaming overlays from "viewer-only graphics" to **real-time, transparent, always-on-top overlays that streamers can actually see**. Built with web technologies for maximum compatibility, wrapped in Electron for native transparency support.
+---
 
-### The Big Idea
+## Project Vision
+
+Transform streaming overlays from "viewer-only graphics" to **real-time, transparent, always-on-top overlays that streamers can actually see**.
 
 **Traditional overlays:** Only visible in OBS output (viewers see it, streamer doesn't)
 **Our approach:** Transparent window overlay (streamer AND viewers see it in real-time)
 
-Think of it as a HUD for streamers - displaying input visualization, chat, camera feeds, audio levels, and more, all in a customizable transparent overlay that works across Windows, macOS, and Linux.
+Think of it as a HUD for streamers - displaying input visualization (keyboard, mouse, gamepad), camera feeds, audio levels, web embeds (chat, YouTube), all in a customizable transparent overlay.
 
 ---
 
-## 🏗️ Project Status
+## Quick Facts for AI Assistants
 
-### Current State
-- **Repository Location:** `/home/zitchaden/analog_keyboard_overlay_fork/`
-- **Git Status:** Part of `myLinuxHome` repository
-- **Code Status:** Empty (clean slate for fresh implementation)
-- **Stage:** Planning & Architecture Phase
+**Technology Stack:**
+- TypeScript (strict mode, no `any` types allowed)
+- Electron (desktop wrapper with transparency support)
+- Vite (web app bundler with hot reload)
+- Zod (runtime schema validation as single source of truth)
+- Canvas 2D API (hardware-accelerated rendering)
 
-### Repository Context
-This directory exists within the larger `myLinuxHome` dotfiles repository (`https://github.com/zitongcharliedeng/myLinuxHome.git`). The plan is to:
-1. Develop the project here initially
-2. Create a dedicated GitHub repository as `zitongcharliedeng/a_web-based_input-overlay`
-3. Maintain as a standalone project with its own release cycle
+**Key Dependencies:**
+- `@kmamal/sdl` - SDL2 bindings for robust gamepad polling
+- `uiohook-napi` - Global keyboard/mouse hooks (clickthrough mode)
+- `zod` - Schema validation and type inference
 
-### Origin Story & Legal Approach
+**Architecture Pattern:**
+- Model-View-Controller (MVC) with semantic folder names
+- Web-first design (works in browser AND Electron)
+- Dual input systems (browser APIs + native Electron hooks)
+- Config-driven rendering (Zod schemas → TypeScript types)
 
-**Inspiration:** This project is inspired by [`DarrenVs/analog_keyboard_overlay`](https://github.com/DarrenVs/analog_keyboard_overlay), a lightweight web-based gamepad/analog keyboard visualizer created by Darren for the Wooting keyboard community.
-
-**Clean-Room Rewrite Strategy:**
-- The original project has **no license** (default "all rights reserved" copyright)
-- We're implementing a **clean-room rewrite**: studying the concepts and functionality, but writing all code fresh
-- After refactoring to our semantic architecture style, the code will be unrecognizable from the original
-- All implementations use our own abstractions, naming conventions, and design patterns
-- We will release under **MIT License** for maximum community adoption
-
-**Attribution:**
-- DarrenVs receives credit for the original gamepad overlay concept
-- The transparent overlay approach and multimedia features are novel additions
-- Our codebase is legally distinct through substantial transformation
+**Code Style Requirements:**
+- No emojis in code or commit messages
+- No `any` types - use `unknown` if type is truly unknown
+- No `as` type assertions - refactor code pattern instead
+- Explicit object spreading for config merging (no deepMerge utilities)
+- Conventional commits with breaking change markers (`feat!:`, `fix!:`)
+- Self-documenting variable names over comments
 
 ---
 
-## 🚀 Core Features
-
-### Phase 1: Input Visualization (MVP)
-- ✅ **Analog Keyboard/Gamepad Input:** Real-time visualization of analog keypresses and joystick movement
-- ✅ **Mouse Velocity Tracking:** Dynamic trails and effects based on mouse speed
-- ✅ **Customizable Layouts:** Multiple keyboard layouts (WASD, QWER, full keyboard, etc.)
-- ✅ **Transparent Window:** True alpha transparency (Electron) or greenscreen (web)
-
-### Phase 2: Multimedia Integration
-- 🔄 **Camera Feeds:** Embed webcam or capture card feeds with positioning
-- 🔄 **Microphone Waveform:** Real-time audio visualization with FFT analysis
-- 🔄 **Audio Levels:** VU meters for mic input
-- 🔄 **Multi-camera Support:** Picture-in-picture layouts
-
-### Phase 3: Chat & Interaction
-- 📋 **Twitch Chat Embed:** Live chat display with custom styling
-- 📋 **YouTube Chat Embed:** Supports YouTube live stream chat
-- 📋 **Chat Filters:** Highlight keywords, hide commands, custom CSS
-- 📋 **Alerts Integration:** Compatible with StreamElements/Streamlabs
-
-### Phase 4: Advanced Features
-- 📋 **Animated Crosshairs:** Dynamic crosshairs reacting to input (weapon recoil, movement)
-- 📋 **Music Player:** Now playing display with album art
-- 📋 **Performance Stats:** FPS counter, CPU/GPU usage, frame time graphs
-- 📋 **Scene Switching:** Multiple overlay configurations (per-game presets)
-
-**Legend:** ✅ Planned | 🔄 In Progress | 📋 Future
-
----
-
-## 🔧 Technology Stack
-
-### Core Decision: TypeScript/Electron (Web-First Architecture)
-
-#### Why Web Technologies Won Over Rust
-
-We extensively evaluated Rust vs TypeScript for this project. Here's why **TypeScript + Electron** emerged as the clear winner:
-
-**✅ Web Technologies Excel at Multimedia:**
-- **Camera Access:** `getUserMedia()` API is mature, cross-platform, and battle-tested
-- **Microphone:** Web Audio API provides built-in FFT analysis for waveforms (no manual implementation)
-- **Chat Embeds:** Twitch/YouTube provide iframe/API integration (impossible in native Rust)
-- **Gamepad Input:** Native `Gamepad API` works flawlessly across all platforms
-- **Mouse Tracking:** `PointerEvent API` with sub-millisecond timestamps
-
-**✅ Code Reusability (90% Sharing):**
-```
-Same HTML/CSS/TypeScript codebase →
-  ├─ Web Version (GitHub Pages) → OBS Browser Source
-  └─ Electron Wrapper → Transparent standalone overlay
-```
-
-**✅ Development Velocity:**
-- Hot reload during development (instant feedback)
-- Chrome DevTools for debugging (inspect canvas, profile performance)
-- Massive npm ecosystem (libraries for everything)
-- Lower barrier to contribution (web devs > systems programmers)
-
-**✅ Cross-Platform Zero-Pain:**
-- Write once, run on Windows/Mac/Linux
-- No platform-specific code for 90% of features
-- Electron handles window management differences
-
-**⚠️ Rust Ecosystem Gaps for Our Use Case:**
-| Feature | Web APIs | Rust Native | Winner |
-|---------|----------|-------------|--------|
-| Camera access | ✅ getUserMedia() | ❌ nokhwa (buggy) | **Web** |
-| Microphone FFT | ✅ Web Audio API | ⚠️ cpal (no viz libs) | **Web** |
-| Chat embeds | ✅ iframe/API | ❌ Needs embedded browser | **Web** |
-| Gamepad | ✅ Gamepad API | ✅ gilrs crate | Tie |
-| Transparency | ✅ Electron | ✅ winit | Tie |
-| Binary size | ❌ 100-200MB | ✅ 5-20MB | Rust |
-| Memory usage | ⚠️ 200-500MB | ✅ 50-150MB | Rust |
-
-**Performance Reality Check:**
-- Rust is 2-3x more efficient in CPU/memory
-- But web is "fast enough" for overlays (60fps easily achievable)
-- Modern streaming PCs have 32GB+ RAM (500MB overlay is negligible)
-- Canvas API is hardware-accelerated (GPU rendering)
-
-**When Rust Would Make Sense:**
-- If we needed 240fps+ rendering (we don't - 60fps is standard)
-- If targeting low-end hardware (streaming PCs are high-end)
-- If building a game engine (we're building an overlay)
-- If Twitch/YouTube embeds weren't core features (they are)
-
-**Verdict:** The fact that chat embeds are a core requirement makes web tech the only pragmatic choice. Rust has no HTML rendering without embedding a browser (defeating the purpose).
-
-### Technology Stack Details
-
-**Frontend:**
-- **TypeScript:** Type-safe JavaScript for maintainability
-- **Vanilla JS/TS:** No framework bloat initially (can add React/Svelte for UI later)
-- **HTML5 Canvas:** Hardware-accelerated rendering for effects
-- **CSS3:** Animations and styling (GPU-accelerated transforms)
-
-**Build System:**
-- **Vite:** Lightning-fast dev server with hot module replacement
-- **TypeScript Compiler:** Type checking and ES6+ transpilation
-- **Rollup:** Bundling for production (via Vite)
-
-**APIs & Libraries:**
-- **Web APIs:**
-  - `Gamepad API` - Controller/analog keyboard input
-  - `PointerEvent API` - Mouse tracking with velocity calculation
-  - `getUserMedia()` - Camera and microphone access
-  - `Web Audio API` - FFT analysis for waveform visualization
-  - `Canvas 2D Context` - Rendering engine
-  - `requestAnimationFrame()` - 60fps render loop
-- **Electron (Desktop Only):**
-  - `BrowserWindow` - Transparent window management
-  - `setAlwaysOnTop()` - Overlay stays above other windows
-  - `setIgnoreMouseEvents()` - Click-through capability
-
-**Development Tools:**
-- **Hot Reload:** Vite dev server (instant feedback)
-- **Debugging:** Chrome DevTools (inspect DOM, profile Canvas)
-- **Type Checking:** TypeScript LSP in editor
-- **Build:** `npm run build:web` or `npm run build:electron`
-
-### Performance Targets
-
-| Metric | Target | Rationale |
-|--------|--------|-----------|
-| Frame Rate | 60 FPS | Standard for smooth overlays (matches monitor refresh) |
-| Memory Usage | <500 MB | Acceptable for streaming PCs (32GB+ RAM typical) |
-| CPU Usage | <15% | Leave headroom for game + OBS encoding |
-| Latency | <16ms | One frame at 60fps (imperceptible to human eye) |
-| Binary Size | <200 MB | Electron bundle (one-time download) |
-
----
-
-## 🎨 Architecture
-
-### Web-First Approach
-
-**Philosophy:** Build as a web application first, add Electron wrapper for native features.
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      Web Application Core                    │
-│  (Runs in browser AND Electron renderer process)            │
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │   Input      │  │  Multimedia  │  │   Effects    │     │
-│  │ Visualization│  │  (Cam/Mic)   │  │   Engine     │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │   Canvas     │  │  Web Audio   │  │   Gamepad    │     │
-│  │  Rendering   │  │     API      │  │     API      │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-└─────────────────────────────────────────────────────────────┘
-                             │
-                    ┌────────┴─────────┐
-                    │                  │
-          ┌─────────▼────────┐  ┌─────▼──────────────┐
-          │   Web Version    │  │  Electron Wrapper  │
-          │ (GitHub Pages)   │  │   (Native App)     │
-          ├──────────────────┤  ├────────────────────┤
-          │ • Greenscreen BG │  │ • Transparency     │
-          │ • OBS Browser    │  │ • Always-on-top    │
-          │   Source ready   │  │ • Click-through    │
-          │ • Demo/testing   │  │ • File system      │
-          └──────────────────┘  └────────────────────┘
-```
-
-### Project Structure
+## Repository Structure
 
 ```
 a_web-based_input-overlay/
-├── web/                              # Pure web application
-│   ├── index.html                    # Entry point
-│   ├── src/
-│   │   ├── core/                     # Clean semantic abstractions
-│   │   │   ├── Canvas.ts            # Canvas wrapper with cleanup
-│   │   │   ├── RenderLoop.ts        # requestAnimationFrame manager
-│   │   │   ├── EventBus.ts          # Pub/sub for component communication
-│   │   │   └── StateManager.ts      # Centralized state
-│   │   │
-│   │   ├── features/                 # Feature modules (plug-and-play)
-│   │   │   ├── keyboard/
-│   │   │   │   ├── KeyboardVisualizer.ts
-│   │   │   │   ├── AnalogKeyRenderer.ts
-│   │   │   │   └── layouts/         # WASD, QWER, full, etc.
-│   │   │   │
-│   │   │   ├── gamepad/
-│   │   │   │   ├── GamepadInput.ts  # Gamepad API wrapper
-│   │   │   │   └── ThumbstickRenderer.ts
-│   │   │   │
-│   │   │   ├── mouse/
-│   │   │   │   ├── VelocityTracker.ts # PointerEvent velocity calc
-│   │   │   │   └── TrailRenderer.ts   # Dynamic mouse trails
-│   │   │   │
-│   │   │   ├── camera/
-│   │   │   │   ├── CameraFeed.ts     # getUserMedia wrapper
-│   │   │   │   └── MultiCamLayout.ts
-│   │   │   │
-│   │   │   ├── audio/
-│   │   │   │   ├── MicInput.ts       # getUserMedia audio
-│   │   │   │   ├── WaveformRenderer.ts # FFT visualization
-│   │   │   │   └── VUMeter.ts
-│   │   │   │
-│   │   │   ├── chat/
-│   │   │   │   ├── TwitchEmbed.ts
-│   │   │   │   └── YouTubeEmbed.ts
-│   │   │   │
-│   │   │   └── crosshair/
-│   │   │       ├── CrosshairRenderer.ts
-│   │   │       └── RecoilSimulator.ts
-│   │   │
-│   │   ├── ui/                       # Customization interface
-│   │   │   ├── SettingsPanel.ts     # Runtime configuration
-│   │   │   ├── PresetManager.ts     # Save/load configurations
-│   │   │   └── ColorPicker.ts
-│   │   │
-│   │   └── utils/                    # Shared utilities
-│   │       ├── Vector2D.ts          # 2D vector math
-│   │       ├── Lerp.ts              # Interpolation helpers
-│   │       └── PerformanceMonitor.ts
-│   │
-│   ├── styles/
-│   │   ├── main.css
-│   │   ├── transparent.css          # Transparent background styles
-│   │   └── greenscreen.css          # Chroma key green background
-│   │
-│   └── public/
-│       ├── assets/                  # Images, fonts, etc.
-│       └── scenes/                  # Preset configurations
+├── CLAUDE.md                           # This file (AI assistant guide)
+├── README.md                           # Public-facing readme
+├── .github/workflows/                  # CI/CD (GitHub Actions)
 │
-├── electron/                         # Electron wrapper (desktop app)
-│   ├── main.js                      # Main process (window management)
-│   ├── preload.js                   # Secure IPC bridge
-│   └── package.json                 # Electron dependencies
-│
-├── docs/                             # Platform-specific guides
-│   ├── transparency/
-│   │   ├── nixos-niri.md           # NixOS with niri compositor
-│   │   ├── nixos-cosmic.md         # NixOS with COSMIC DE
-│   │   ├── linux-gnome.md          # GNOME Shell configuration
-│   │   ├── linux-kde.md            # KDE Plasma window rules
-│   │   ├── linux-hyprland.md       # Hyprland config
-│   │   ├── windows-powertoys.md    # PowerToys FancyZones
-│   │   └── macos-yabai.md          # Yabai window manager
-│   │
-│   ├── development.md               # Setup and contribution guide
-│   └── api.md                       # API documentation
-│
-├── claude.md                         # This file
-├── README.md                         # Public-facing readme
-├── package.json                      # npm scripts and dependencies
-├── tsconfig.json                     # TypeScript configuration
-└── vite.config.ts                    # Vite build configuration
+└── SourceCode/                         # All source code lives here
+    ├── package.json                    # Dependencies and npm scripts
+    ├── package-lock.json              # Locked dependency versions
+    │
+    ├── WebApp/                         # Web application (Vite project)
+    │   ├── index.html                  # Entry point
+    │   ├── vite.config.ts              # Vite configuration
+    │   │
+    │   ├── modelToSaveCustomConfigurationLocally/    # MODEL layer
+    │   │   ├── CustomisableCanvasConfig.ts  # Central registry + types
+    │   │   ├── configSchema.ts              # Zod schemas (source of truth)
+    │   │   ├── configSerializer.ts          # JSON serialization
+    │   │   ├── configUpdaters.ts            # Config mutation logic
+    │   │   └── ConfigManager.ts             # localStorage persistence
+    │   │
+    │   ├── viewWhichRendersConfigurationAndUi/      # VIEW layer
+    │   │   ├── default.ts                   # Main entry point (game loop)
+    │   │   │
+    │   │   ├── inputReaders/
+    │   │   │   ├── DOM_API/                 # Browser input (web version)
+    │   │   │   │   ├── keyboard.ts
+    │   │   │   │   ├── mouse.ts
+    │   │   │   │   └── gamepad.ts
+    │   │   │   └── ElectronAppWrapper_API/  # Native hooks (Electron)
+    │   │   │       └── index.ts
+    │   │   │
+    │   │   ├── canvasRenderer/
+    │   │   │   ├── CanvasRenderer.ts        # Main render loop
+    │   │   │   ├── canvasDrawingHelpers.ts  # Drawing utilities
+    │   │   │   └── canvasObjectTypes/       # Visual components
+    │   │   │       ├── BaseCanvasObject.ts
+    │   │   │       ├── LinearInputIndicator.ts  # WASD keys, triggers
+    │   │   │       ├── PlanarInputIndicator.ts  # Joysticks, mouse
+    │   │   │       ├── Text.ts
+    │   │   │       ├── Image.ts
+    │   │   │       ├── WebEmbed.ts          # YouTube, Twitch, GIFs
+    │   │   │       └── index.ts             # Deserialization logic
+    │   │   │
+    │   │   ├── uiComponents/
+    │   │   │   ├── PropertyEdit.ts          # Right-click edit menu
+    │   │   │   └── Toast.ts                 # Notification system
+    │   │   │
+    │   │   └── _assets/
+    │   │       ├── style.css                # Global styles
+    │   │       └── images/
+    │   │           └── KeyDefault.png
+    │   │
+    │   ├── controllerToMutateCustomConfiguration/   # CONTROLLER layer
+    │   │   └── UserEditModeInteractionsController.ts  # Edit mode logic
+    │   │
+    │   └── _helpers/                        # Shared utilities
+    │       ├── Vector.ts                    # 3D vector math
+    │       └── TypeUtilities.ts             # TypeScript helpers
+    │
+    ├── DesktopWrappedWebapp/               # Electron wrapper
+    │   ├── tsconfig.json                   # TypeScript config
+    │   ├── main.ts                         # Main process
+    │   ├── preload.ts                      # Preload script (IPC bridge)
+    │   └── modeSelectorPreload.ts          # Mode selection preload
+    │
+    └── _devTools/                          # Development tools
+        └── buildForWindowsDevelopment.ps1  # Build and run script
 ```
 
-### Semantic Architecture Principles
+---
 
-**Clean Abstraction Layers:**
-1. **Core Layer:** Framework-agnostic primitives (Canvas, EventBus, State)
-2. **Feature Layer:** Self-contained modules (can enable/disable independently)
-3. **UI Layer:** User-facing customization interface
-4. **Platform Layer:** Electron-specific integrations (optional)
+## Architecture Deep Dive
 
-**Code Philosophy:**
-- **Dependency Injection:** Features receive dependencies (no globals)
-- **Pub/Sub Pattern:** Features communicate via EventBus (loose coupling)
-- **Type Safety:** Strong TypeScript types (no `any`, strict mode)
-- **Readable Naming:** `VelocityTracker.calculateSpeed()` not `vt.calc()`
-- **Single Responsibility:** Each class does ONE thing well
+### MVC Pattern with Semantic Folder Names
 
-**Example - Clean Module:**
+**Model (`modelToSaveCustomConfigurationLocally/`):**
+- Zod schemas define the structure of all canvas objects
+- Schemas generate TypeScript types via `z.infer<typeof schema>`
+- ConfigManager handles localStorage persistence
+- configUpdaters provide type-safe mutation functions
+
+**View (`viewWhichRendersConfigurationAndUi/`):**
+- `default.ts` is the main entry point (starts game loop)
+- CanvasRenderer manages the render loop (requestAnimationFrame)
+- Canvas object types (LinearInputIndicator, PlanarInputIndicator, etc.)
+- Input readers provide unified interface for DOM and Electron APIs
+- UI components for editing and notifications
+
+**Controller (`controllerToMutateCustomConfiguration/`):**
+- UserEditModeInteractionsController handles drag-drop, resize, select
+- Right-click editing via PropertyEdit component
+- Multi-select with shift-click and drag-to-select
+
+### Dual Input Systems
+
+**Web Version (DOM_API):**
 ```typescript
-// features/mouse/VelocityTracker.ts
-export class VelocityTracker {
-  private lastPosition: Vector2D;
-  private lastTime: number;
-  private currentVelocity: Vector2D;
+// Browser-based input for web deployment
+keyboard.ts  // addEventListener('keydown', ...)
+mouse.ts     // addEventListener('pointermove', ...)
+gamepad.ts   // navigator.getGamepads()
+```
 
-  constructor(private eventBus: EventBus) {
-    this.setupListeners();
+**Electron Version (ElectronAppWrapper_API):**
+```typescript
+// Native global hooks for clickthrough mode
+uiohook-napi  // Global keyboard/mouse (works when window ignores input)
+@kmamal/sdl   // Robust gamepad polling (SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS)
+```
+
+The input readers abstract these differences, providing a unified interface to canvas objects.
+
+### Canvas Object Architecture
+
+All canvas objects extend `BaseCanvasObject` and follow this pattern:
+
+```typescript
+// Each object type has a Zod schema
+const LinearInputIndicatorConfigSchema = z.object({
+  input: z.object({ /* ... */ }),
+  processing: z.object({ /* ... */ }),
+  display: z.object({ /* ... */ }),
+  opacity: z.number().min(0).max(1).optional()
+});
+
+// TypeScript type is inferred from schema
+type LinearInputIndicatorConfig = z.infer<typeof LinearInputIndicatorConfigSchema>;
+
+// Class uses explicit object spreading (no deepMerge)
+class LinearInputIndicator extends BaseCanvasObject {
+  constructor(props: Partial<LinearInputIndicatorConfig>, objArrayIdx: number) {
+    const defaults = LinearInputIndicatorConfigSchema.parse({});
+
+    // Explicit spreading at each nesting level (idiomatic TypeScript)
+    this.input = {
+      keyboard: { ...defaults.input.keyboard, ...props.input?.keyboard },
+      gamepad: { ...defaults.input.gamepad, ...props.input?.gamepad }
+    };
+
+    this.display = { ...defaults.display, ...props.display };
+    this.opacity = props.opacity ?? defaults.opacity;
   }
 
-  private setupListeners(): void {
-    document.addEventListener('pointermove', this.handlePointerMove);
-  }
-
-  private handlePointerMove = (event: PointerEvent): void => {
-    const now = event.timeStamp;
-    const position = new Vector2D(event.clientX, event.clientY);
-
-    const deltaTime = now - this.lastTime;
-    if (deltaTime > 0) {
-      const deltaPosition = position.subtract(this.lastPosition);
-      this.currentVelocity = deltaPosition.divide(deltaTime).multiply(1000); // px/s
-
-      this.eventBus.emit('mouse:velocity', {
-        velocity: this.currentVelocity,
-        speed: this.currentVelocity.magnitude(),
-        position
-      });
+  draw(ctx: CanvasRenderingContext2D): void {
+    if (this.opacity !== undefined) {
+      ctx.globalAlpha = this.opacity;
     }
-
-    this.lastPosition = position;
-    this.lastTime = now;
-  }
-
-  public getVelocity(): Vector2D {
-    return this.currentVelocity;
-  }
-
-  public cleanup(): void {
-    document.removeEventListener('pointermove', this.handlePointerMove);
+    // Drawing logic
+    ctx.globalAlpha = 1.0; // Always reset (no ctx.save/restore)
   }
 }
 ```
 
-**Benefits of This Style:**
-- Easy to understand (even after months away from code)
-- Testable (mock EventBus for unit tests)
-- Reusable (VelocityTracker can be used anywhere)
-- Maintainable (clear contracts, no hidden dependencies)
+**Key Design Decisions:**
+1. **Zod schemas as single source of truth** - Schemas define defaults, validation, and types
+2. **Explicit object spreading** - No `any` types, fully type-safe merging
+3. **Opacity managed at object level** - Each object handles its own globalAlpha
+4. **Manual globalAlpha reset** - Performance optimization (no save/restore overhead)
+
+### Config Serialization
+
+```typescript
+// Runtime registry for deserialization
+export const ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME = {
+  LinearInputIndicator,
+  PlanarInputIndicator,
+  Text,
+  Image,
+  WebEmbed
+} as const satisfies Record<string, CanvasObjectClass<any>>;
+
+// Config is discriminated union based on class name
+type CanvasObjectConfig =
+  | { LinearInputIndicator: LinearInputIndicatorConfig }
+  | { PlanarInputIndicator: PlanarInputIndicatorConfig }
+  | { Text: TextConfig }
+  | { Image: ImageConfig }
+  | { WebEmbed: WebEmbedConfig };
+
+// Deserialization uses runtime reflection
+function deserializeCanvasObject(objData: CanvasObjectConfig): CanvasObjectInstance {
+  for (const key in objData) {
+    if (isCanvasObjectClassName(key)) {
+      const Class = ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME[key];
+      const config = objData[key];
+      return new Class(config, objArrayIdx);
+    }
+  }
+  throw new Error('Invalid config: no valid class name found');
+}
+```
+
+**Why this matters:**
+- Class names must be preserved in production build
+- Vite config has `esbuild: { keepNames: true }`
+- Allows saving/loading configs from localStorage and files
 
 ---
 
-## 🖥️ Cross-Platform Transparency
+## Build System
 
-### The Transparency Challenge
+### Vite Configuration
 
-**Web browsers CANNOT create transparent windows** due to security and architectural limitations. Only native applications (or Electron) can achieve true window transparency.
+```typescript
+// SourceCode/WebApp/vite.config.ts
+export default defineConfig({
+  base: './',  // Relative paths for GitHub Pages
+  build: {
+    outDir: '_bundleAllCompiledJavascriptForWebapp',
+    rollupOptions: {
+      output: {
+        entryFileNames: 'bundle.js',
+        assetFileNames: '[name].[ext]'
+      }
+    }
+  },
+  esbuild: {
+    keepNames: true  // CRITICAL: Preserve class names for runtime reflection
+  },
+  define: {
+    '__CURRENT_PROJECT_GIT_HASH__': JSON.stringify(
+      execSync('git rev-parse --short HEAD').trim()
+    )
+  }
+});
+```
 
-**Our Solution:**
-- **Web Version:** Use greenscreen background (chroma key in OBS) or solid color
-- **Electron Version:** True alpha-channel transparency (always-on-top overlay)
+### NPM Scripts
 
-### Platform Support Matrix
+```bash
+# Web app development (hot reload)
+npm run dev:webapp
+cd WebApp && vite
+
+# Electron wrapper compilation
+npm run build:desktop
+tsc -p DesktopWrappedWebapp/tsconfig.json
+
+# Full build (web + desktop)
+npm run build
+npm run build:webapp && npm run build:desktop
+
+# Run Electron in development mode
+npm run electron:dev
+npm run build && electron DesktopWrappedWebapp/main.js --with-dev-console
+
+# Run Electron in clickthrough-readonly mode
+npm run electron:clickthrough-readonly
+npm run build && electron DesktopWrappedWebapp/main.js --in-clickthrough-readonly-mode
+```
+
+### Windows Development Script
+
+Primary development workflow uses PowerShell script:
+
+```powershell
+.\SourceCode\_devTools\buildForWindowsDevelopment.ps1
+
+# Interactive menu:
+# 1. Build only
+# 2. Build and launch website version
+# 3. Build and launch webapp (interactive mode)
+# 4. Build and launch webapp (clickthrough-readonly mode)
+```
+
+---
+
+## Electron Implementation Details
+
+### Transparency and Always-On-Top
+
+```typescript
+// SourceCode/DesktopWrappedWebapp/main.ts
+const mainWindow = new BrowserWindow({
+  width: 1920,
+  height: 1080,
+  transparent: true,        // Alpha channel transparency
+  frame: !enableFrame,      // Frameless window
+  hasShadow: false,         // No drop shadow
+  skipTaskbar: true,        // Hide from taskbar
+  webPreferences: {
+    preload: path.join(__dirname, 'preload.js'),
+    contextIsolation: true,
+    nodeIntegration: false
+  }
+});
+
+mainWindow.setAlwaysOnTop(true, 'screen-saver', 1);
+
+// Periodic check to maintain always-on-top
+keepOnTopInterval = setInterval(() => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.moveTop();
+  }
+}, 1000);
+```
+
+### Clickthrough-Readonly Mode
+
+```typescript
+// Toggle between interactive and clickthrough modes
+ipcMain.on('toggle-readonly-mode', () => {
+  isReadonly = !isReadonly;
+
+  if (isReadonly) {
+    mainWindow.setIgnoreMouseEvents(true, { forward: true });
+    // Start uiohook for global input capture
+    if (uIOhook) uIOhook.start();
+  } else {
+    mainWindow.setIgnoreMouseEvents(false);
+    // Stop uiohook to allow window interaction
+    if (uIOhook) uIOhook.stop();
+  }
+});
+```
+
+**Warning:** In clickthrough mode, use Task Manager to close the app (window ignores clicks).
+
+### Global Input Hooks (uiohook-napi)
+
+```typescript
+import { uIOhook } from 'uiohook-napi';
+
+uIOhook.on('keydown', (event: UIOHookKeyEvent) => {
+  mainWindow?.webContents.send('uiohook:keydown', {
+    keycode: event.keycode,
+    rawcode: event.rawcode
+  });
+});
+
+uIOhook.on('mousemove', (event: UIOHookMouseMoveEvent) => {
+  mainWindow?.webContents.send('uiohook:mousemove', {
+    x: event.x,
+    y: event.y
+  });
+});
+
+uIOhook.start();
+```
+
+### Gamepad Polling (SDL)
+
+```typescript
+import sdl from '@kmamal/sdl';
+
+// Set environment variable for background events
+process.env['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1';
+
+// Poll every 16ms (60fps)
+gamepadPollInterval = setInterval(() => {
+  const devices = sdl.controller.devices;
+
+  for (const device of devices) {
+    const controller = sdl.controller.openDevice(device);
+
+    mainWindow?.webContents.send('sdl:gamepad-state', {
+      index: 0,
+      axes: controller.axes,
+      buttons: controller.buttons
+    });
+  }
+}, 16);
+```
+
+**Why SDL over Gamepad API:**
+- More reliable polling (browser API can miss events)
+- Works in clickthrough mode (when window ignores input)
+- Better analog precision for analog keyboards (Wooting)
+
+---
+
+## Development Workflow
+
+### Setting Up Development Environment
+
+```bash
+# Clone repository
+git clone https://github.com/zitongcharliedeng/a_web-based_input-overlay.git
+cd a_web-based_input-overlay
+
+# Install dependencies (from SourceCode/)
+cd SourceCode
+npm install
+
+# Start development
+npm run dev                # Web version with hot reload
+npm run electron:dev       # Electron version with DevTools
+```
+
+### Testing Protocol
+
+**Always test web version first:**
+```bash
+npm run dev:webapp
+# Open http://localhost:5173 in browser
+```
+
+**Then test Electron version:**
+```bash
+npm run electron:dev
+# Opens Electron window with DevTools
+```
+
+**Test clickthrough mode:**
+```bash
+npm run electron:clickthrough-readonly
+# WARNING: Use Task Manager to close (window ignores clicks)
+```
+
+### Common Development Tasks
+
+**Adding a new canvas object type:**
+
+1. Create schema in `modelToSaveCustomConfigurationLocally/configSchema.ts`:
+```typescript
+export const MyNewObjectConfigSchema = z.object({
+  display: z.object({
+    x: z.number().default(100),
+    y: z.number().default(100)
+  }),
+  opacity: z.number().min(0).max(1).optional().default(1.0)
+});
+```
+
+2. Create class in `viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/`:
+```typescript
+import { BaseCanvasObject } from './BaseCanvasObject';
+import type { MyNewObjectConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
+
+export class MyNewObject extends BaseCanvasObject {
+  display: MyNewObjectConfig['display'];
+  opacity: number;
+
+  constructor(props: Partial<MyNewObjectConfig>, objArrayIdx: number) {
+    super(objArrayIdx);
+    const defaults = MyNewObjectConfigSchema.parse({});
+
+    this.display = { ...defaults.display, ...props.display };
+    this.opacity = props.opacity ?? defaults.opacity;
+  }
+
+  draw(ctx: CanvasRenderingContext2D): void {
+    if (this.opacity !== undefined) {
+      ctx.globalAlpha = this.opacity;
+    }
+
+    // Your drawing logic here
+
+    ctx.globalAlpha = 1.0;
+  }
+
+  serialize(): { MyNewObject: MyNewObjectConfig } {
+    return {
+      MyNewObject: {
+        display: this.display,
+        opacity: this.opacity
+      }
+    };
+  }
+}
+```
+
+3. Register in `modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig.ts`:
+```typescript
+import { MyNewObject } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/MyNewObject';
+
+export const ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME = {
+  LinearInputIndicator,
+  PlanarInputIndicator,
+  Text,
+  Image,
+  WebEmbed,
+  MyNewObject  // Add here
+} as const satisfies Record<string, CanvasObjectClass<any>>;
+```
+
+4. Export from `viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/index.ts`:
+```typescript
+export { MyNewObject } from './MyNewObject';
+```
+
+**Debugging Tips:**
+
+- Web version: Use browser DevTools (F12)
+- Electron version: Pass `--with-dev-console` flag
+- Main process logs: Check terminal running `electron`
+- Renderer process logs: Check DevTools console
+- Config issues: Check `localStorage` in DevTools Application tab
+
+---
+
+## Key Code Patterns
+
+### Config Merging (The Idiomatic Way)
+
+**NEVER use deepMerge utilities:**
+```typescript
+// ❌ BAD: Requires `any` types and `as` assertions
+const merged = deepMerge(defaults, props || {}) as SomeType;
+
+// ✅ GOOD: Explicit spreading, fully type-safe
+this.input = {
+  keyboard: { ...defaults.input.keyboard, ...props.input?.keyboard },
+  gamepad: {
+    stick: { ...defaults.input.gamepad.stick, ...props.input?.gamepad?.stick },
+    button: { ...defaults.input.gamepad.button, ...props.input?.gamepad?.button }
+  }
+};
+```
+
+**Why this matters:**
+- No `any` types needed
+- No `as` type assertions needed
+- TypeScript can fully verify correctness
+- Optional chaining (`?.`) handles undefined gracefully
+- Explicit and readable
+
+### Type Safety with Zod
+
+**Schemas define everything:**
+```typescript
+// Define schema with defaults
+const ConfigSchema = z.object({
+  foo: z.string().default('hello'),
+  bar: z.number().default(42)
+});
+
+// Infer TypeScript type
+type Config = z.infer<typeof ConfigSchema>;
+
+// Parse with validation
+const config = ConfigSchema.parse(userInput);  // Throws if invalid
+
+// Safe parse (returns result object)
+const result = ConfigSchema.safeParse(userInput);
+if (result.success) {
+  console.log(result.data);
+} else {
+  console.error(result.error);
+}
+```
+
+### Opacity Management
+
+**Each canvas object manages its own opacity:**
+```typescript
+draw(ctx: CanvasRenderingContext2D): void {
+  // Set opacity if defined
+  if (this.opacity !== undefined) {
+    ctx.globalAlpha = this.opacity;
+  }
+
+  // Draw content
+  ctx.fillRect(0, 0, 100, 100);
+
+  // Always reset (no save/restore)
+  ctx.globalAlpha = 1.0;
+}
+```
+
+**Why manual reset over save/restore:**
+- Performance: save/restore copies entire canvas state
+- We only modify globalAlpha, so manual reset is sufficient
+- Benchmarked: ~2x faster for simple opacity changes
+
+### Vector Math
+
+```typescript
+import { Vector } from './_helpers/Vector';
+
+// 3D vector with common operations
+const v1 = new Vector(1, 2, 3);
+const v2 = new Vector(4, 5, 6);
+
+const sum = v1.add(v2);           // (5, 7, 9)
+const scaled = v1.multiply(2);    // (2, 4, 6)
+const length = v1.magnitude();    // sqrt(1 + 4 + 9)
+const normalized = v1.normalize(); // Unit vector
+```
+
+---
+
+## Platform Support Matrix
 
 | Platform | Transparency | Always-On-Top | Click-Through | Status |
 |----------|--------------|---------------|---------------|--------|
 | **Windows 10/11** | ✅ Excellent | ✅ Yes | ✅ Yes | Fully supported |
 | **macOS 11+** | ✅ Good | ✅ Yes | ⚠️ Requires permissions | Supported |
 | **Linux (X11)** | ✅ Good | ✅ Yes | ✅ Yes | Supported (compositor required) |
-| **Linux (Wayland)** | ⚠️ Experimental | ✅ Yes | ⚠️ Compositor-dependent | Testing required |
-| **Android/iOS** | ❌ Not possible | ❌ No | ❌ No | Web version only |
+| **Linux (Wayland)** | ⚠️ Compositor-dependent | ✅ Yes | ⚠️ Compositor-dependent | Experimental |
 
-### How Transparency Works (Technical)
+**Windows caveats:**
+- Cursor lag in The Finals (borderless): Switch to exclusive fullscreen
+- Some games may have issues with always-on-top windows
 
-**Electron Transparency API:**
-```javascript
-// electron/main.js
-const { BrowserWindow } = require('electron');
+**Linux requirements:**
+- Compositor required for transparency (picom, compton, or DE compositor)
+- GTK-3 flag set in Electron: `app.commandLine.appendSwitch('gtk-version', '3')`
 
-const win = new BrowserWindow({
-  width: 1920,
-  height: 1080,
-  transparent: true,        // Enable alpha channel
-  frame: false,             // Remove window decorations
-  alwaysOnTop: true,        // Stay above other windows
-  hasShadow: false,         // No drop shadow
-  webPreferences: {
-    backgroundThrottling: false  // Keep animations running
-  }
-});
-
-// Optional: Click-through mode
-win.setIgnoreMouseEvents(true, { forward: true });
-```
-
-**Web Application CSS:**
-```css
-/* styles/transparent.css */
-body {
-  margin: 0;
-  background: transparent;  /* Alpha = 0 */
-  overflow: hidden;
-}
-
-canvas {
-  display: block;
-  pointer-events: none;  /* Click-through for Canvas */
-}
-
-.ui-controls {
-  pointer-events: auto;  /* Re-enable for interactive elements */
-}
-```
-
-**How It Works Per Platform:**
-
-**Windows (DWM - Desktop Window Manager):**
-- Uses `WS_EX_LAYERED` window style
-- Per-pixel alpha blending via `UpdateLayeredWindow` API
-- Electron handles this internally
-- **Works perfectly** - most reliable platform
-
-**macOS (Cocoa):**
-- Uses `NSWindow` with `opaque: false`
-- Native alpha blending support
+**macOS:**
 - May require accessibility permissions for always-on-top
-- **Works well** - second most reliable
-
-**Linux (X11 with Compositor):**
-- Requires compositing manager (picom, compton, xcompmgr, or DE compositor)
-- Uses 32-bit ARGB visual
-- `_NET_WM_WINDOW_OPACITY` property
-- **Works with setup** - compositor must be running
-
-**Linux (Wayland):**
-- Native transparency in protocol
-- Compositor-dependent (GNOME, KDE, Sway all support it)
-- Electron's Wayland support is experimental
-- May need `--enable-features=UseOzonePlatform --ozone-platform=wayland`
-- **Experimental** - testing required per compositor
-
-### Compositor Configuration Guides
-
-We provide detailed guides for pinning the overlay window and configuring transparency per platform:
-
-**NixOS (User's Primary System):**
-- [`docs/transparency/nixos-niri.md`](docs/transparency/nixos-niri.md) - niri compositor setup
-- [`docs/transparency/nixos-cosmic.md`](docs/transparency/nixos-cosmic.md) - COSMIC DE configuration
-
-**Linux Desktop Environments:**
-- [`docs/transparency/linux-gnome.md`](docs/transparency/linux-gnome.md) - GNOME Shell extensions
-- [`docs/transparency/linux-kde.md`](docs/transparency/linux-kde.md) - KDE window rules
-- [`docs/transparency/linux-hyprland.md`](docs/transparency/linux-hyprland.md) - Hyprland config
-
-**Other Platforms:**
-- [`docs/transparency/windows-powertoys.md`](docs/transparency/windows-powertoys.md) - FancyZones setup
-- [`docs/transparency/macos-yabai.md`](docs/transparency/macos-yabai.md) - Yabai window manager
-
-**Contribution Welcome:**
-We accept PRs for additional platform guides! Share your compositor setup and help the community.
+- Transparency works natively via Cocoa
 
 ---
 
-## 🚦 Roadmap
+## Recent Major Changes (Session History)
 
-### Phase 1: Core Overlay (Weeks 1-4) - MVP
-**Goal:** Functional analog input visualization with mouse velocity
+### v1.0.23 (Latest - 2025-11-20)
+- Merged experimental WebEmbed architecture
+- Fixed readonly mode interaction issues
+- Added input forwarding configuration for WebEmbed
+- Refactored to remove code smell comments
 
-- [ ] Project setup (Vite + TypeScript)
-- [ ] Core abstractions (Canvas, RenderLoop, EventBus)
-- [ ] Gamepad input visualization (analog keys + thumbstick)
-- [ ] Mouse velocity tracking with trails
-- [ ] Basic UI (toggle features, opacity control)
-- [ ] Web version deployed to GitHub Pages
-- [ ] Electron wrapper with transparency
-- [ ] Test on NixOS (niri compositor)
+### v1.0.22
+- Fixed YouTube Error 153 in Electron (referrer policy + permissions)
+- Replaced navigator.getGamepads override with merge pattern
+- Added multi-select and drag-to-select functionality
 
-**Deliverable:** Streamers can visualize analog input in transparent overlay
+### v1.0.20
+- **Breaking:** Moved package.json to SourceCode/ (eliminated symlink hacks)
+- Fixed Vite tree-shaking Electron gamepad bridge
 
-### Phase 2: Multimedia (Weeks 5-8)
-**Goal:** Add camera and microphone visualization
+### v1.0.9 (Arrow Key Fixes)
+- Fixed Y-axis inversion (Canvas Y+ = down)
+- Added uiohook keycodes for arrow keys in clickthrough mode
+- Arrow keys now work in both interactive and clickthrough modes
 
-- [ ] Camera feed integration (getUserMedia)
-- [ ] Multi-camera layout system
-- [ ] Microphone input with FFT analysis
-- [ ] Waveform renderer (oscilloscope style)
-- [ ] VU meter component
-- [ ] Audio-reactive effects (optional)
-- [ ] Performance optimization (keep <15% CPU)
+### v1.0.8 (Opacity Architecture Fix)
+- Implemented opacity isolation pattern
+- Removed opacity from CanvasProperties (separation of concerns)
+- Each object manages opacity with manual reset
 
-**Deliverable:** Full multimedia overlay with audio/video
+### TypeScript Refactoring (2025-11-13)
+- **Eliminated deepMerge anti-pattern**
+- Replaced with explicit object spreading
+- Zero `any` types, zero `as` assertions
+- Fully type-safe config merging
 
-### Phase 3: Chat Integration (Weeks 9-12)
-**Goal:** Embed Twitch/YouTube chat
-
-- [ ] Twitch chat embed (iframe + styling)
-- [ ] YouTube chat embed
-- [ ] Chat filter system (keywords, commands)
-- [ ] Custom chat styling (CSS themes)
-- [ ] Chat message animations
-- [ ] Alert integration (StreamElements/Streamlabs compatible)
-
-**Deliverable:** Complete streaming overlay with chat
-
-### Phase 4: Advanced Features (Weeks 13+)
-**Goal:** Polish and unique features
-
-- [ ] Animated crosshair system
-- [ ] Crosshair reacts to input (weapon recoil simulation)
-- [ ] Music player integration (Spotify API, local files)
-- [ ] Now playing display with album art
-- [ ] Performance monitor (FPS, CPU/GPU, frame time)
-- [ ] Scene system (per-game presets)
-- [ ] Save/load configurations (LocalStorage + file export)
-- [ ] Community preset sharing
-
-**Deliverable:** Feature-complete ultimate streamer overlay
-
-### Future Considerations
-- [ ] Plugin system (community extensions)
-- [ ] Theme marketplace
-- [ ] Cloud sync for settings (optional account system)
-- [ ] Mobile companion app (control overlay from phone)
-- [ ] VR overlay support (OpenVR integration)
-- [ ] Multi-monitor awareness (auto-position overlay)
+**Lesson learned:** When TypeScript complains and you reach for `any` or `as`, that's a code smell. Refactor the code pattern, don't silence the compiler.
 
 ---
 
-## 🛠️ Development Workflow
+## Contributing Guidelines
 
-### Prerequisites
+### Code Style
 
-**Required:**
-- Node.js 18+ (for npm and TypeScript)
-- Git (for version control)
-- Modern browser (Chrome/Firefox for web development)
+**TypeScript Rules:**
+- No `any` types (use `unknown` if type is truly unknown)
+- No `as` type assertions (refactor code pattern instead)
+- Explicit object spreading for config merging
+- Use Zod schemas for runtime validation
+- Prefer type inference over explicit types
 
-**Optional:**
-- Electron (for desktop app testing) - installed via npm
-- OBS Studio (for testing Browser Source integration)
-- Gamepad/controller (for input visualization testing)
+**Naming Conventions:**
+- Self-documenting variable names (no abbreviations)
+- Classes: PascalCase (`LinearInputIndicator`)
+- Functions: camelCase (`deserializeCanvasObject`)
+- Constants: SCREAMING_SNAKE_CASE (`ALL_CANVAS_OBJECT_CLASSES_BY_CLASSNAME`)
+- Private members: prefixed with underscore (`_internalState`)
 
-### Getting Started
+**Commit Messages:**
+- Follow Conventional Commits (feat, fix, docs, refactor, etc.)
+- Use `!` for breaking changes (`feat!:`, `fix!:`)
+- No emojis in commit messages
+- Examples:
+  - `feat: add multi-select functionality`
+  - `fix: resolve joystick regression`
+  - `refactor!: eliminate deepMerge anti-pattern`
 
-**1. Clone the repository:**
-```bash
-cd /home/zitchaden/analog_keyboard_overlay_fork/
-git init  # Initialize if not already a repo
-# Or when GitHub repo is created:
-git clone https://github.com/zitongcharliedeng/a_web-based_input-overlay.git
-```
+### Pull Request Process
 
-**2. Install dependencies:**
-```bash
-npm install
-```
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/my-feature`
+3. Make changes following code style
+4. Test web version first, then Electron
+5. Commit with conventional commit messages
+6. Push to your fork
+7. Open Pull Request with description
 
-**3. Start development server (web version):**
-```bash
-npm run dev
-```
-Opens browser at `http://localhost:5173` with hot reload.
+### Testing Requirements
 
-**4. Test Electron version:**
-```bash
-npm run dev:electron
-```
-Launches Electron window with transparency enabled.
-
-### Testing Protocol
-
-**IMPORTANT:** All development testing must follow the structured test protocol.
-
-**Test Documentation:** See [`TEST-PROTOCOL.md`](TEST-PROTOCOL.md) for detailed testing workflow
-
-**Key Principles:**
-- Structured test cases with clear human actions and expected results
-- YES/NO questions for efficient debugging communication
-- Baseline testing (web version) before Electron testing
-- Source of truth for test procedures (refer to file, not memory)
-
-**Quick Test Commands:**
-```bash
-# Test 1: Web version baseline (regression check)
-npm run start:web
-
-# Test 2: Electron with SDL gamepad polling
-.\build-and-run-windows.ps1
-# Follow TEST-PROTOCOL.md Test 2 for detailed steps
-```
-
-### Development Commands
-
-```bash
-# Web version development
-npm run dev              # Vite dev server (hot reload)
-npm run build:web        # Bundle for production (GitHub Pages)
-npm run preview          # Preview production build locally
-
-# Electron development
-npm run dev:electron     # Electron with live reload
-npm run build:electron   # Package Electron app
-npm run package:win      # Create Windows installer
-npm run package:mac      # Create macOS app bundle
-npm run package:linux    # Create Linux AppImage/deb
-
-# Code quality
-npm run type-check       # TypeScript type checking
-npm run lint             # ESLint (code style)
-npm run format           # Prettier (auto-format)
-
-# Deployment
-npm run deploy           # Deploy web version to GitHub Pages
-```
-
-### Project Configuration Files
-
-**`package.json`** - Dependencies and scripts
-**`tsconfig.json`** - TypeScript compiler settings (strict mode)
-**`vite.config.ts`** - Vite build configuration
-**`electron/package.json`** - Electron-specific dependencies
-
-### Debugging
-
-**Web Version:**
-1. Open Chrome DevTools (F12)
-2. Use Console for logs
-3. Use Performance tab for profiling
-4. Use Canvas inspection tools
-
-**Electron Version:**
-1. Add `win.webContents.openDevTools()` in `electron/main.js`
-2. DevTools opens automatically
-3. Main process logs: `console.log` in `main.js` shows in terminal
-4. Renderer process: DevTools console
-
-### Testing Transparency
-
-**Linux (X11):**
-```bash
-# Check if compositor is running
-ps aux | grep -i compton
-ps aux | grep -i picom
-
-# Test transparency
-npm run dev:electron
-# Should see transparent window with overlay content
-```
-
-**NixOS (niri):**
-```bash
-# Ensure niri is running
-echo $XDG_CURRENT_DESKTOP  # Should show "niri"
-
-# Launch overlay
-npm run dev:electron
-
-# Configure window rules (see docs/transparency/nixos-niri.md)
-```
+**Before submitting PR:**
+- [ ] Test web version (npm run dev:webapp)
+- [ ] Test Electron interactive mode (npm run electron:dev)
+- [ ] Test Electron clickthrough mode (npm run electron:clickthrough-readonly)
+- [ ] Verify no TypeScript errors (npm run type-check)
+- [ ] Test on Windows (primary platform)
+- [ ] Document platform-specific behavior if applicable
 
 ---
-
-## 📚 API & Usage
-
-### Core APIs
-
-**EventBus (Pub/Sub):**
-```typescript
-import { EventBus } from './core/EventBus';
-
-const bus = new EventBus();
-
-// Subscribe to events
-bus.on('mouse:velocity', (data) => {
-  console.log(`Speed: ${data.speed} px/s`);
-});
-
-// Emit events
-bus.emit('mouse:velocity', { velocity, speed, position });
-
-// Unsubscribe
-bus.off('mouse:velocity', handler);
-```
-
-**Canvas Wrapper:**
-```typescript
-import { Canvas } from './core/Canvas';
-
-const canvas = new Canvas('overlay-canvas', { alpha: true });
-
-// Render loop
-canvas.onFrame((ctx, deltaTime) => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  // Your rendering code
-});
-
-canvas.start();  // Begin animation loop
-```
-
-**StateManager:**
-```typescript
-import { StateManager } from './core/StateManager';
-
-interface AppState {
-  overlayOpacity: number;
-  mouseTrailsEnabled: boolean;
-}
-
-const state = new StateManager<AppState>({
-  overlayOpacity: 1.0,
-  mouseTrailsEnabled: true
-});
-
-// Subscribe to state changes
-state.subscribe('overlayOpacity', (value) => {
-  document.body.style.opacity = value.toString();
-});
-
-// Update state
-state.set('overlayOpacity', 0.8);
-```
-
-### Feature Module API
-
-**Each feature module exports:**
-- `init(config)` - Initialize with configuration
-- `start()` - Begin operation (start listening to events)
-- `stop()` - Pause operation
-- `cleanup()` - Remove event listeners, free resources
-- `getState()` - Return current state (for debugging)
-
-**Example - Mouse Velocity:**
-```typescript
-import { VelocityTracker } from './features/mouse/VelocityTracker';
-import { TrailRenderer } from './features/mouse/TrailRenderer';
-
-// Initialize
-const tracker = new VelocityTracker(eventBus);
-const trails = new TrailRenderer(canvas, eventBus);
-
-// Configure
-trails.configure({
-  maxTrailLength: 50,
-  fadeSpeed: 0.95,
-  color: 'rgba(255, 0, 0, 0.8)'
-});
-
-// Start
-tracker.start();
-trails.start();
-
-// Later: cleanup
-tracker.cleanup();
-trails.cleanup();
-```
-
-### Electron-Specific APIs
-
-**Window Management:**
-```typescript
-// Check if running in Electron
-const isElectron = typeof window !== 'undefined' &&
-                   window.process?.type === 'renderer';
-
-if (isElectron) {
-  const { remote } = require('electron');
-  const win = remote.getCurrentWindow();
-
-  // Always on top
-  win.setAlwaysOnTop(true);
-
-  // Click-through
-  win.setIgnoreMouseEvents(true, { forward: true });
-
-  // Opacity control
-  win.setOpacity(0.9);
-}
-```
-
----
-
-## 🤝 Contributing
-
-### How to Contribute
-
-**1. Fork the repository**
-**2. Create a feature branch:** `git checkout -b feature/animated-crosshairs`
-**3. Commit changes:** `git commit -m "Add animated crosshair system"`
-**4. Push to branch:** `git push origin feature/animated-crosshairs`
-**5. Open Pull Request** with description
-
-### Contribution Guidelines
-
-**Code Style:**
-- Use TypeScript (no `any` types)
-- Follow existing architecture patterns
-- Add JSDoc comments for public APIs
-- Run `npm run format` before committing
-
-**Feature Modules:**
-- Keep modules self-contained
-- Use EventBus for communication
-- Provide `cleanup()` method
-- Add configuration options
-
-**Documentation:**
-- Update README.md for new features
-- Add inline code comments for complex logic
-- Create guide in `docs/` for platform-specific setup
-
-**Testing:**
-- Test on web version first
-- Verify Electron wrapper works
-- Check performance (FPS, CPU usage)
-- Test on your platform (document in PR)
-
-### Platform-Specific Guides (Priority Contributions)
-
-**We especially welcome PRs for:**
-- Compositor setup guides (Sway, i3, bspwm, etc.)
-- Window manager configurations
-- Platform testing reports (does it work on your setup?)
-- Performance optimization tips
-- Custom themes and presets
-
-**Template for new platform guide:**
-```markdown
-# Platform: [Your Compositor/OS]
-
-## Prerequisites
-- [List required software]
-
-## Configuration
-[Step-by-step setup]
 
 ## Troubleshooting
-[Common issues and fixes]
 
-## Screenshots
-[Optional: show it working]
+### Common Issues
+
+**Build fails with "Class names not preserved":**
+- Ensure `vite.config.ts` has `esbuild: { keepNames: true }`
+- This is critical for runtime reflection in deserialization
+
+**Gamepad not detected in Electron:**
+- Check SDL environment variable: `process.env['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1'`
+- Verify gamepad is connected before launching app
+- Check SDL polling interval is running
+
+**Keyboard/mouse not working in clickthrough mode:**
+- Ensure uiohook is started: `uIOhook.start()`
+- Check IPC events are being sent from main process
+- Verify preload script is loaded correctly
+
+**Transparency not working:**
+- Windows: Should work out of the box
+- Linux: Compositor must be running (check with `ps aux | grep picom`)
+- macOS: Check accessibility permissions
+
+**App won't close in clickthrough mode:**
+- This is expected behavior (window ignores input)
+- Use Task Manager (Windows) or Force Quit (macOS)
+- Or kill process: `pkill -f "A Real Web-based Input Overlay"`
+
+### Debug Mode
+
+**Enable DevTools in Electron:**
+```bash
+npm run electron:dev
+# or
+electron DesktopWrappedWebapp/main.js --with-dev-console
+```
+
+**Enable frame for debugging:**
+```bash
+electron DesktopWrappedWebapp/main.js --with-window-frame
+```
+
+**Check config in localStorage:**
+```javascript
+// In browser DevTools console
+localStorage.getItem('customisableCanvasConfig')
 ```
 
 ---
 
-## 📄 License
+## Future Roadmap
 
-**MIT License** - This project is free and open-source.
+### Phase 2: Multimedia Integration (In Progress)
+- [ ] Camera feeds (getUserMedia)
+- [ ] Microphone waveform (Web Audio API FFT)
+- [ ] Audio VU meters
+- [ ] Multi-camera layouts
 
-**Attribution:**
-- Original analog keyboard overlay concept: [DarrenVs](https://github.com/DarrenVs/analog_keyboard_overlay)
-- Clean-room rewrite and transparent overlay architecture: This project
-- All code independently written with distinct implementation
+### Phase 3: Enhanced Web Embeds
+- [x] YouTube embed (Electron webview)
+- [ ] Twitch chat embed
+- [ ] GIF embeds
+- [ ] Custom web content
 
-See [LICENSE](LICENSE) file for full text.
+### Phase 4: Advanced Features
+- [ ] Animated crosshairs (recoil simulation)
+- [ ] Performance stats (FPS, CPU/GPU)
+- [ ] Scene system (per-game presets)
+- [ ] Cloud sync (optional)
 
----
-
-## 🙏 Credits & Acknowledgments
-
-**Inspiration:**
-- **DarrenVs** - Original analog keyboard overlay concept for Wooting keyboards
-- **Wooting Community** - Analog keyboard pioneers
-- **OBS Project** - Making streaming accessible
-
-**Technology:**
-- **Electron** - Cross-platform desktop framework
-- **Vite** - Lightning-fast build tool
-- **TypeScript** - Type-safe JavaScript
-
-**Special Thanks:**
-- Streaming community for feedback and testing
-- Contributors (see CONTRIBUTORS.md when we have them!)
+### Community Features
+- [ ] Plugin system (community extensions)
+- [ ] Theme marketplace
+- [ ] Preset sharing
+- [ ] Multi-monitor awareness
 
 ---
 
-## 📞 Support & Community
-
-**Issues:** [GitHub Issues](https://github.com/zitongcharliedeng/a_web-based_input-overlay/issues)
-**Discussions:** [GitHub Discussions](https://github.com/zitongcharliedeng/a_web-based_input-overlay/discussions)
-**Documentation:** [docs/](docs/) folder in repository
-
-**Quick Links:**
-- 🐛 [Report a Bug](https://github.com/zitongcharliedeng/a_web-based_input-overlay/issues/new?template=bug_report.md)
-- 💡 [Request a Feature](https://github.com/zitongcharliedeng/a_web-based_input-overlay/issues/new?template=feature_request.md)
-- 📖 [Read the Docs](docs/)
-- 🎨 [Share Your Setup](https://github.com/zitongcharliedeng/a_web-based_input-overlay/discussions)
-
----
-
-## 📊 Project Status & Metrics
-
-**Development Stage:** Production
-**Latest Release:** [v1.0.9](https://github.com/zitongcharliedeng/a_web-based_input-overlay/releases/tag/v1.0.9)
-**Repository:** https://github.com/zitongcharliedeng/a_web-based_input-overlay
-**Contributors:** 1 (zitongcharliedeng)
-
-**Platform Support:**
-- Windows 10/11 - Fully Supported (v1.0.9+)
-- Linux (X11/Wayland) - Fully Supported (v1.0.9+)
-- macOS 11+ - Fully Supported (v1.0.9+)
-
----
-
-## 🎓 Learning Resources
+## Learning Resources
 
 **For Contributors New to These Technologies:**
 
 **TypeScript:**
-- [Official Handbook](https://www.typescriptlang.org/docs/handbook/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/)
 - [TypeScript Deep Dive](https://basarat.gitbook.io/typescript/)
 
-**Canvas API:**
-- [MDN Canvas Tutorial](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial)
-- [HTML5 Canvas Deep Dive](https://joshondesign.com/p/books/canvasdeepdive/toc.html)
-
-**Web Audio API:**
-- [MDN Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
-- [Web Audio API Book](https://webaudioapi.com/book/)
+**Zod:**
+- [Zod Documentation](https://zod.dev/)
+- [Zod GitHub](https://github.com/colinhacks/zod)
 
 **Electron:**
 - [Electron Documentation](https://www.electronjs.org/docs/latest)
-- [Electron Fiddle](https://www.electronjs.org/fiddle) - Interactive playground
+- [Electron IPC Guide](https://www.electronjs.org/docs/latest/tutorial/ipc)
 
-**Game Dev Concepts (Relevant for Overlays):**
+**Canvas API:**
+- [MDN Canvas Tutorial](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial)
+- [Canvas Performance](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas)
+
+**Game Dev Patterns (Relevant for Overlays):**
 - [Game Loop Patterns](https://gameprogrammingpatterns.com/game-loop.html)
 - [Vector Math](https://www.mathsisfun.com/algebra/vectors.html)
 
 ---
 
-## 💭 Future Vision
+## Contact & Support
 
-**Long-term Goals:**
-
-**1. Plugin Ecosystem**
-Allow community to create custom modules:
-```typescript
-// Community plugin example
-import { OverlayPlugin } from 'a_web-based_input-overlay';
-
-class ReactionTimePlugin extends OverlayPlugin {
-  // Measure and display reaction time to events
-}
-```
-
-**2. Cloud Sync (Optional)**
-- Save configurations to cloud
-- Share presets with community
-- Auto-sync across machines
-- Privacy-respecting (opt-in only)
-
-**3. VR Overlay Support**
-Extend to VR gaming:
-- OpenVR/SteamVR integration
-- 3D positioned overlays in VR space
-- Eye tracking visualization
-
-**4. AI-Enhanced Features**
-- Auto-adjust overlay position (face detection)
-- Intelligent scene switching (game detection)
-- Voice command controls
-
-**The Ultimate Goal:**
-> "Make streaming overlays so good that even the streamer wants to see them."
-
----
-
-**Last Updated:** 2025-11-14
+**Repository:** https://github.com/zitongcharliedeng/a_web-based_input-overlay
+**Issues:** https://github.com/zitongcharliedeng/a_web-based_input-overlay/issues
+**Discussions:** https://github.com/zitongcharliedeng/a_web-based_input-overlay/discussions
 **Author:** [@zitongcharliedeng](https://github.com/zitongcharliedeng)
-**Status:** ✅ Foundation Complete - Active Development
 
 ---
 
-## 📝 Current Session Notes (2025-11-06)
+## Current Session Notes (2025-11-20)
 
-### Completed Work
-- ✅ Migrated `framework/vector.js` to `framework/Vector.ts` with full type annotations
-- ✅ Converted ES5 prototype syntax to ES2020 class syntax
-- ✅ Updated README.md with concise goal-focused description
-- ✅ Renamed `claude.md` to `CLAUDE.md` for better visibility
-- ✅ **Major Directory Refactoring:**
-  - Reorganized entire codebase into semantic structure
-  - Separated input listeners from overlay view
-  - Used `_` prefix for system/helper folders
-  - Merged game loop + scenes into single default.js
-  - Fixed TEST 1B to include all 4 directions (added missing J key)
-- ✅ **Electron Migration:**
-  - Converted from web-based to Electron overlay app
-  - Implemented BaseWindow + WebContentsView API (newer Electron API)
-  - Added GTK-3 flag for Linux compatibility
-  - Enhanced always-on-top with screen-saver level
-  - Fixed transparency (both window and view backgrounds)
-  - Created run scripts for NixOS (interactive + click-through modes)
+### Session Context: Branch Reorganization & Dependency Fixes
 
-### Current State
-- **Repository**: `https://github.com/zitongcharliedeng/a_web-based_input-overlay.git`
-- **Branch**: `master`
-- **Latest Commit**: `b7b64a4` - refactor: migrate to BaseWindow API with improved transparency
-- **Runtime**: Electron app using `nix-shell -p nodejs electron --run "electron ."`
-- **Compilation**: Using `nix-shell -p nodejs --run "npx tsc"` (no global npm/node)
-- **Status**: Electron overlay working, transparency confirmed, click-through limited by COSMIC
+**What We Just Accomplished:**
 
-### Directory Structure (Current - REFACTORED)
+1. **Branch Structure Cleanup**
+   - Renamed `claude/experimental-01GVQNvaEXT11NUP4p9Vdo3q` → `experimental`
+   - Archived old feature branches with `archive/` prefix:
+     - `claude/claude-md-*` → `archive/claude/claude-md-*`
+     - `claude/fix-todo-*` → `archive/claude/fix-todo-*`
+   - **Active branches now:** `main` (production) and `experimental` (testing)
+
+2. **Merged Valuable Commits into Experimental**
+   - `81468f2` - CLAUDE.md documentation rewrite (v1.0.23 architecture)
+   - `c14482b` - Color constants refactoring (debug visuals, selection box)
+
+3. **Fixed Critical Dependency Issue**
+   - **Problem:** `electron-serve` was in root `package.json` (wrong location)
+   - **Solution:** Moved to `SourceCode/package.json` dependencies
+   - **Also:** Removed redundant root `package.json` (build happens in SourceCode/)
+   - **Commits:** `05af391`, `dcb3286`
+
+4. **Verified Build Works**
+   - Cleaned stale `.js` files with `npm run clean`
+   - Confirmed `npm run build` compiles successfully
+   - TypeScript compilation passes
+   - Vite bundling produces `bundle.js` (106.59 kB)
+
+### Current Experimental Branch Status
+
+**Latest commits on experimental:**
 ```
-.
-├── index.html                          # Entry point
-├── CLAUDE.md                           # This file - full technical roadmap
-├── README.md                           # Public-facing readme (concise)
-├── tsconfig.json                       # TypeScript config
-├── package.json                        # npm dependencies
-├── .gitignore                          # Ignores: _compiled/, node_modules/, .claude/
-│
-├── browserInputListeners/              # Pure input system (no dependencies)
-│   ├── keyboard.js                     # Keyboard state tracker
-│   ├── mouse.js                        # Mouse position/clicks tracker
-│   └── gamepad.js                      # Gamepad API wrapper
-│
-└── browserInputOverlayView/            # Main overlay application
-    ├── default.js                      # ✅ Game loop + scene (merged from canvasFramework + scenes)
-    │
-    ├── objects/                        # Visual components
-    │   ├── LinearInputIndicator.ts     # ✅ TypeScript (nested config: input, processing, display)
-    │   ├── Thumbstick.js               # ⏳ Needs TypeScript migration
-    │   └── Text.js                     # ⏳ Needs TypeScript migration
-    │
-    ├── actions/                        # Scene modifiers
-    │   └── PropertyEdit.js             # ⏳ Right-click edit menu (needs TS migration)
-    │
-    ├── _helpers/                       # Utilities (used only by overlay view)
-    │   ├── Vector.ts                   # ✅ TypeScript - 3D vector math
-    │   ├── applyProperties.ts          # ✅ TypeScript - deepMerge, isPlainObject
-    │   └── draw.js                     # ⏳ Canvas drawing helpers (needs TS migration)
-    │
-    ├── _assets/                        # Static resources
-    │   ├── style.css                   # Global styles
-    │   └── images/
-    │       └── KeyDefault.png          # Key background image
-    │
-    └── _compiled/                      # TypeScript output (gitignored)
-        ├── _helpers/
-        │   ├── Vector.js
-        │   └── applyProperties.js
-        └── objects/
-            └── LinearInputIndicator.js
+dcb3286 - chore: remove redundant root package.json
+05af391 - fix: add electron-serve to SourceCode/package.json dependencies
+c14482b - refactor: extract hardcoded colors to named constants in CanvasRenderer
+81468f2 - docs: complete CLAUDE.md rewrite to reflect actual v1.0.23 architecture
+7853d24 - fix(embed): use electron-serve + iframe to fix YouTube Error 153
+f06354c - fix(webview): add partition, user-agent, and debug listeners for Error 153
 ```
 
-### TypeScript Migration Status
+**Experimental is 6 commits ahead of main (v1.0.23)**
 
-**Completed (CL1-8):**
-1. ✅ `browserInputOverlayView/_helpers/Vector.ts` - 3D vector math utility (CL1)
-2. ✅ `browserInputOverlayView/_helpers/applyProperties.ts` - Property merging with deepMerge (CL2)
-3. ✅ `browserInputOverlayView/objects/LinearInputIndicator.ts` - Nested config (input, processing, display) (CL3)
-4. ✅ `browserInputOverlayView/objects/Text.ts` - Text rendering object (CL4)
-5. ✅ `browserInputOverlayView/objects/PlanarInputIndicator_Radial.ts` - Joystick visualization (CL5 - WORKING)
-6. ✅ `browserInputOverlayView/actions/PropertyEdit.ts` - Right-click edit menu (CL6)
-7. ✅ `browserInputListeners/keyboard.ts` and `browserInputListeners/gamepad.ts` - Input system (CL7)
-8. ✅ `browserInputOverlayView/_helpers/draw.ts` - Canvas drawing helpers with type-safe properties (CL8)
+### What Needs Testing on Windows
 
-**Migration Complete:**
-All core objects, helpers, and input listeners are now in TypeScript. The only remaining JavaScript file is `default.js` (main game loop/scene), which will be kept as JavaScript for flexibility during development.
+**YouTube Embed Fix (Critical):**
+- Root cause: `file://` protocol lacks HTTP Referer header (YouTube blocks embeds)
+- Solution: `electron-serve` creates custom `app://` protocol with proper headers
+- Replaced deprecated `<webview>` tag with standard `<iframe>` everywhere
+- Should fix "Error 153" that plagued previous versions
 
-### Current Architecture Notes
+**Test Commands (Windows PowerShell/CMD):**
+```powershell
+cd SourceCode
+npm install         # Installs electron-serve and all deps
+npm run electron:dev  # Launch with DevTools for debugging
+```
 
-**Config System:**
-- Nested config structure: `{ input: {...}, processing: {...}, display: {...} }`
-- Zod schemas with defaults are single source of truth
-- Deep merging handled by explicit object spreading (no deepMerge utility)
-- CustomisableCanvasConfig validated on load/save with detailed error messages
+**What to Verify:**
+1. App launches without "Cannot find module electron-serve" error
+2. Can spawn WebEmbed object from spawn menu
+3. YouTube embed loads without Error 153
+4. Gamepad/keyboard inputs still work correctly
+5. Multi-select and drag-to-select functionality works
+
+### Key Technical Details for Next Session
 
 **Build System:**
-- esbuild bundles TypeScript → dist/bundle.js
-- Compiled output gitignored (developers compile locally)
-- No global npm/node - use `nix-shell -p nodejs --run "npm run build"`
-- <50ms rebuild times
+- All source code in `SourceCode/` directory
+- `package.json` only exists in `SourceCode/` (not at repo root)
+- Two build steps: `npm run build:webapp` (Vite) + `npm run build:desktop` (tsc)
+- Output: `WebApp/_bundleAllCompiledJavascriptForWebapp/bundle.js`
 
-**Electron Wrapper (Optional):**
-- BaseWindow + WebContentsView API for transparency
-- Click-through NOT supported on COSMIC compositor (Wayland/X11)
-- Workaround: Interactive mode for editing, avoid clicking in overlay mode
+**electron-serve Integration:**
+- Added to dependencies in `SourceCode/package.json`
+- Used in `DesktopWrappedWebapp/main.ts` for custom protocol
+- Enables iframe YouTube embeds in Electron (works like http://)
 
-### User Preferences (Code Style)
-- No emojis in code or commit messages (removed from README)
-- Concise documentation (no bullet point spam)
-- Semantic clarity over brevity
-- Clean-room refactoring approach (making code unrecognizable from original)
-- Conventional commits with breaking change markers
-- No "Co-Authored-By: Claude" in commits (user preference)
+**Recent Architecture Changes:**
+- Removed `deepMerge()` utility (anti-pattern, required `any` types)
+- Use explicit object spreading for config merging (idiomatic TypeScript)
+- `getMergedGamepads()` exported from ElectronAppWrapper_API (merge pattern, not override)
 
-### Electron Implementation Details
+### Next Steps
 
-**Run Scripts Created:**
-- `run-nix.sh` - Interactive mode (Wayland, can edit/drag objects)
-- `run-nix-clickthrough.sh` - Overlay mode (attempts click-through, doesn't work on COSMIC)
-- `run-nix-dev.sh` - Development mode with DevTools
-- `run-nix-frame.sh` - Debug mode with window frame
-- `run-nix-x11.sh` - Force X11/XWayland mode
+1. **Windows Testing** - User will test experimental branch on Windows
+2. **If Tests Pass** - Flatten commit history and merge to main
+3. **Release v1.0.24** - YouTube embed fix + documentation updates
+4. **Continue Development** - Move to next features (camera feeds, audio viz)
 
-**Key Improvements from stream-overlay:**
-- BaseWindow instead of BrowserWindow (newer API)
-- WebContentsView for content management
-- GTK-3 flag: `app.commandLine.appendSwitch('gtk-version', '3')`
-- Enhanced always-on-top: `win.setAlwaysOnTop(true, 'screen-saver', 1)`
-- Periodic moveTop() every 1 second
-- Transparent backgrounds on both window and view
+### Important Reminders
 
-**COSMIC Compositor Issues:**
-- Click-through (`setIgnoreMouseEvents(true)`) does not work
-- Tested in both Wayland and X11 modes
-- Transparency works perfectly
-- Always-on-top works perfectly
-- Conclusion: COSMIC doesn't support click-through yet (very new DE)
-
-### Latest Session Progress (2025-11-13)
-
-**TypeScript Refactoring - The Idiomatic Way:**
-
-**Context:** User challenged me on using `any` and `as` type assertions - "TypeScript gods must approve"
-
-**Problem Identified:**
-- Used `deepMerge()` utility with `any` types
-- Required type assertions (`as`) to make it work
-- This is an anti-pattern in TypeScript - indicates wrong modeling
-
-**Root Cause Analysis:**
-- Q: Why do we even need deepMerge?
-- A: We're merging partial user configs with nested defaults
-- The pattern came from JavaScript, but TypeScript has better solutions
-
-**The Idiomatic Solution:**
-- Eliminated `deepMerge()` and `applyProperties()` entirely
-- Replaced with explicit object spreading at each nesting level
-- Example:
-  ```typescript
-  // Before (with deepMerge - requires any/as):
-  const merged = deepMerge(defaults, props || {}) as SomeType;
-
-  // After (explicit spreading - fully type-safe):
-  this.input = {
-    keyboard: { ...defaults.input.keyboard, ...props.input?.keyboard },
-    mouse: { ...defaults.input.mouse, ...props.input?.mouse },
-    gamepad: {
-      stick: { ...defaults.input.gamepad.stick, ...props.input?.gamepad?.stick },
-      button: { ...defaults.input.gamepad.button, ...props.input?.gamepad?.button }
-    }
-  };
-  ```
-
-**Results:**
-- ✅ Zero `any` types
-- ✅ Zero `as` assertions
-- ✅ Fully type-safe, verifiable by TypeScript
-- ✅ Optional chaining (`?.`) and nullish coalescing (`??`) for safety
-- ✅ Explicit, readable code
-- ✅ **TESTED AND WORKING** - Confirmed functional on Windows
-
-**Files Changed:**
-- `LinearInputIndicator.ts` - explicit nested spreading
-- `Text.ts` - simple spreading with nested textStyle
-- `PlanarInputIndicator_Radial.ts` - explicit spreading with style objects
-- `PropertyEdit.ts` - removed empty applyProperties, changed `any` to `unknown`
-- `default.ts` - fixed Text constructor to use nested textStyle
-- **DELETED:** `applyProperties.ts` - no longer needed
-
-**Lesson Learned:**
-When TypeScript complains about types and you reach for `any` or `as`, that's a code smell. The solution is almost always to refactor the code pattern, not to silence the compiler. Object spreading is idiomatic TypeScript for merging configs.
-
-**Commit:** `447dc39` - refactor!: eliminate deepMerge anti-pattern, use idiomatic TypeScript object spreading
-
-### Latest Session Progress (2025-11-17)
-
-**Production Releases: v1.0.7, v1.0.8, v1.0.9**
-
-**Branch:** `main`
-**Repository:** https://github.com/zitongcharliedeng/a_web-based_input-overlay
-**Latest Release:** [v1.0.9](https://github.com/zitongcharliedeng/a_web-based_input-overlay/releases/tag/v1.0.9)
-
-**v1.0.7 - Feature Release:**
-- Added opacity config for all 4 PlanarInputIndicator arrows (defaults: 0.5)
-- Changed arrow key defaults: ArrowUp/Down/Left/Right
-- Increased deadzone default: 0.01 → 0.03
-- Renamed app to "A Real Web Based Input Overlay"
-
-**v1.0.8 - Opacity Architecture Fix:**
-- Implemented council-recommended opacity isolation pattern
-- Removed opacity from CanvasProperties (separation of concerns)
-- Each object manages opacity with manual reset (no save/restore overhead)
-- Fully transparent background (#00000000)
-
-**v1.0.9 - Arrow Key Fixes:**
-- Fixed Y-axis inversion (Canvas Y+ = down, so ArrowDown → yKeyCodePositive)
-- Fixed arrow keys in clickthrough mode (added uiohook keycodes: 103/108/105/106, 57416/57424/57419/57421)
-- Arrow keys now work in both interactive and clickthrough modes
-
-**Architecture Decisions:**
-- Opacity managed at object level (not helper level) per council consensus
-- Performance-optimized (manual globalAlpha reset vs save/restore)
-- Scales cleanly to all future objects with optional opacity
+- **Always verify builds compile before asking user to test** (learned this lesson today)
+- Build happens in `SourceCode/`, not repo root
+- Clean stale JS files with `npm run clean` if build fails mysteriously
+- Experimental branch is for testing, main is production-ready
 
 ---
 
-*Last Updated: 2025-11-17*
-*Model: Claude Sonnet 4.5*
+**Last Updated:** 2025-11-20
+**AI Assistant:** Claude Sonnet 4.5
+**Document Version:** 2.0 (Complete rewrite to match actual codebase)

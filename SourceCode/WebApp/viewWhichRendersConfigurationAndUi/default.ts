@@ -48,6 +48,9 @@ window.gamepads = null;
 window.keyboard = keyboard;
 window.mouse = mouse;
 
+// Single source of truth for delete key (DRY principle)
+const DELETE_OBJECT_KEY = 'Delete';
+
 window.addEventListener("load", function (): void {
 	const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 	if (!canvas) {
@@ -196,8 +199,12 @@ window.addEventListener("load", function (): void {
 
 	// Phase2: Render from config (pure MVC - no cache)
 	function frameUpdate(): void {
-		// Render all objects (skip logic removed - we render ghosts separately)
-		canvasRenderer.render(frameObjects);
+		const selectedIndices = userEditModeInteractionsController.getSelectedIndices();
+		const dragPreview = userEditModeInteractionsController.getDragPreview();
+
+		// Skip ALL selected objects during drag (prevents iframe double-render for WebEmbed)
+		const skipIndices = dragPreview && selectedIndices.size > 0 ? selectedIndices : undefined;
+		canvasRenderer.render(frameObjects, skipIndices);
 
 		// Render selection box if drag-to-select is active
 		const selectionBox = userEditModeInteractionsController.getSelectionBox();
@@ -211,13 +218,11 @@ window.addEventListener("load", function (): void {
 		}
 
 		// Phase3: View renders hitboxes for selected objects only
-		const selectedIndices = userEditModeInteractionsController.getSelectedIndices();
 		if (userEditModeInteractionsController.hasSelection()) {
 			canvasRenderer.renderDebugHitboxes(frameObjects, selectedIndices);
 		}
 
 		// Render drag ghosts for multi-select
-		const dragPreview = userEditModeInteractionsController.getDragPreview();
 		if (dragPreview && selectedIndices.size > 0) {
 			for (const index of selectedIndices) {
 				const object = frameObjects[index];
@@ -226,10 +231,23 @@ window.addEventListener("load", function (): void {
 				const { positionOnCanvas } = object.config;
 				if (!positionOnCanvas) continue;
 
-				// Render ghost at new position (semi-transparent)
+				// Ghost at original position (half opacity)
 				canvasRenderer.renderOverlay((canvas, ctx) => {
 					ctx.save();
 					ctx.globalAlpha = 0.5;
+					ctx.setTransform(
+						1, 0, 0, 1,
+						positionOnCanvas.pxFromCanvasLeft,
+						positionOnCanvas.pxFromCanvasTop
+					);
+					object.draw(canvas, ctx, true);
+					ctx.restore();
+				});
+
+				// Ghost at new position (full opacity)
+				canvasRenderer.renderOverlay((canvas, ctx) => {
+					ctx.save();
+					ctx.globalAlpha = 1.0;
 					ctx.setTransform(
 						1, 0, 0, 1,
 						positionOnCanvas.pxFromCanvasLeft + dragPreview.deltaX,
@@ -293,8 +311,11 @@ window.addEventListener("load", function (): void {
 	}
 	window.addEventListener("resize", resizeCanvas);
 
-	// Delete snackbar setup
 	const deleteSelectedSnackbar = document.getElementById("deleteSelectedSnackbar");
+
+	if (deleteSelectedSnackbar) {
+		deleteSelectedSnackbar.textContent = `PRESS ${DELETE_OBJECT_KEY.toUpperCase()} TO DELETE SELECTED CANVAS OBJECTS`;
+	}
 
 	function updateDeleteSnackbarVisibility(): void {
 		if (!deleteSelectedSnackbar) return;
@@ -306,10 +327,9 @@ window.addEventListener("load", function (): void {
 		}
 	}
 
-	// Backspace key handler for multi-select delete
 	document.addEventListener("keydown", (e: KeyboardEvent) => {
-		if (e.key === "Backspace" && userEditModeInteractionsController.hasSelection()) {
-			e.preventDefault();  // Prevent browser back navigation
+		if (e.key === DELETE_OBJECT_KEY && userEditModeInteractionsController.hasSelection()) {
+			e.preventDefault();
 
 			const selectedCount = userEditModeInteractionsController.getSelectedIndices().size;
 			const message = selectedCount === 1
@@ -732,18 +752,16 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 	// Setup Toggle Readonly Mode button (Electron only)
 	const toggleReadonlyBtn = document.getElementById("toggleReadonlyModeButton");
 	if (toggleReadonlyBtn && window.electronAPI) {
-		// Show button only in Electron
 		toggleReadonlyBtn.style.display = 'flex';
 
 		toggleReadonlyBtn.addEventListener("click", () => {
-			// Disable all canvas interactions FIRST (controller owns interaction behavior)
+			const confirmed = confirm('Switch to readonly clickthrough mode?\n\nYou will need Task Manager to close the app.');
+			if (!confirmed) return;
+
 			userEditModeInteractionsController.setDisableInteractions(true);
-
-			// Then notify main process (main owns window click-through behavior)
 			window.electronAPI!.toggleReadonlyMode();
-
-			showToast('Switched to readonly clickthrough mode - use Task Manager to close app');
-			hideBothPanels();  // Close edit menu like other buttons
+			showToast('Readonly mode active - use Task Manager to close');
+			hideBothPanels();
 		});
 	}
 

@@ -15,6 +15,13 @@
 import type { CustomisableCanvasConfig, CanvasObjectConfig } from '../../modelToSaveCustomConfigurationLocally/CustomisableCanvasConfig';
 import type { CanvasObjectInstance } from './canvasObjectTypes/index';
 
+// Debug visualization colors
+const DEBUG_HITBOX_COLOR = '#FF00FF';
+const DEBUG_HITBOX_LINE_WIDTH = 1;
+const SELECTION_BOX_STROKE_COLOR = 'rgba(0, 120, 255, 0.8)';
+const SELECTION_BOX_FILL_COLOR = 'rgba(0, 120, 255, 0.1)';
+const SELECTION_BOX_LINE_WIDTH = 2;
+
 export class CanvasRenderer {
 	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
@@ -54,13 +61,27 @@ export class CanvasRenderer {
 	 */
 	update(config: CustomisableCanvasConfig, delta: number): readonly CanvasObjectInstance[] {
 		if (this.cache?.config !== config) {
+			const oldCache = this.cache;
+
 			this.cache = {
 				config,
 				objects: this.deserializeObjects(config)
 			};
+
+			if (oldCache) {
+				for (let i = 0; i < oldCache.objects.length; i++) {
+					const oldObj = oldCache.objects[i];
+					const newObj = this.cache.objects[i];
+
+					if (oldObj && (!newObj || oldObj.constructor !== newObj.constructor)) {
+						if (typeof oldObj.cleanup === 'function') {
+							oldObj.cleanup();
+						}
+					}
+				}
+			}
 		}
 
-		// Cache is guaranteed non-null after above if block
 		const cache = this.cache;
 		if (!cache) throw new Error('Cache should be initialized');
 
@@ -74,11 +95,17 @@ export class CanvasRenderer {
 
 	/**
 	 * Render all objects to canvas from config (pure MVC)
-	 * @param skipObjectIndex Optional index of object to skip (used during drag to prevent double-rendering)
+	 * @param skipObjectIndex Optional index/indices to skip (used during drag to prevent double-rendering)
 	 */
-	render(objects: readonly CanvasObjectInstance[], skipObjectIndex?: number): void {
+	render(objects: readonly CanvasObjectInstance[], skipObjectIndex?: number | ReadonlySet<number>): void {
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+		// Normalize skip parameter to Set for O(1) lookup
+		const skipSet: ReadonlySet<number> | null =
+			skipObjectIndex === undefined ? null :
+			typeof skipObjectIndex === 'number' ? new Set([skipObjectIndex]) :
+			skipObjectIndex;
 
 		// Sort objects by layerLevel (lower numbers render first, higher numbers on top)
 		// Create array of [index, object] pairs to preserve original index for skipObjectIndex
@@ -86,7 +113,7 @@ export class CanvasRenderer {
 		const sortedObjects = indexedObjects.sort((a, b) => a.obj.config.layerLevel - b.obj.config.layerLevel);
 
 		for (const { obj: object, idx: i } of sortedObjects) {
-			if (i === skipObjectIndex) continue; // Skip dragged object to prevent full-opacity ghost
+			if (skipSet && skipSet.has(i)) continue; // Skip dragged objects to prevent double-rendering
 			if (!object) continue;
 			this.ctx.setTransform(
 				1, 0, 0, 1,
@@ -118,8 +145,8 @@ export class CanvasRenderer {
 			if (!object) continue;
 			this.ctx.setTransform(1, 0, 0, 1, object.config.positionOnCanvas.pxFromCanvasLeft, object.config.positionOnCanvas.pxFromCanvasTop);
 			this.ctx.beginPath();
-			this.ctx.strokeStyle = "#FF00FF";
-			this.ctx.lineWidth = 1;
+			this.ctx.strokeStyle = DEBUG_HITBOX_COLOR;
+			this.ctx.lineWidth = DEBUG_HITBOX_LINE_WIDTH;
 			this.ctx.rect(0, 0, object.config.hitboxSize.widthInPx, object.config.hitboxSize.lengthInPx);
 			this.ctx.stroke();
 		}
@@ -136,9 +163,9 @@ export class CanvasRenderer {
 
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.beginPath();
-		this.ctx.strokeStyle = "rgba(0, 120, 255, 0.8)";
-		this.ctx.fillStyle = "rgba(0, 120, 255, 0.1)";
-		this.ctx.lineWidth = 2;
+		this.ctx.strokeStyle = SELECTION_BOX_STROKE_COLOR;
+		this.ctx.fillStyle = SELECTION_BOX_FILL_COLOR;
+		this.ctx.lineWidth = SELECTION_BOX_LINE_WIDTH;
 		this.ctx.rect(minX, minY, maxX - minX, maxY - minY);
 		this.ctx.fill();
 		this.ctx.stroke();

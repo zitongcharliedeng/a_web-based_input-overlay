@@ -1,6 +1,6 @@
 {
   "name": "a-real-web-based-input-overlay",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "A Real Web-based Input Overlay - displays keyboard, mouse, and gamepad inputs",
   "author": "zitongcharliedeng",
   "repository": {
@@ -18,9 +18,9 @@
     "type-check": "tsc -p DesktopWrappedWebapp/tsconfig.json --noEmit",
     "lint": "eslint . --ext .ts --config _devTools/.eslintrc.cjs",
     "clean": "find . -name '*.js' -not -path '*/node_modules/*' -not -path '*/_bundleAllCompiledJavascriptForWebapp/*' -delete && find . -name '*.js.map' -delete",
-    "electron:dev": "npm run build && electron DesktopWrappedWebapp/main.js --with-dev-console",
-    "electron:clickthrough-readonly": "npm run build && electron DesktopWrappedWebapp/main.js --in-clickthrough-readonly-mode",
-    "serve": "cd WebApp && vite preview"
+    "electron:dev": "npm run build:desktop && concurrently \"npm run dev:webapp\" \"wait-on http://localhost:5173 && electron DesktopWrappedWebapp/main.js --dev --with-dev-console\"",
+    "electron:prod": "npm run build && concurrently \"cd WebApp && vite preview\" \"wait-on http://localhost:4173 && electron DesktopWrappedWebapp/main.js --with-dev-console\"",
+    "electron:clickthrough-readonly": "npm run build && concurrently \"cd WebApp && vite preview\" \"wait-on http://localhost:4173 && electron DesktopWrappedWebapp/main.js --in-clickthrough-readonly-mode\""
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
@@ -36,7 +36,8 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^6.0.0"
+    "vite": "^6.0.0",
+    "wait-on": "^9.0.3"
   },
   "dependencies": {
     "@kmamal/sdl": "^0.11.13",
