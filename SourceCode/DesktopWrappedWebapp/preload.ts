@@ -1,5 +1,11 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
 
+// Spoof navigator.userAgent to look like Chrome (YouTube blocks Electron)
+Object.defineProperty(navigator, 'userAgent', {
+	get: () => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+	configurable: true
+});
+
 interface GlobalKeyEvent {
 	keycode: number;
 	rawcode: number;

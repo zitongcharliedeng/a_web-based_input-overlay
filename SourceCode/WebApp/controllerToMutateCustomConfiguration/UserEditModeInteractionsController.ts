@@ -14,6 +14,7 @@
 
 import { Vector } from '../_helpers/Vector';
 import type { CanvasObjectInstance } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/index';
+import { WebEmbed } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/WebEmbed';
 import { mouse } from '../viewWhichRendersConfigurationAndUi/inputReaders/DOM_API/mouse';
 
 export class UserEditModeInteractionsController {
@@ -94,6 +95,23 @@ export class UserEditModeInteractionsController {
 		this.disableInteractions = disable;
 	}
 
+	private isClickInDraggableArea(object: CanvasObjectInstance, mouseX: number, mouseY: number): boolean {
+		const { positionOnCanvas, hitboxSize } = object.config;
+		if (!positionOnCanvas || !hitboxSize) return false;
+
+		const relativeX = mouseX - positionOnCanvas.pxFromCanvasLeft;
+		const relativeY = mouseY - positionOnCanvas.pxFromCanvasTop;
+
+		if (object instanceof WebEmbed) {
+			const padding = 50;
+			const isInIframeArea = relativeX >= padding && relativeX < hitboxSize.widthInPx - padding
+				&& relativeY >= padding && relativeY < hitboxSize.lengthInPx - padding;
+			return !isInIframeArea;
+		}
+
+		return true;
+	}
+
 	/**
 	 * Get all selected object indices
 	 */
@@ -144,9 +162,8 @@ export class UserEditModeInteractionsController {
 
 		// LEFT CLICK: Select/deselect logic
 		if (mouse.clicks[0] === true) {
-			// Find which object was clicked (if any)
 			let clickedObjectIndex: number | null = null;
-			for (let i = objects.length - 1; i >= 0; i--) {  // Iterate backwards (top object first)
+			for (let i = objects.length - 1; i >= 0; i--) {
 				const object = objects[i];
 				if (!object) continue;
 
@@ -155,8 +172,10 @@ export class UserEditModeInteractionsController {
 
 				if ((mouse.x > positionOnCanvas.pxFromCanvasLeft && mouse.y > positionOnCanvas.pxFromCanvasTop)
 				&& (mouse.x < positionOnCanvas.pxFromCanvasLeft + hitboxSize.widthInPx && mouse.y < positionOnCanvas.pxFromCanvasTop + hitboxSize.lengthInPx)) {
-					clickedObjectIndex = i;
-					break;
+					if (this.isClickInDraggableArea(object, mouse.x, mouse.y)) {
+						clickedObjectIndex = i;
+						break;
+					}
 				}
 			}
 
@@ -275,7 +294,6 @@ export class UserEditModeInteractionsController {
 
 		// RIGHT CLICK: Show PropertyEdit or creation panel
 		if (mouse.clicks[2] === true) {
-			// Find which object was clicked
 			let clickedObjectIndex: number | null = null;
 			for (let i = objects.length - 1; i >= 0; i--) {
 				const object = objects[i];
@@ -286,8 +304,10 @@ export class UserEditModeInteractionsController {
 
 				if ((mouse.x > positionOnCanvas.pxFromCanvasLeft && mouse.y > positionOnCanvas.pxFromCanvasTop)
 				&& (mouse.x < positionOnCanvas.pxFromCanvasLeft + hitboxSize.widthInPx && mouse.y < positionOnCanvas.pxFromCanvasTop + hitboxSize.lengthInPx)) {
-					clickedObjectIndex = i;
-					break;
+					if (this.isClickInDraggableArea(object, mouse.x, mouse.y)) {
+						clickedObjectIndex = i;
+						break;
+					}
 				}
 			}
 

@@ -61,13 +61,27 @@ export class CanvasRenderer {
 	 */
 	update(config: CustomisableCanvasConfig, delta: number): readonly CanvasObjectInstance[] {
 		if (this.cache?.config !== config) {
+			const oldCache = this.cache;
+
 			this.cache = {
 				config,
 				objects: this.deserializeObjects(config)
 			};
+
+			if (oldCache) {
+				for (let i = 0; i < oldCache.objects.length; i++) {
+					const oldObj = oldCache.objects[i];
+					const newObj = this.cache.objects[i];
+
+					if (oldObj && (!newObj || oldObj.constructor !== newObj.constructor)) {
+						if (typeof oldObj.cleanup === 'function') {
+							oldObj.cleanup();
+						}
+					}
+				}
+			}
 		}
 
-		// Cache is guaranteed non-null after above if block
 		const cache = this.cache;
 		if (!cache) throw new Error('Cache should be initialized');
 
@@ -81,11 +95,17 @@ export class CanvasRenderer {
 
 	/**
 	 * Render all objects to canvas from config (pure MVC)
-	 * @param skipObjectIndex Optional index of object to skip (used during drag to prevent double-rendering)
+	 * @param skipObjectIndex Optional index/indices to skip (used during drag to prevent double-rendering)
 	 */
-	render(objects: readonly CanvasObjectInstance[], skipObjectIndex?: number): void {
+	render(objects: readonly CanvasObjectInstance[], skipObjectIndex?: number | ReadonlySet<number>): void {
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+		// Normalize skip parameter to Set for O(1) lookup
+		const skipSet: ReadonlySet<number> | null =
+			skipObjectIndex === undefined ? null :
+			typeof skipObjectIndex === 'number' ? new Set([skipObjectIndex]) :
+			skipObjectIndex;
 
 		// Sort objects by layerLevel (lower numbers render first, higher numbers on top)
 		// Create array of [index, object] pairs to preserve original index for skipObjectIndex
@@ -93,7 +113,7 @@ export class CanvasRenderer {
 		const sortedObjects = indexedObjects.sort((a, b) => a.obj.config.layerLevel - b.obj.config.layerLevel);
 
 		for (const { obj: object, idx: i } of sortedObjects) {
-			if (i === skipObjectIndex) continue; // Skip dragged object to prevent full-opacity ghost
+			if (skipSet && skipSet.has(i)) continue; // Skip dragged objects to prevent double-rendering
 			if (!object) continue;
 			this.ctx.setTransform(
 				1, 0, 0, 1,

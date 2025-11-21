@@ -1,15 +1,14 @@
-import { app, BrowserWindow, ipcMain, IpcMainEvent, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, IpcMainEvent, screen, session } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
-import serve from 'electron-serve';
 
 const APP_TITLE = 'A Real Web-based Input Overlay';
 
-const loadURL = serve({
-	directory: app.isPackaged
-		? path.join(__dirname, 'WebApp')
-		: path.join(__dirname, '..', 'WebApp', '_bundleAllCompiledJavascriptForWebapp')
-});
+// Dev mode: Load from Vite dev server (npm run dev:webapp)
+// Prod mode: Load from Vite preview server (npm run serve)
+const isDev = process.argv.includes('--dev');
+const VITE_DEV_SERVER_URL = 'http://localhost:5173';
+const VITE_PREVIEW_SERVER_URL = 'http://localhost:4173';
 
 process.env['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1';
 
@@ -179,8 +178,7 @@ async function createWindow(): Promise<BrowserWindow> {
 
 	win.setAlwaysOnTop(true, 'screen-saver', 1);
 
-	console.log('[Main] Loading app via electron-serve (app:// protocol)');
-	await loadURL(win);
+	// URL will be loaded in app.whenReady() after server starts
 
 	if (isReadonly) {
 		win.setIgnoreMouseEvents(true);
@@ -380,13 +378,32 @@ function startInputHooks(): void {
 }
 
 app.whenReady().then(async () => {
-	// Always start in interactive mode (user can toggle to readonly from canvas menu)
+	session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+		const responseHeaders: Record<string, string | string[]> = details.responseHeaders || {};
+		for (const header in responseHeaders) {
+			if (header.toLowerCase() === 'x-frame-options') {
+				delete responseHeaders[header];
+			}
+		}
+		callback({ cancel: false, responseHeaders });
+	});
+
+	const appURL = isDev ? VITE_DEV_SERVER_URL : VITE_PREVIEW_SERVER_URL;
+	console.log(`[Main] Loading from ${appURL}`);
+	if (isDev) {
+		console.log('[Main] Dev mode - ensure "npm run dev:webapp" is running');
+	} else {
+		console.log('[Main] Prod mode - ensure "npm run serve" is running');
+	}
+
 	mainWindow = await createWindow();
+	await mainWindow.loadURL(appURL);
 	startInputHooks();
 
 	app.on('activate', async () => {
 		if (BrowserWindow.getAllWindows().length === 0) {
 			mainWindow = await createWindow();
+			await mainWindow.loadURL(appURL);
 			startInputHooks();
 		}
 	});
