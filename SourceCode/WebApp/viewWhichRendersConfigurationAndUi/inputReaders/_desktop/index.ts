@@ -1,8 +1,8 @@
 /**
- * Electron API Bridge - Bridges uiohook and SDL events to Web APIs
+ * Electron API Bridge - Bridges uiohook events to Web APIs
  *
- * This module overrides navigator.getGamepads() and dispatches synthetic DOM events
- * to bridge Electron's uiohook (global keyboard/mouse) and SDL (gamepad) to standard Web APIs.
+ * This module dispatches synthetic DOM events to bridge Electron's uiohook
+ * (global keyboard/mouse) to standard Web APIs.
  *
  * Only runs when window.electronAPI is available (Electron environment).
  */
@@ -35,13 +35,6 @@ interface GlobalWheelEvent {
 	timestamp: number;
 }
 
-interface GlobalGamepadState {
-	axes: number[];
-	buttons: GamepadButton[];
-	timestamp: number;
-	connected: boolean;
-}
-
 declare global {
 	interface Window {
 		electronAPI?: {
@@ -51,8 +44,6 @@ declare global {
 			onGlobalMouseDown: (callback: (data: GlobalMouseButtonEvent) => void) => void;
 			onGlobalMouseUp: (callback: (data: GlobalMouseButtonEvent) => void) => void;
 			onGlobalWheel: (callback: (data: GlobalWheelEvent) => void) => void;
-			onGlobalGamepadState: (callback: (state: GlobalGamepadState) => void) => void;
-			onGamepadStateUpdate: (callback: (data: { index: number; state: any }) => void) => void;
 			isAppInReadonlyClickthroughMode: () => boolean;
 			hasGlobalInput: () => boolean;
 		};
@@ -84,26 +75,18 @@ const UIOHOOK_TO_KEYCODE: Record<number, string> = {
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * DESKTOP INPUT SOURCES - SDL & uiohook IPC Bridges
+ * DESKTOP INPUT SOURCES - uiohook IPC Bridge
  * ═══════════════════════════════════════════════════════════════════════════
  *
  * This module handles Electron-specific input sources:
- * - SDL gamepads (via IPC from main process, event-driven)
  * - uiohook global keyboard/mouse (via IPC, dispatches synthetic DOM events)
  *
  * Exported for use by inputReaders/index.ts unified interface.
  * The webapp should NEVER import from this module directly.
- */
-
-/**
- * SDL Gamepad Cache (Event-Driven Updates)
  *
- * Updated by IPC events from main process SDL controller subsystem.
- * Read by inputReaders/index.ts to merge with DOM gamepads.
- *
- * Format: Sparse array [0-3] with Gamepad-compatible objects
+ * Note: Gamepad support uses Chromium's Web Gamepad API (navigator.getGamepads)
+ * directly. No SDL/IPC bridge needed - Electron has full Chromium gamepad support.
  */
-export const sdlGamepadCache: (any | null)[] = [null, null, null, null];
 
 let bridgesInitialized = false;
 
@@ -111,11 +94,10 @@ let bridgesInitialized = false;
  * Initialize Electron IPC Bridges
  *
  * Sets up listeners for:
- * - SDL gamepad state updates (event-driven cache)
  * - uiohook keyboard events (synthetic DOM events)
  * - uiohook mouse events (synthetic DOM events + state updates)
  *
- * Called automatically by inputReaders/index.ts when module loads.
+ * Called automatically when module loads.
  * Safe to call multiple times (idempotent).
  */
 export function initializeElectronBridges(): void {
@@ -129,7 +111,7 @@ export function initializeElectronBridges(): void {
 	}
 	bridgesInitialized = true;
 
-	console.log('[ElectronBridge] Initializing IPC bridges for keyboard, mouse, and gamepad...');
+	console.log('[ElectronBridge] Initializing IPC bridges for keyboard and mouse...');
 
 	// Bridge uiohook events to synthetic DOM KeyboardEvents
 	window.electronAPI.onGlobalKeyDown((data: { keycode: number }) => {
@@ -151,39 +133,6 @@ export function initializeElectronBridges(): void {
 				bubbles: true,
 				cancelable: true
 			}));
-		}
-	});
-
-	// Bridge SDL gamepad events to cache (event-driven architecture)
-	let rendererIpcCount = 0;
-	window.electronAPI.onGamepadStateUpdate((data: { index: number; state: any }) => {
-		const { index, state } = data;
-		rendererIpcCount++;
-
-		// Log first 5 updates and then every 60th
-		if (rendererIpcCount <= 5 || rendererIpcCount % 60 === 0) {
-			console.log(`[Renderer IPC #${rendererIpcCount}] Controller ${index}:`, {
-				axes: state.axes?.map((a: number) => a.toFixed(3)),
-				connected: state.connected
-			});
-		}
-
-		if (index >= 0 && index < 4) {
-			if (state.connected) {
-				// Update cache with Gamepad-compatible object
-				sdlGamepadCache[index] = {
-					axes: state.axes,
-					buttons: state.buttons,
-					connected: state.connected,
-					timestamp: state.timestamp,
-					id: state.id || `SDL2 Gamepad ${index}`,
-					index,
-					mapping: state.mapping || 'standard'
-				} as unknown as Gamepad;
-			} else {
-				// Controller disconnected
-				sdlGamepadCache[index] = null;
-			}
 		}
 	});
 

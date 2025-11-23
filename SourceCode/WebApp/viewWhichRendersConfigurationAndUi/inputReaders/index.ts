@@ -4,20 +4,19 @@
  * ═══════════════════════════════════════════════════════════════════════════
  *
  * This is the ONLY module the webapp should import from.
- * It combines ALL input sources into a single DOM-compatible interface.
+ * It provides a unified DOM-compatible interface for all input sources.
  *
- * Input Sources (constructively merged):
+ * Input Sources:
  * ┌─────────────────────────────────────────────────────────────────────────┐
  * │ • Native DOM Gamepad API     (works in web + Electron)                  │
- * │ • SDL gamepads                (Electron only, via IPC)                  │
  * │ • uiohook global inputs       (Electron only, via IPC)                  │
  * │ • Future: evdev, additional input libraries...                          │
  * └─────────────────────────────────────────────────────────────────────────┘
  *
  * Architecture:
  * - _web/     → Native browser APIs (DOM Gamepad, keyboard, mouse)
- * - _desktop/ → Electron-specific modules (SDL, uiohook IPC bridges)
- * - THIS FILE → Combines everything into unified DOM-like interface
+ * - _desktop/ → Electron-specific modules (uiohook IPC bridges)
+ * - THIS FILE → Unified interface the webapp imports
  *
  * The webapp knows NOTHING about implementation. It just calls:
  * - getGamepads() → Gamepad[] (standard DOM signature)
@@ -31,7 +30,7 @@ import { mouse as webMouse } from './_web/mouse';
 
 // Import desktop-specific input sources
 // This auto-initializes IPC bridges if running in Electron
-import { sdlGamepadCache } from './_desktop';
+import './_desktop';
 
 // Store original DOM Gamepad API
 const originalGetGamepads = navigator.getGamepads.bind(navigator);
@@ -48,54 +47,15 @@ if (typeof window !== 'undefined') {
  * UNIFIED GAMEPAD INTERFACE
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * Returns ALL gamepads from ALL sources combined:
- * - Native DOM gamepads (USB/Bluetooth controllers via browser)
- * - SDL gamepads (via Electron main process, event-driven IPC cache)
- * - Future: evdev, or any other gamepad input source
+ * Returns gamepads from Chromium's Web Gamepad API.
+ * Works identically in both web and Electron (Chromium-based).
  *
- * Merge Strategy (voted by Code Council):
- * - Concatenate SDL + DOM gamepads
- * - Reindex to 0-3 (standard Gamepad API format)
- * - Known limitation: may show duplicates if same controller appears in both
+ * No SDL needed - Chromium provides full gamepad support via navigator.getGamepads()
  *
- * @returns Standard DOM Gamepad[] sparse array (4 slots, nulls for empty)
+ * @returns Standard DOM Gamepad[] sparse array (from navigator.getGamepads)
  */
-let getGamepadsCallCount = 0;
 export function getGamepads(): (Gamepad | null)[] {
-	getGamepadsCallCount++;
-
-	// Get native DOM gamepads (browser's built-in detection)
-	const domPads = Array.from(originalGetGamepads()).filter(Boolean) as Gamepad[];
-
-	// Get SDL gamepads from cache (updated by _desktop module via IPC events)
-	const sdlPads = sdlGamepadCache.filter(Boolean);
-
-	// Log first 5 calls and then every 120th (every 2 seconds at 60fps)
-	if (getGamepadsCallCount <= 5 || getGamepadsCallCount % 120 === 0) {
-		console.log(`[Unified getGamepads #${getGamepadsCallCount}]`, {
-			sdlCount: sdlPads.length,
-			domCount: domPads.length,
-			sdlCache: sdlGamepadCache.map(p => p ? 'connected' : 'null'),
-			domPads: domPads.map(p => ({
-				id: p.id,
-				axes: p.axes.map(a => a.toFixed(3)),
-				buttons: p.buttons.filter(b => b.pressed).length + ' pressed'
-			}))
-		});
-	}
-
-	// Concatenate all sources (SDL first for priority/accuracy)
-	const allPads = [...sdlPads, ...domPads].filter(Boolean);
-
-	// Return sparse array with reindexed gamepads (standard DOM Gamepad API format)
-	const result: (Gamepad | null)[] = [null, null, null, null];
-	allPads.forEach((pad, i) => {
-		if (i < 4) {
-			result[i] = { ...pad, index: i } as Gamepad;
-		}
-	});
-
-	return result;
+	return originalGetGamepads();
 }
 
 /**
