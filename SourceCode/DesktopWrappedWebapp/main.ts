@@ -1,6 +1,8 @@
 import { app, BrowserWindow, ipcMain, IpcMainEvent, screen, session } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as net from 'net';
+import { spawn, ChildProcess } from 'child_process';
 
 const APP_TITLE = 'A Real Web-based Input Overlay';
 
@@ -55,60 +57,39 @@ interface UIOHook {
 	stop(): void;
 }
 
-interface SDLAxes {
-	leftStickX?: number;
-	leftStickY?: number;
-	rightStickX?: number;
-	rightStickY?: number;
-	leftTrigger?: number;
-	rightTrigger?: number;
-}
-
-interface SDLButtons {
-	a?: boolean;
-	b?: boolean;
-	x?: boolean;
-	y?: boolean;
-	leftShoulder?: boolean;
-	rightShoulder?: boolean;
-	back?: boolean;
-	start?: boolean;
-	leftStick?: boolean;
-	rightStick?: boolean;
-	dpadUp?: boolean;
-	dpadDown?: boolean;
-	dpadLeft?: boolean;
-	dpadRight?: boolean;
-	guide?: boolean;
-}
-
-interface SDLController {
-	axes: SDLAxes;
-	buttons: SDLButtons;
-	closed: boolean;
-	on(event: string, callback: (eventType: string) => void): void;
-	close(): void;
-	device?: SDLDevice;
-	name?: string;
-}
-
-interface SDLDevice {
-	name: string;
-}
-
-interface SDL {
-	controller: {
-		devices: SDLDevice[];
-		openDevice(device: SDLDevice): SDLController;
-		on(event: 'deviceAdd', callback: (device: SDLDevice) => void): void;
-		on(event: 'deviceRemove', callback: (device: SDLDevice) => void): void;
-	};
-}
+/**
+ * SDL LIMITATION IN ELECTRON (DOCUMENTED FINDING):
+ *
+ * Extensive testing showed that @kmamal/sdl cannot receive Windows XInput gamepad events
+ * when running inside Electron, despite:
+ * - Event listeners registered (triggers switchToPollingFast)
+ * - Hidden SDL window created (initializes event subsystem)
+ * - Polling axes getters (triggers Globals.events.poll())
+ * - SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1 environment variable
+ *
+ * Evidence:
+ * - Standalone Node.js test: SDL works perfectly, axes update, events fire
+ * - Electron app: SDL initializes, controller opens, but axes stay at 0.000 forever
+ * - No SDL events ever fire (axisMotion, buttonDown, etc.)
+ *
+ * Root cause: Bindings.events_poll() receives ZERO gamepad events from Windows when
+ * running in Electron's process environment. This appears to be a sandbox/process
+ * isolation issue preventing SDL from accessing Windows XInput driver.
+ *
+ * OBS input-overlay comparison: OBS plugin is native C++ running in OBS's process,
+ * not JavaScript in Electron's sandboxed renderer. Not a valid comparison.
+ *
+ * Solution: Use Chromium's native Gamepad API (navigator.getGamepads()) which works
+ * in Electron because Chromium has direct gamepad support built-in.
+ */
 
 let uIOhook: UIOHook | null = null;
 let mainWindow: BrowserWindow | null = null;
 let gamepadPollInterval: NodeJS.Timeout | null = null;
 let keepOnTopInterval: NodeJS.Timeout | null = null;
+let sdlBridgeProcess: ChildProcess | null = null;
+let sdlTcpServer: net.Server | null = null;
+const SDL_TCP_PORT = 54321;
 
 try {
 	const uiohook = require('uiohook-napi');
@@ -122,22 +103,148 @@ try {
 	console.log('[Main] Global input hooks disabled (will use DOM events only)');
 }
 
-// SDL Controller Management (Event-Driven Architecture)
-let sdl: SDL | null = null;
-const controllerMap = new Map<number, { instance: any; index: number; device: SDLDevice }>();
+// SDL CHILD PROCESS ARCHITECTURE
+// Binary search confirmed: SDL cannot work in Electron's main process
+// Solution: Run SDL in separate Node.js process, communicate via TCP
+// - SDL bridge runs in pure Node.js environment (main thread)
+// - Event-driven gamepad updates sent to Electron via TCP
+// - No stdio buffering issues (TCP has proper flow control)
+console.log('[Main] SDL bridge will run in separate process...');
 
-// Batching state for IPC optimization (coalesce events within same tick)
-const pendingUpdates = new Map<number, any>();
-let flushScheduled = false;
+function startSDLBridge(): void {
+	console.log('[Main] Starting SDL bridge...');
 
-try {
-	sdl = require('@kmamal/sdl') as SDL;
-	console.log('[Main] ✓ @kmamal/sdl loaded (bundled SDL2, cross-platform)');
-} catch (error) {
-	if (error instanceof Error) {
-		console.log('[Main] ✗ @kmamal/sdl not available:', error.message);
-	}
-	console.log('[Main] Native gamepad polling disabled (will use Web Gamepad API only)');
+	// Step 1: Create TCP server for SDL bridge to connect to
+	sdlTcpServer = net.createServer((client) => {
+		console.log('[Main] SDL bridge connected via TCP');
+
+		let buffer = '';
+
+		client.on('data', (data: Buffer) => {
+			buffer += data.toString();
+			const lines = buffer.split('\n');
+			buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+			lines.forEach((line) => {
+				if (!line.trim()) return;
+
+				try {
+					const message = JSON.parse(line);
+
+					// Handle different message types
+					switch (message.type) {
+						case 'log':
+							console.log(message.message);
+							break;
+
+						case 'gamepad-state':
+							// Forward to renderer via IPC
+							if (mainWindow && !mainWindow.isDestroyed()) {
+								mainWindow.webContents.send('sdl-gamepad-state', {
+									index: message.index,
+									state: message.state,
+								});
+							}
+							break;
+
+						case 'keyboard-down':
+							if (mainWindow && !mainWindow.isDestroyed()) {
+								mainWindow.webContents.send('sdl-keyboard-down', message.event);
+							}
+							break;
+
+						case 'keyboard-up':
+							if (mainWindow && !mainWindow.isDestroyed()) {
+								mainWindow.webContents.send('sdl-keyboard-up', message.event);
+							}
+							break;
+
+						case 'mouse-move':
+							if (mainWindow && !mainWindow.isDestroyed()) {
+								mainWindow.webContents.send('sdl-mouse-move', message.event);
+							}
+							break;
+
+						case 'mouse-down':
+							if (mainWindow && !mainWindow.isDestroyed()) {
+								mainWindow.webContents.send('sdl-mouse-down', message.event);
+							}
+							break;
+
+						case 'mouse-up':
+							if (mainWindow && !mainWindow.isDestroyed()) {
+								mainWindow.webContents.send('sdl-mouse-up', message.event);
+							}
+							break;
+
+						case 'mouse-wheel':
+							if (mainWindow && !mainWindow.isDestroyed()) {
+								mainWindow.webContents.send('sdl-mouse-wheel', message.event);
+							}
+							break;
+
+						case 'heartbeat':
+							// SDL bridge is alive
+							break;
+
+						default:
+							console.log('[Main] Unknown SDL bridge message type:', (message as any).type);
+					}
+				} catch (err) {
+					const error = err as Error;
+					console.error('[Main] Failed to parse SDL bridge message:', error.message);
+				}
+			});
+		});
+
+		client.on('error', (err: Error) => {
+			console.error('[Main] SDL bridge connection error:', err.message);
+		});
+
+		client.on('close', () => {
+			console.log('[Main] SDL bridge disconnected');
+		});
+	});
+
+	sdlTcpServer.listen(SDL_TCP_PORT, '127.0.0.1', () => {
+		console.log(`[Main] TCP server listening on port ${SDL_TCP_PORT}`);
+
+		// Step 2: Spawn SDL bridge process
+		const bridgePath = path.join(__dirname, 'sdl-bridge.js');
+
+		if (!fs.existsSync(bridgePath)) {
+			console.error('[Main] SDL bridge not found:', bridgePath);
+			console.error('[Main] Run "npm run build:desktop" to compile sdl-bridge.ts');
+			return;
+		}
+
+		console.log('[Main] Spawning SDL bridge process:', bridgePath);
+
+		sdlBridgeProcess = spawn('node', [bridgePath, SDL_TCP_PORT.toString()], {
+			stdio: ['ignore', 'pipe', 'pipe'], // Don't use stdin, capture stdout/stderr
+		});
+
+		sdlBridgeProcess.stdout?.on('data', (data: Buffer) => {
+			console.log('[SDL Bridge stdout]', data.toString().trim());
+		});
+
+		sdlBridgeProcess.stderr?.on('data', (data: Buffer) => {
+			console.error('[SDL Bridge stderr]', data.toString().trim());
+		});
+
+		sdlBridgeProcess.on('error', (err: Error) => {
+			console.error('[Main] Failed to start SDL bridge:', err.message);
+		});
+
+		sdlBridgeProcess.on('exit', (code: number | null, signal: string | null) => {
+			console.log(`[Main] SDL bridge exited with code ${code}, signal ${signal}`);
+			sdlBridgeProcess = null;
+		});
+	});
+
+	sdlTcpServer.on('error', (err: Error) => {
+		console.error('[Main] TCP server error:', err.message);
+	});
 }
 
 ipcMain.on('get-readonly-state', (event: IpcMainEvent) => {
@@ -163,173 +270,7 @@ console.log('[Main] Starting overlay in interactive mode...');
 console.log('[Main] Readonly mode:', isReadonly);
 console.log('[Main] Preload script path:', path.join(__dirname, 'preload.js'));
 
-// Helper: Find available controller index (0-3) with recycling
-function getAvailableIndex(): number | null {
-	const usedIndices = new Set(Array.from(controllerMap.values()).map(e => e.index));
-	for (let i = 0; i < 4; i++) {
-		if (!usedIndices.has(i)) return i;
-	}
-	return null; // All 4 slots occupied
-}
-
-// Helper: Read SDL controller state into Gamepad-compatible format
-function readSDLState(instance: any, index: number) {
-	return {
-		axes: [
-			instance.axes.leftStickX ?? 0,
-			instance.axes.leftStickY ?? 0,
-			instance.axes.rightStickX ?? 0,
-			instance.axes.rightStickY ?? 0
-		],
-		buttons: [
-			{ pressed: instance.buttons.a ?? false, value: instance.buttons.a ? 1 : 0 },
-			{ pressed: instance.buttons.b ?? false, value: instance.buttons.b ? 1 : 0 },
-			{ pressed: instance.buttons.x ?? false, value: instance.buttons.x ? 1 : 0 },
-			{ pressed: instance.buttons.y ?? false, value: instance.buttons.y ? 1 : 0 },
-			{ pressed: instance.buttons.leftShoulder ?? false, value: instance.buttons.leftShoulder ? 1 : 0 },
-			{ pressed: instance.buttons.rightShoulder ?? false, value: instance.buttons.rightShoulder ? 1 : 0 },
-			{ pressed: false, value: instance.axes.leftTrigger ?? 0 },
-			{ pressed: false, value: instance.axes.rightTrigger ?? 0 },
-			{ pressed: instance.buttons.back ?? false, value: instance.buttons.back ? 1 : 0 },
-			{ pressed: instance.buttons.start ?? false, value: instance.buttons.start ? 1 : 0 },
-			{ pressed: instance.buttons.leftStick ?? false, value: instance.buttons.leftStick ? 1 : 0 },
-			{ pressed: instance.buttons.rightStick ?? false, value: instance.buttons.rightStick ? 1 : 0 },
-			{ pressed: instance.buttons.dpadUp ?? false, value: instance.buttons.dpadUp ? 1 : 0 },
-			{ pressed: instance.buttons.dpadDown ?? false, value: instance.buttons.dpadDown ? 1 : 0 },
-			{ pressed: instance.buttons.dpadLeft ?? false, value: instance.buttons.dpadLeft ? 1 : 0 },
-			{ pressed: instance.buttons.dpadRight ?? false, value: instance.buttons.dpadRight ? 1 : 0 },
-			{ pressed: instance.buttons.guide ?? false, value: instance.buttons.guide ? 1 : 0 }
-		],
-		timestamp: Date.now(),
-		connected: true,
-		id: `SDL2 Gamepad (${instance.device?.name ?? 'Unknown'})`,
-		index,
-		mapping: 'standard'
-	};
-}
-
-// Helper: Safe IPC send (checks window lifecycle)
-function safeSend(channel: string, data: any): void {
-	try {
-		if (mainWindow && !mainWindow.isDestroyed()) {
-			mainWindow.webContents.send(channel, data);
-		}
-	} catch (err) {
-		console.error(`[SDL IPC] Failed to send ${channel}:`, err);
-	}
-}
-
-// Batched IPC sender (coalesces updates within same event loop tick)
-let ipcBatchCount = 0;
-function scheduleUpdate(index: number, state: any): void {
-	pendingUpdates.set(index, state);
-
-	if (!flushScheduled) {
-		flushScheduled = true;
-		setImmediate(() => {
-			ipcBatchCount++;
-			const updateCount = pendingUpdates.size;
-
-			if (ipcBatchCount <= 5 || ipcBatchCount % 60 === 0) {
-				console.log(`[IPC Batch #${ipcBatchCount}] Sending ${updateCount} controller update(s)`);
-			}
-
-			pendingUpdates.forEach((st, idx) => {
-				safeSend('gamepad-state-update', { index: idx, state: st });
-			});
-			pendingUpdates.clear();
-			flushScheduled = false;
-		});
-	}
-}
-
-// Open and configure a controller with event-driven architecture
-function openController(device: SDLDevice): void {
-	if (!sdl) return;
-
-	// Check if already open
-	for (const entry of controllerMap.values()) {
-		if (entry.device === device) {
-			console.log(`[SDL] Device already open, skipping:`, device.name);
-			return;
-		}
-	}
-
-	const index = getAvailableIndex();
-	if (index === null) {
-		console.warn(`[SDL] All controller slots full, cannot open:`, device.name);
-		return;
-	}
-
-	try {
-		const instance = sdl.controller.openDevice(device);
-		const deviceId = controllerMap.size; // Use map size as unique ID
-		controllerMap.set(deviceId, { instance, index, device });
-
-		console.log(`[SDL] Opened controller at index ${index}:`, device.name);
-
-		// CRITICAL: Subscribe to specific SDL events
-		// Event types: 'axisMotion', 'buttonDown', 'buttonUp', 'close'
-		let eventCount = 0;
-
-		const handleEvent = (eventType: string) => {
-			eventCount++;
-
-			// Log first 10 events and then every 120th event
-			if (eventCount <= 10 || eventCount % 120 === 0) {
-				console.log(`[SDL Event #${eventCount}] Type: ${eventType}, Axes:`, {
-					leftX: instance.axes.leftStickX?.toFixed(3),
-					leftY: instance.axes.leftStickY?.toFixed(3),
-					rightX: instance.axes.rightStickX?.toFixed(3),
-					rightY: instance.axes.rightStickY?.toFixed(3)
-				});
-			}
-
-			// Read current state (now populated thanks to event pump)
-			const state = readSDLState(instance, index);
-			scheduleUpdate(index, state);
-		};
-
-		// Register for all event types explicitly
-		instance.on('axisMotion', () => handleEvent('axisMotion'));
-		instance.on('buttonDown', () => handleEvent('buttonDown'));
-		instance.on('buttonUp', () => handleEvent('buttonUp'));
-
-		// Handle controller disconnection
-		instance.on('close', () => {
-			console.log(`[SDL] Controller ${index} closed`);
-			safeSend('gamepad-state-update', {
-				index,
-				state: { connected: false, axes: [], buttons: [], timestamp: Date.now() }
-			});
-			controllerMap.delete(deviceId);
-		});
-
-		// Send initial state
-		console.log(`[SDL] Sending initial state for controller ${index}`);
-		const initialState = readSDLState(instance, index);
-		console.log(`[SDL] Initial axes:`, initialState.axes);
-		scheduleUpdate(index, initialState);
-
-	} catch (err) {
-		console.error(`[SDL] Failed to open device:`, device.name, err);
-	}
-}
-
-// Close a controller by device reference
-function closeController(device: SDLDevice): void {
-	for (const [deviceId, entry] of controllerMap.entries()) {
-		if (entry.device === device) {
-			try {
-				entry.instance.close(); // Triggers 'close' event
-			} catch (err) {
-				console.error(`[SDL] Error closing device:`, err);
-				controllerMap.delete(deviceId); // Clean up anyway
-			}
-			return;
-		}
-	}
-}
+// SDL functions removed - using DOM Gamepad API
 
 async function createWindow(): Promise<BrowserWindow> {
 	// Get primary display dimensions
@@ -387,6 +328,19 @@ async function createWindow(): Promise<BrowserWindow> {
 		if (uIOhook) {
 			console.log('[Main] Stopping global input hooks...');
 			uIOhook.stop();
+		}
+
+		// Cleanup SDL bridge
+		if (sdlBridgeProcess) {
+			console.log('[Main] Stopping SDL bridge process...');
+			sdlBridgeProcess.kill('SIGTERM');
+			sdlBridgeProcess = null;
+		}
+
+		if (sdlTcpServer) {
+			console.log('[Main] Closing SDL TCP server...');
+			sdlTcpServer.close();
+			sdlTcpServer = null;
 		}
 
 		mainWindow = null;
@@ -486,34 +440,8 @@ function startInputHooks(): void {
 		console.log('[Main] ✓ Global input hooks started');
 	}
 
-	if (sdl?.controller) {
-		console.log('[SDL] Initializing event-driven gamepad support...');
-
-		try {
-			// Open all currently connected devices
-			const devices = sdl.controller.devices;
-			console.log(`[SDL] Found ${devices.length} controller(s)`);
-
-			devices.forEach((device: SDLDevice) => {
-				openController(device);
-			});
-
-			// Hot-plug support: listen for device add/remove events
-			sdl.controller.on('deviceAdd', (device: SDLDevice) => {
-				console.log('[SDL] Device added:', device.name);
-				openController(device);
-			});
-
-			sdl.controller.on('deviceRemove', (device: SDLDevice) => {
-				console.log('[SDL] Device removed:', device.name);
-				closeController(device);
-			});
-
-			console.log('[SDL] ✓ Event-driven gamepad support initialized');
-		} catch (error) {
-			console.error('[SDL] Failed to initialize gamepad support:', error);
-		}
-	}
+	// SDL disabled - using DOM Gamepad API
+	console.log('[Main] Gamepad detection: Chromium will detect gamepads automatically');
 }
 
 app.whenReady().then(async () => {
@@ -538,6 +466,9 @@ app.whenReady().then(async () => {
 	mainWindow = await createWindow();
 	await mainWindow.loadURL(appURL);
 	startInputHooks();
+
+	// Start SDL bridge in separate process
+	startSDLBridge();
 
 	app.on('activate', async () => {
 		if (BrowserWindow.getAllWindows().length === 0) {

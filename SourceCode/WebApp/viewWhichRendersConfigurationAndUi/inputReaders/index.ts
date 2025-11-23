@@ -29,8 +29,7 @@
 import { keyboard as webKeyboard } from './_web/keyboard';
 import { mouse as webMouse } from './_web/mouse';
 
-// Import desktop-specific input sources
-// This auto-initializes IPC bridges if running in Electron
+// Import desktop-specific input sources (SDL bridge + uiohook keyboard/mouse)
 import { sdlGamepadCache } from './_desktop';
 
 // Store original DOM Gamepad API
@@ -48,54 +47,42 @@ if (typeof window !== 'undefined') {
  * UNIFIED GAMEPAD INTERFACE
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * Returns ALL gamepads from ALL sources combined:
- * - Native DOM gamepads (USB/Bluetooth controllers via browser)
- * - SDL gamepads (via Electron main process, event-driven IPC cache)
- * - Future: evdev, or any other gamepad input source
+ * Returns gamepads from SDL Bridge (separate Node process) + DOM API fallback.
  *
- * Merge Strategy (voted by Code Council):
- * - Concatenate SDL + DOM gamepads
- * - Reindex to 0-3 (standard Gamepad API format)
- * - Known limitation: may show duplicates if same controller appears in both
+ * SDL Bridge: Runs SDL in a pure Node.js process where it works perfectly,
+ * communicates with Electron via IPC. Provides out-of-focus support.
  *
- * @returns Standard DOM Gamepad[] sparse array (4 slots, nulls for empty)
+ * DOM API: Chromium's native gamepad support as fallback. Works when focused,
+ * stops when out of focus (confirmed by testing).
+ *
+ * @returns Standard DOM Gamepad[] sparse array
  */
 let getGamepadsCallCount = 0;
 export function getGamepads(): (Gamepad | null)[] {
 	getGamepadsCallCount++;
 
-	// Get native DOM gamepads (browser's built-in detection)
-	const domPads = Array.from(originalGetGamepads()).filter(Boolean) as Gamepad[];
-
-	// Get SDL gamepads from cache (updated by _desktop module via IPC events)
+	// Prefer SDL bridge gamepads (out-of-focus support)
 	const sdlPads = sdlGamepadCache.filter(Boolean);
 
-	// Log first 5 calls and then every 120th (every 2 seconds at 60fps)
+	// Fallback to DOM API (in-focus only)
+	const domPads = Array.from(originalGetGamepads()).filter(Boolean);
+
+	// Use SDL if available, otherwise DOM
+	const gamepads = sdlPads.length > 0 ? [...sdlGamepadCache] : Array.from(originalGetGamepads());
+
+	// Log first 5 calls and then every 120th
 	if (getGamepadsCallCount <= 5 || getGamepadsCallCount % 120 === 0) {
-		console.log(`[Unified getGamepads #${getGamepadsCallCount}]`, {
-			sdlCount: sdlPads.length,
-			domCount: domPads.length,
-			sdlCache: sdlGamepadCache.map(p => p ? 'connected' : 'null'),
-			domPads: domPads.map(p => ({
+		const connected = gamepads.filter(Boolean);
+		console.log(`[getGamepads #${getGamepadsCallCount}] ${sdlPads.length} SDL + ${domPads.length} DOM = ${connected.length} total`,
+			connected.map(p => p ? {
 				id: p.id,
 				axes: p.axes.map(a => a.toFixed(3)),
-				buttons: p.buttons.filter(b => b.pressed).length + ' pressed'
-			}))
-		});
+				buttonsPressed: p.buttons.filter(b => b.pressed).length
+			} : null)
+		);
 	}
 
-	// Concatenate all sources (SDL first for priority/accuracy)
-	const allPads = [...sdlPads, ...domPads].filter(Boolean);
-
-	// Return sparse array with reindexed gamepads (standard DOM Gamepad API format)
-	const result: (Gamepad | null)[] = [null, null, null, null];
-	allPads.forEach((pad, i) => {
-		if (i < 4) {
-			result[i] = { ...pad, index: i } as Gamepad;
-		}
-	});
-
-	return result;
+	return gamepads;
 }
 
 /**

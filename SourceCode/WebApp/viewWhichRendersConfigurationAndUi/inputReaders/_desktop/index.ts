@@ -53,6 +53,7 @@ declare global {
 			onGlobalWheel: (callback: (data: GlobalWheelEvent) => void) => void;
 			onGlobalGamepadState: (callback: (state: GlobalGamepadState) => void) => void;
 			onGamepadStateUpdate: (callback: (data: { index: number; state: any }) => void) => void;
+			onSDLGamepadState: (callback: (data: { index: number; state: any }) => void) => void;
 			isAppInReadonlyClickthroughMode: () => boolean;
 			hasGlobalInput: () => boolean;
 		};
@@ -156,15 +157,18 @@ export function initializeElectronBridges(): void {
 
 	// Bridge SDL gamepad events to cache (event-driven architecture)
 	let rendererIpcCount = 0;
-	window.electronAPI.onGamepadStateUpdate((data: { index: number; state: any }) => {
+
+	// Listen to SDL bridge gamepad state updates
+	window.electronAPI.onSDLGamepadState((data: { index: number; state: any }) => {
 		const { index, state } = data;
 		rendererIpcCount++;
 
 		// Log first 5 updates and then every 60th
 		if (rendererIpcCount <= 5 || rendererIpcCount % 60 === 0) {
-			console.log(`[Renderer IPC #${rendererIpcCount}] Controller ${index}:`, {
+			console.log(`[SDL Bridge IPC #${rendererIpcCount}] Controller ${index}:`, {
 				axes: state.axes?.map((a: number) => a.toFixed(3)),
-				connected: state.connected
+				connected: state.connected,
+				id: state.id
 			});
 		}
 
@@ -182,6 +186,27 @@ export function initializeElectronBridges(): void {
 				} as unknown as Gamepad;
 			} else {
 				// Controller disconnected
+				sdlGamepadCache[index] = null;
+			}
+		}
+	});
+
+	// Legacy handler (kept for compatibility if needed)
+	window.electronAPI.onGamepadStateUpdate((data: { index: number; state: any }) => {
+		const { index, state } = data;
+
+		if (index >= 0 && index < 4) {
+			if (state.connected) {
+				sdlGamepadCache[index] = {
+					axes: state.axes,
+					buttons: state.buttons,
+					connected: state.connected,
+					timestamp: state.timestamp,
+					id: state.id || `SDL2 Gamepad ${index}`,
+					index,
+					mapping: state.mapping || 'standard'
+				} as unknown as Gamepad;
+			} else {
 				sdlGamepadCache[index] = null;
 			}
 		}
