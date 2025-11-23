@@ -115,6 +115,7 @@ export class CanvasRenderer {
 		for (const { obj: object, idx: i } of sortedObjects) {
 			if (skipSet && skipSet.has(i)) continue; // Skip dragged objects to prevent double-rendering
 			if (!object) continue;
+			this.ctx.save();
 			this.ctx.setTransform(
 				1, 0, 0, 1,
 				object.config.positionOnCanvas.pxFromCanvasLeft,
@@ -122,6 +123,7 @@ export class CanvasRenderer {
 			);
 			object.draw(this.canvas, this.ctx);
 			this.ctx.closePath();
+			this.ctx.restore();
 		}
 	}
 

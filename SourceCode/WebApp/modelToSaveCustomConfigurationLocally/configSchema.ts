@@ -7,9 +7,9 @@ const CanvasObjectPositionSchema = z.object({
 }).default({ pxFromCanvasLeft: 100, pxFromCanvasTop: 100 });
 
 const CanvasObjectHitboxSchema = z.object({
-	widthInPx: z.number().default(100),
-	lengthInPx: z.number().default(100)
-}).default({ widthInPx: 100, lengthInPx: 100 });
+	widthInPx: z.number().default(50),
+	lengthInPx: z.number().default(50)
+}).default({ widthInPx: 50, lengthInPx: 50 });
 
 const CanvasConfigSchema = z.object({
 	width: z.number().default(1920),
@@ -25,6 +25,10 @@ const BaseCanvasObjectSchema = z.object({
 });
 
 const LinearInputIndicatorSchema = BaseCanvasObjectSchema.extend({
+	hitboxSize: z.object({
+		widthInPx: z.number().default(75),
+		lengthInPx: z.number().default(75)
+	}).default({ widthInPx: 75, lengthInPx: 75 }),
 	input: z.object({
 		keyboard: z.object({
 			keyCode: z.string().nullable().default(null)
@@ -66,10 +70,11 @@ const LinearInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 		fontStyle: z.object({
 			textAlign: z.enum(['left', 'right', 'center', 'start', 'end']).default('center'),
 			fillStyle: z.string().default("black"),
-			font: z.string().default("30px Lucida Console"),
+			font: z.string().default("15px Lucida Console"),
 			strokeStyle: z.string().default("white"),
-			strokeWidth: z.number().default(3)
-		}).default({ textAlign: 'center', fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 }),
+			// Represents visible stroke width (implementation doubles for canvas API quirk)
+			strokeWidth: z.number().default(2)
+		}).default({ textAlign: 'center', fillStyle: "black", font: "15px Lucida Console", strokeStyle: "white", strokeWidth: 2 }),
 		fillDirection: z.enum(['normal', 'reversed']).default('normal')
 	}).default({
 		text: "",
@@ -77,7 +82,7 @@ const LinearInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 		fillStyleBackground: "#000000",
 		strokeStyle: "#808080",
 		strokeWidth: 2,
-		fontStyle: { textAlign: 'center', fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 },
+		fontStyle: { textAlign: 'center', fillStyle: "black", font: "15px Lucida Console", strokeStyle: "white", strokeWidth: 2 },
 		fillDirection: 'normal'
 	})
 });
@@ -135,18 +140,19 @@ const PlanarInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 
 const TextSchema = BaseCanvasObjectSchema.extend({
 	hitboxSize: z.object({
-		widthInPx: z.number().default(200),
-		lengthInPx: z.number().default(50)
-	}).default({ widthInPx: 200, lengthInPx: 50 }),
+		widthInPx: z.number().default(100),
+		lengthInPx: z.number().default(25)
+	}).default({ widthInPx: 100, lengthInPx: 25 }),
 	layerLevel: z.number().default(20),
 	text: z.string().default("Sample text"),
 	textStyle: z.object({
 		textAlign: z.enum(['left', 'right', 'center', 'start', 'end']).default('center'),
 		fillStyle: z.string().default("black"),
-		font: z.string().default("30px Lucida Console"),
+		font: z.string().default("15px Lucida Console"),
 		strokeStyle: z.string().default("white"),
-		strokeWidth: z.number().default(3)
-	}).default({ textAlign: 'center', fillStyle: "black", font: "30px Lucida Console", strokeStyle: "white", strokeWidth: 3 }),
+		// Represents visible stroke width (implementation doubles for canvas API quirk)
+		strokeWidth: z.number().default(2)
+	}).default({ textAlign: 'center', fillStyle: "black", font: "15px Lucida Console", strokeStyle: "white", strokeWidth: 2 }),
 	shouldStroke: z.boolean().default(true)
 });
 

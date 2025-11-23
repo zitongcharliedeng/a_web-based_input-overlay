@@ -15,7 +15,7 @@
 import { Vector } from '../_helpers/Vector';
 import type { CanvasObjectInstance } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/index';
 import { WebEmbed } from '../viewWhichRendersConfigurationAndUi/canvasRenderer/canvasObjectTypes/WebEmbed';
-import { mouse } from '../viewWhichRendersConfigurationAndUi/inputReaders/DOM_API/mouse';
+import { mouse } from '../viewWhichRendersConfigurationAndUi/inputReaders';
 
 export class UserEditModeInteractionsController {
 	private selectedObjectIndices: Set<number> = new Set();  // Multi-select support

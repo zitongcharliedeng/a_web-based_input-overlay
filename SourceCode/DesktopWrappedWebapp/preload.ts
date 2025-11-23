@@ -55,6 +55,7 @@ declare global {
 			onGlobalMouseUp: (callback: (data: GlobalMouseButtonEvent) => void) => void;
 			onGlobalWheel: (callback: (data: GlobalWheelEvent) => void) => void;
 			onGlobalGamepadState: (callback: (state: GlobalGamepadState) => void) => void;
+			onGamepadStateUpdate: (callback: (data: { index: number; state: any }) => void) => void;
 			isAppInReadonlyClickthroughMode: () => boolean;
 			hasGlobalInput: () => boolean;
 			toggleReadonlyMode: () => void;
@@ -88,6 +89,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 	onGlobalGamepadState: (callback: (state: GlobalGamepadState) => void): void => {
 		ipcRenderer.on('global-gamepad-state', (_event: IpcRendererEvent, state: GlobalGamepadState) => callback(state));
+	},
+
+	onGamepadStateUpdate: (callback: (data: { index: number; state: any }) => void): void => {
+		ipcRenderer.on('gamepad-state-update', (_event: IpcRendererEvent, data: { index: number; state: any }) => callback(data));
 	},
 
 	isAppInReadonlyClickthroughMode: (): boolean => {

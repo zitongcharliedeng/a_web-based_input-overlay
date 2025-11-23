@@ -68,9 +68,17 @@
 	background-color: rgba(0, 0, 0, 0);
 }
 
+/* Canvas config editor (textarea + button as semantic unit) */
+#canvasConfigEditor {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5em;
+	height: 100%;
+}
+
 #sceneConfigText {
+	flex: 1;
 	width: 100%;
-	height: calc(100% - 2em);
 	padding: 0.5em;
 	font-family: 'Lucida Console', monospace;
 	font-size: 0.9em;
@@ -79,6 +87,10 @@
 	border: 1px solid #666;
 	resize: none;
 	box-sizing: border-box;
+}
+
+#resetToDefaultConfigButton {
+	flex-shrink: 0;
 }
 
 /* Shared window styles */

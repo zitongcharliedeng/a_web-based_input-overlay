@@ -52,6 +52,7 @@ declare global {
 			onGlobalMouseUp: (callback: (data: GlobalMouseButtonEvent) => void) => void;
 			onGlobalWheel: (callback: (data: GlobalWheelEvent) => void) => void;
 			onGlobalGamepadState: (callback: (state: GlobalGamepadState) => void) => void;
+			onGamepadStateUpdate: (callback: (data: { index: number; state: any }) => void) => void;
 			isAppInReadonlyClickthroughMode: () => boolean;
 			hasGlobalInput: () => boolean;
 		};
@@ -81,37 +82,42 @@ const UIOHOOK_TO_KEYCODE: Record<number, string> = {
 	57416: 'ArrowUp', 57424: 'ArrowDown', 57419: 'ArrowLeft', 57421: 'ArrowRight'
 };
 
-// SDL gamepad state from main process (sdl2-gamecontroller)
-// sdl2-gamecontroller runs SDL_PumpEvents() in separate thread
-// This works with Electron's event loop and provides unfocused input
-let sdlGamepadState: Gamepad | null = null;
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * DESKTOP INPUT SOURCES - SDL & uiohook IPC Bridges
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * This module handles Electron-specific input sources:
+ * - SDL gamepads (via IPC from main process, event-driven)
+ * - uiohook global keyboard/mouse (via IPC, dispatches synthetic DOM events)
+ *
+ * Exported for use by inputReaders/index.ts unified interface.
+ * The webapp should NEVER import from this module directly.
+ */
+
+/**
+ * SDL Gamepad Cache (Event-Driven Updates)
+ *
+ * Updated by IPC events from main process SDL controller subsystem.
+ * Read by inputReaders/index.ts to merge with DOM gamepads.
+ *
+ * Format: Sparse array [0-3] with Gamepad-compatible objects
+ */
+export const sdlGamepadCache: (any | null)[] = [null, null, null, null];
+
 let bridgesInitialized = false;
 
 /**
- * Merge native browser gamepads with SDL gamepads (additive pattern)
- * Council-approved architecture: Never override native APIs, always merge
+ * Initialize Electron IPC Bridges
  *
- * Benefits:
- * - Both native and SDL gamepads work simultaneously
- * - If SDL breaks, native still works
- * - If native breaks, SDL still works
- * - No monkey-patching (clean)
+ * Sets up listeners for:
+ * - SDL gamepad state updates (event-driven cache)
+ * - uiohook keyboard events (synthetic DOM events)
+ * - uiohook mouse events (synthetic DOM events + state updates)
+ *
+ * Called automatically by inputReaders/index.ts when module loads.
+ * Safe to call multiple times (idempotent).
  */
-export function getMergedGamepads(): (Gamepad | null)[] {
-	// Always start with native gamepads (never block native API)
-	const native = navigator.getGamepads();
-	const merged = Array.from(native);
-
-	// Add SDL gamepad to index 0 if available and connected
-	if (sdlGamepadState && sdlGamepadState.connected) {
-		// SDL takes priority at index 0 (most games expect gamepad at index 0)
-		merged[0] = sdlGamepadState;
-	}
-
-	return merged;
-}
-
-// Initialize electron API bridges
 export function initializeElectronBridges(): void {
 	if (!window.electronAPI) {
 		return; // Not running in Electron
@@ -119,10 +125,11 @@ export function initializeElectronBridges(): void {
 
 	// Guard against double initialization
 	if (bridgesInitialized) {
-		console.warn('[ElectronBridge] Already initialized, skipping');
 		return;
 	}
 	bridgesInitialized = true;
+
+	console.log('[ElectronBridge] Initializing IPC bridges for keyboard, mouse, and gamepad...');
 
 	// Bridge uiohook events to synthetic DOM KeyboardEvents
 	window.electronAPI.onGlobalKeyDown((data: { keycode: number }) => {
@@ -147,23 +154,37 @@ export function initializeElectronBridges(): void {
 		}
 	});
 
-	// Bridge SDL gamepad events to navigator.getGamepads()
-	window.electronAPI.onGlobalGamepadState((state: {
-		axes: number[];
-		buttons: GamepadButton[];
-		connected: boolean;
-		timestamp: number;
-	}) => {
-		// Store state with proper Gamepad interface properties
-		sdlGamepadState = {
-			axes: state.axes,
-			buttons: state.buttons,
-			connected: state.connected,
-			timestamp: state.timestamp,
-			id: 'SDL2 Gamepad (sdl2-gamecontroller)',
-			index: 0,
-			mapping: 'standard'
-		} as unknown as Gamepad;
+	// Bridge SDL gamepad events to cache (event-driven architecture)
+	let rendererIpcCount = 0;
+	window.electronAPI.onGamepadStateUpdate((data: { index: number; state: any }) => {
+		const { index, state } = data;
+		rendererIpcCount++;
+
+		// Log first 5 updates and then every 60th
+		if (rendererIpcCount <= 5 || rendererIpcCount % 60 === 0) {
+			console.log(`[Renderer IPC #${rendererIpcCount}] Controller ${index}:`, {
+				axes: state.axes?.map((a: number) => a.toFixed(3)),
+				connected: state.connected
+			});
+		}
+
+		if (index >= 0 && index < 4) {
+			if (state.connected) {
+				// Update cache with Gamepad-compatible object
+				sdlGamepadCache[index] = {
+					axes: state.axes,
+					buttons: state.buttons,
+					connected: state.connected,
+					timestamp: state.timestamp,
+					id: state.id || `SDL2 Gamepad ${index}`,
+					index,
+					mapping: state.mapping || 'standard'
+				} as unknown as Gamepad;
+			} else {
+				// Controller disconnected
+				sdlGamepadCache[index] = null;
+			}
+		}
 	});
 
 	// Bridge uiohook mouse events to mouse state object
@@ -219,5 +240,5 @@ export function initializeElectronBridges(): void {
 	});
 }
 
-// Note: Function is called explicitly from default.ts to ensure Vite doesn't tree-shake it
-// Do NOT call here to avoid double initialization
+// Auto-initialize when module loads (if running in Electron)
+initializeElectronBridges();

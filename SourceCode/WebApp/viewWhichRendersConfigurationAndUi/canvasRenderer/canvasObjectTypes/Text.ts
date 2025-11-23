@@ -1,5 +1,4 @@
 import { CanvasObjectInstance } from './BaseCanvasObject';
-import { canvas_text } from '../canvasDrawingHelpers';
 import { TextSchema, type TextConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
 export class Text extends CanvasObjectInstance {
@@ -18,16 +17,20 @@ export class Text extends CanvasObjectInstance {
 		ctx.beginPath();
 		ctx.textBaseline = 'middle';
 		ctx.textAlign = 'left';
+		ctx.font = this.config.textStyle.font ?? "30px Lucida Console";
 
-		// Left-align text, vertically centered
 		const x = 0;
 		const y = this.config.hitboxSize.lengthInPx / 2;
 
 		if (this.config.shouldStroke) {
 			ctx.strokeStyle = this.config.textStyle.strokeStyle ?? "white";
-			ctx.lineWidth = this.config.textStyle.strokeWidth ?? 3;
+			// Canvas strokes centered on path (50% inside, 50% outside)
+			// fillText covers inner half, so double lineWidth for correct visual width
+			ctx.lineWidth = (this.config.textStyle.strokeWidth ?? 3) * 2;
 			ctx.strokeText(this.config.text, x, y);
 		}
-		canvas_text(ctx, x, y, this.config.text, this.config.textStyle);
+
+		ctx.fillStyle = this.config.textStyle.fillStyle ?? "black";
+		ctx.fillText(this.config.text, x, y);
 	}
 }

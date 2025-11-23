@@ -15,6 +15,7 @@ class PropertyEdit {
 
 	hidePropertyEdit(): void {
 		const propertyTable = document.getElementById("propertyTable");
+		const canvasConfigEditor = document.getElementById("canvasConfigEditor");
 		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
 		const leftPanel = document.getElementById("leftPanel");
 		const containerForPossibleEditorWindows = document.getElementById("containerForPossibleEditorWindows");
@@ -28,9 +29,7 @@ class PropertyEdit {
 		}
 
 		// Canvas config editor: only apply if user modified it
-		// Skip if we're just closing after spawning (targetScene would be stale)
-		// The config is already updated via ConfigManager.addObject
-		if (sceneConfigText && !sceneConfigText.hidden && this.applySceneConfig) {
+		if (canvasConfigEditor && !canvasConfigEditor.hidden && this.applySceneConfig) {
 			// Only apply if the text was actually modified (has focus or was recently focused)
 			const textWasEdited = document.activeElement === sceneConfigText ||
 								 sceneConfigText.dataset['modified'] === 'true';
@@ -52,8 +51,10 @@ class PropertyEdit {
 			propertyTable.removeChild(propertyTable.firstChild);
 		}
 
+		if (canvasConfigEditor) {
+			canvasConfigEditor.hidden = true;
+		}
 		if (sceneConfigText) {
-			sceneConfigText.hidden = true;
 			sceneConfigText.value = '';
 		}
 		if (propertyTable) {
@@ -84,16 +85,16 @@ class PropertyEdit {
 
 		const containerForPossibleEditorWindows = document.getElementById("containerForPossibleEditorWindows");
 		const propertyTable = document.getElementById("propertyTable");
-		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
+		const canvasConfigEditor = document.getElementById("canvasConfigEditor");
 		const editorTitle = document.getElementById("editorTitle");
 		const leftPanel = document.getElementById("leftPanel");
 		const rightPanel = document.getElementById("rightPanel");
 
 		if (!containerForPossibleEditorWindows || !propertyTable || !editorTitle || !leftPanel) return;
 
-		// Show left panel with property table, hide canvas config text
+		// Show left panel with property table, hide canvas config editor
 		leftPanel.hidden = false;
-		if (sceneConfigText) sceneConfigText.hidden = true;
+		if (canvasConfigEditor) canvasConfigEditor.hidden = true;
 		propertyTable.hidden = false;
 
 		// Hide right panel (creation panel not needed for property edit)
@@ -154,16 +155,17 @@ class PropertyEdit {
 
 		const containerForPossibleEditorWindows = document.getElementById("containerForPossibleEditorWindows");
 		const propertyTable = document.getElementById("propertyTable");
+		const canvasConfigEditor = document.getElementById("canvasConfigEditor");
 		const sceneConfigText = document.getElementById("sceneConfigText") as HTMLTextAreaElement;
 		const editorTitle = document.getElementById("editorTitle");
 		const leftPanel = document.getElementById("leftPanel");
 
-		if (!containerForPossibleEditorWindows || !propertyTable || !sceneConfigText || !editorTitle || !leftPanel) return;
+		if (!containerForPossibleEditorWindows || !propertyTable || !canvasConfigEditor || !sceneConfigText || !editorTitle || !leftPanel) return;
 
-		// Show left panel with canvas config text, hide property table
+		// Show left panel with canvas config editor, hide property table
 		leftPanel.hidden = false;
 		propertyTable.hidden = true;
-		sceneConfigText.hidden = false;
+		canvasConfigEditor.hidden = false;
 
 		editorTitle.innerHTML = "Canvas Configuration";
 

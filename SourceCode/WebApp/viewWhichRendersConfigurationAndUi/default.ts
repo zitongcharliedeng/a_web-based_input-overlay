@@ -1,9 +1,4 @@
-import { mouse } from './inputReaders/DOM_API/mouse';
-import { keyboard } from './inputReaders/DOM_API/keyboard';
-import { initializeElectronBridges, getMergedGamepads } from './inputReaders/ElectronAppWrapper_API';
-
-// Initialize Electron bridge explicitly (ensures it runs even if Vite tree-shakes)
-initializeElectronBridges();
+import { mouse, keyboard, getGamepads } from './inputReaders';
 import { deserializeCanvasObject } from './canvasRenderer/canvasObjectTypes/index.js';
 import { PropertyEdit } from './uiComponents/PropertyEdit';
 import { loadConfigFromLocalStorage } from '../modelToSaveCustomConfigurationLocally/configSerializer';
@@ -267,8 +262,8 @@ window.addEventListener("load", function (): void {
 
 		let updateScreen = false;
 
-		// Use merge function to combine native + SDL gamepads (council-approved pattern)
-		window.gamepads = getMergedGamepads();
+		// Get gamepads through unified facade (automatically uses web or desktop based on platform)
+		window.gamepads = getGamepads();
 
 		if (!window._gamepadDebugLogged) {
 			const pads = window.gamepads;
@@ -393,196 +388,180 @@ function loadSceneConfig() {
 // Create default scene configuration (CustomisableCanvasConfig)
 function createDefaultConfig(canvas: HTMLCanvasElement): CustomisableCanvasConfig {
 	const objects: CanvasObjectConfig[] = [
+		// Intro text
 		{ Text: TextSchema.parse({
 			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: 20 },
-			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
-			text: "TEST 1: Left Stick + WASD + Mouse - WITH radial compensation vs WITHOUT",
-			textStyle: { textAlign: "left", font: "20px Lucida Console" }
-		}) },
-		{ Text: TextSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: 45 },
-			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
-			text: "Move diagonally: LEFT shows ~100% (compensated), RIGHT shows ~70% (raw circular)",
-			textStyle: { textAlign: "left", font: "20px Lucida Console" }
+			hitboxSize: { widthInPx: 600, lengthInPx: 25 },
+			text: "This is a text box and the two joystick arrow keys, one has circle correction, check it out!",
+			textStyle: { textAlign: "left", font: "15px Lucida Console" }
 		}) },
 
+		// Left side: WITH radial compensation (planar is 200x200, centered joystick)
 		{ PlanarInputIndicator: PlanarInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: 80 },
-			input: {
-				xAxes: { "0": true },
-				yAxes: { "1": true }
-			}
-		}) },
-
-		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 240, pxFromCanvasTop: 80 },
-			input: {
-				keyboard: { keyCode: "KeyW" },
-				mouse: { button: 3, wheel: "up" },
-				gamepad: {
-					stick: { type: "left", axis: "Y", direction: "negative" }
-				}
-			},
-			processing: { radialCompensationAxis: 0 },
-			display: { text: "W" }
+			positionOnCanvas: { pxFromCanvasLeft: 120, pxFromCanvasTop: 80 }
 		}) },
 		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 150, pxFromCanvasTop: 180 },
+			positionOnCanvas: { pxFromCanvasLeft: 183, pxFromCanvasTop: 80 },
 			input: {
-				keyboard: { keyCode: "KeyA" },
-				mouse: { button: 0 },
-				gamepad: { stick: { type: "left", axis: "X", direction: "negative" } }
-			},
-			processing: { radialCompensationAxis: 1 },
-			display: { text: "A" }
-		}) },
-		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 250, pxFromCanvasTop: 180 },
-			input: {
-				keyboard: { keyCode: "KeyS" },
-				mouse: { button: 4, wheel: "down" },
-				gamepad: { stick: { type: "left", axis: "Y", direction: "positive" } }
-			},
-			processing: { radialCompensationAxis: 0 },
-			display: { text: "S" }
-		}) },
-		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 350, pxFromCanvasTop: 180 },
-			input: {
-				keyboard: { keyCode: "KeyD" },
-				mouse: { button: 1 },
-				gamepad: { stick: { type: "left", axis: "X", direction: "positive" } }
-			},
-			processing: { radialCompensationAxis: 1 },
-			display: { text: "D" }
-		}) },
-
-		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 740, pxFromCanvasTop: 80 },
-			input: {
-				keyboard: { keyCode: "KeyW" },
-				mouse: { button: 3, wheel: "up" },
+				keyboard: { keyCode: "ArrowUp" },
 				gamepad: { stick: { type: "left", axis: "Y", direction: "negative" } }
 			},
-			display: { text: "W" }
+			processing: { radialCompensationAxis: 0 },
+			display: { text: "↑" }
 		}) },
 		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 650, pxFromCanvasTop: 180 },
+			positionOnCanvas: { pxFromCanvasLeft: 120, pxFromCanvasTop: 155 },
 			input: {
-				keyboard: { keyCode: "KeyA" },
-				mouse: { button: 0 },
+				keyboard: { keyCode: "ArrowLeft" },
 				gamepad: { stick: { type: "left", axis: "X", direction: "negative" } }
 			},
-			display: { text: "A" }
+			processing: { radialCompensationAxis: 1 },
+			display: { text: "←" }
 		}) },
 		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 750, pxFromCanvasTop: 180 },
+			positionOnCanvas: { pxFromCanvasLeft: 195, pxFromCanvasTop: 155 },
 			input: {
-				keyboard: { keyCode: "KeyS" },
-				mouse: { button: 4, wheel: "down" },
+				keyboard: { keyCode: "ArrowDown" },
 				gamepad: { stick: { type: "left", axis: "Y", direction: "positive" } }
 			},
-			display: { text: "S" }
+			processing: { radialCompensationAxis: 0 },
+			display: { text: "↓" }
 		}) },
 		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 850, pxFromCanvasTop: 180 },
+			positionOnCanvas: { pxFromCanvasLeft: 270, pxFromCanvasTop: 155 },
 			input: {
-				keyboard: { keyCode: "KeyD" },
-				mouse: { button: 1 },
+				keyboard: { keyCode: "ArrowRight" },
 				gamepad: { stick: { type: "left", axis: "X", direction: "positive" } }
 			},
-			display: { text: "D" }
+			processing: { radialCompensationAxis: 1 },
+			display: { text: "→" }
 		}) },
 
-		{ Text: TextSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 1050, pxFromCanvasTop: 20 },
-			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
-			text: "TEST 1B: Right Gamepad Stick (IJKL)",
-			textStyle: { textAlign: "left", font: "20px Lucida Console" }
+		// Right side: WITHOUT radial compensation
+		{ PlanarInputIndicator: PlanarInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 470, pxFromCanvasTop: 80 }
 		}) },
-		{ Text: TextSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 1050, pxFromCanvasTop: 45 },
-			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
-			text: "Same as Test 1, but using right stick",
-			textStyle: { textAlign: "left", font: "20px Lucida Console" }
-		}) },
-
 		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 1150, pxFromCanvasTop: 80 },
+			positionOnCanvas: { pxFromCanvasLeft: 533, pxFromCanvasTop: 80 },
 			input: {
-				gamepad: { stick: { type: "right", axis: "Y", direction: "negative" } }
+				keyboard: { keyCode: "ArrowUp" },
+				gamepad: { stick: { type: "left", axis: "Y", direction: "negative" } }
 			},
-			processing: { radialCompensationAxis: 2 },
-			display: { text: "I" }
+			display: { text: "↑" }
 		}) },
 		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 1050, pxFromCanvasTop: 180 },
+			positionOnCanvas: { pxFromCanvasLeft: 470, pxFromCanvasTop: 155 },
 			input: {
-				gamepad: { stick: { type: "right", axis: "X", direction: "negative" } }
+				keyboard: { keyCode: "ArrowLeft" },
+				gamepad: { stick: { type: "left", axis: "X", direction: "negative" } }
 			},
-			processing: { radialCompensationAxis: 3 },
-			display: { text: "J" }
+			display: { text: "←" }
 		}) },
 		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 1150, pxFromCanvasTop: 180 },
+			positionOnCanvas: { pxFromCanvasLeft: 545, pxFromCanvasTop: 155 },
 			input: {
-				gamepad: { stick: { type: "right", axis: "Y", direction: "positive" } }
+				keyboard: { keyCode: "ArrowDown" },
+				gamepad: { stick: { type: "left", axis: "Y", direction: "positive" } }
 			},
-			processing: { radialCompensationAxis: 2 },
-			display: { text: "K" }
+			display: { text: "↓" }
 		}) },
 		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 1250, pxFromCanvasTop: 180 },
+			positionOnCanvas: { pxFromCanvasLeft: 620, pxFromCanvasTop: 155 },
 			input: {
-				gamepad: { stick: { type: "right", axis: "X", direction: "positive" } }
+				keyboard: { keyCode: "ArrowRight" },
+				gamepad: { stick: { type: "left", axis: "X", direction: "positive" } }
 			},
-			processing: { radialCompensationAxis: 3 },
-			display: { text: "L" }
+			display: { text: "→" }
 		}) },
 
-		{ Text: TextSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: 300 },
-			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
-			text: "TEST 3: Gamepad Buttons (Digital)",
-			textStyle: { textAlign: "left", font: "20px Lucida Console" }
-		}) },
-		{ Text: TextSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: 325 },
-			hitboxSize: { widthInPx: 800, lengthInPx: 30 },
-			text: "Face buttons (A/B/X/Y) - digital on/off, no pressure sensitivity",
-			textStyle: { textAlign: "left", font: "20px Lucida Console" }
+		// Center: Standalone planar indicator (mouse/joystick visualization)
+		{ PlanarInputIndicator: PlanarInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 860, pxFromCanvasTop: 440 }
 		}) },
 
-		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 150, pxFromCanvasTop: 360 },
-			input: { gamepad: { button: { index: 0 } } },
-			display: { text: "A" }
-		}) },
-		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 250, pxFromCanvasTop: 360 },
-			input: { gamepad: { button: { index: 1 } } },
-			display: { text: "B" }
-		}) },
-		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 350, pxFromCanvasTop: 360 },
-			input: { gamepad: { button: { index: 2 } } },
-			display: { text: "X" }
-		}) },
-		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 450, pxFromCanvasTop: 360 },
-			input: { gamepad: { button: { index: 3 } } },
-			display: { text: "Y" }
+		// Right side WebEmbed (iframe border hugs right edge of canvas)
+		// WebEmbed: 640x480, iframe has 50px padding, so iframe is 540 wide
+		// Canvas right edge: 1920, iframe right = 1920, so left = 1920 - 540 = 1380
+		// Accounting for padding offset: 1380 - 50 = 1330
+		{ WebEmbed: WebEmbedSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 1330, pxFromCanvasTop: 300 }
 		}) },
 
+		// Bottom left linear indicators - Row 1 (Zip, Crouch, Dash, Jump, Melee, Reload)
+		// 75px wide + 10px gap = 85px spacing
 		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 550, pxFromCanvasTop: 360 },
-			input: { gamepad: { button: { index: 6 } } },
-			display: { text: "LT" }
+			positionOnCanvas: { pxFromCanvasLeft: 20, pxFromCanvasTop: 740 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "Zip" }
 		}) },
 		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
-			positionOnCanvas: { pxFromCanvasLeft: 650, pxFromCanvasTop: 360 },
-			input: { gamepad: { button: { index: 7 } } },
-			display: { text: "RT" }
+			positionOnCanvas: { pxFromCanvasLeft: 105, pxFromCanvasTop: 740 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "Crouch" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 190, pxFromCanvasTop: 740 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "Dash" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 275, pxFromCanvasTop: 740 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "Jump" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 360, pxFromCanvasTop: 740 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "Melee" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 445, pxFromCanvasTop: 740 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "Reload" }
+		}) },
+
+		// Bottom left linear indicators - Row 2 (A1, A2, A3, A4) - centered under Row 1
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 105, pxFromCanvasTop: 825 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "A1" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 190, pxFromCanvasTop: 825 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "A2" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 275, pxFromCanvasTop: 825 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "A3" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 360, pxFromCanvasTop: 825 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "A4" }
+		}) },
+
+		// Bottom left linear indicators - Row 3 (I1, I2, I3, I4) - centered under Row 1
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 105, pxFromCanvasTop: 910 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "I1" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 190, pxFromCanvasTop: 910 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "I2" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 275, pxFromCanvasTop: 910 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "I3" }
+		}) },
+		{ LinearInputIndicator: LinearInputIndicatorSchema.parse({
+			positionOnCanvas: { pxFromCanvasLeft: 360, pxFromCanvasTop: 910 },
+			input: { keyboard: { keyCode: "KeyW" } },
+			display: { text: "I4" }
 		}) },
 	];
 
@@ -761,6 +740,20 @@ function createUIHelpers(canvas: HTMLCanvasElement, configManager: ConfigManager
 			userEditModeInteractionsController.setDisableInteractions(true);
 			window.electronAPI!.toggleReadonlyMode();
 			showToast('Readonly mode active - use Task Manager to close');
+			hideBothPanels();
+		});
+	}
+
+	// Setup Reset to Default Config button
+	const resetToDefaultConfigBtn = document.getElementById("resetToDefaultConfigButton");
+	if (resetToDefaultConfigBtn) {
+		resetToDefaultConfigBtn.addEventListener("click", () => {
+			const confirmed = confirm('Reset to default configuration?\n\nThis will replace your current config with the default layout.');
+			if (!confirmed) return;
+
+			const newDefaultConfig = createDefaultConfig(canvas);
+			configManager.setConfig(newDefaultConfig);
+			showToast('Reset to default config');
 			hideBothPanels();
 		});
 	}

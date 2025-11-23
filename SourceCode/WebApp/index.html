@@ -26,7 +26,10 @@
 
 		<div id="leftPanel" hidden>
 			<table id="propertyTable" hidden></table>
-			<textarea id="sceneConfigText" hidden spellcheck="false"></textarea>
+			<div id="canvasConfigEditor" hidden>
+				<textarea id="sceneConfigText" spellcheck="false"></textarea>
+				<button id="resetToDefaultConfigButton" class="ButtonWhichUserCanPressToUpdateState">Reset to Default Config</button>
+			</div>
 		</div>
 
 		<button id="toggleReadonlyModeButton" class="toggleReadonlyButton" style="display: none;">

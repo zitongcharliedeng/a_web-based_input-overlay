@@ -1,5 +1,5 @@
 import { CanvasObjectInstance } from './BaseCanvasObject';
-import { canvas_text, canvas_properties } from '../canvasDrawingHelpers';
+import { canvas_properties } from '../canvasDrawingHelpers';
 import { LinearInputIndicatorSchema, type LinearInputIndicatorConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
 type GamepadStickInput = {
@@ -148,8 +148,11 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 		const textY = this.config.hitboxSize.lengthInPx * 0.5;
 		canvas_properties(ctx, fontStyle);
 		ctx.strokeStyle = fontStyle.strokeStyle ?? "white";
-		ctx.lineWidth = fontStyle.strokeWidth ?? 3;
+		// Canvas strokes centered on path (50% inside, 50% outside)
+		// fillText covers inner half, so double lineWidth for correct visual width
+		ctx.lineWidth = (fontStyle.strokeWidth ?? 3) * 2;
 		ctx.strokeText(keyText, textX, textY);
-		canvas_text(ctx, textX, textY, keyText, fontStyle);
+		ctx.fillStyle = fontStyle.fillStyle ?? "black";
+		ctx.fillText(keyText, textX, textY);
 	}
 }

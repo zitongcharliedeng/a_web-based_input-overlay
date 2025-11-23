@@ -70,10 +70,6 @@ export class WebEmbed extends CanvasObjectInstance {
 			iframe.style.display = isDragPreview ? 'none' : 'block';
 		}
 
-		ctx.strokeStyle = '#FF00FF';
-		ctx.lineWidth = 2;
-		ctx.strokeRect(0, 0, this.config.hitboxSize.widthInPx, this.config.hitboxSize.lengthInPx);
-
 		if (isDragPreview) {
 			ctx.fillStyle = '#808080';
 			ctx.fillRect(padding, padding, this.config.hitboxSize.widthInPx - padding * 2, this.config.hitboxSize.lengthInPx - padding * 2);

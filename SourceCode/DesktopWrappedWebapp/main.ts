@@ -85,6 +85,11 @@ interface SDLButtons {
 interface SDLController {
 	axes: SDLAxes;
 	buttons: SDLButtons;
+	closed: boolean;
+	on(event: string, callback: (eventType: string) => void): void;
+	close(): void;
+	device?: SDLDevice;
+	name?: string;
 }
 
 interface SDLDevice {
@@ -95,6 +100,8 @@ interface SDL {
 	controller: {
 		devices: SDLDevice[];
 		openDevice(device: SDLDevice): SDLController;
+		on(event: 'deviceAdd', callback: (device: SDLDevice) => void): void;
+		on(event: 'deviceRemove', callback: (device: SDLDevice) => void): void;
 	};
 }
 
@@ -115,13 +122,16 @@ try {
 	console.log('[Main] Global input hooks disabled (will use DOM events only)');
 }
 
+// SDL Controller Management (Event-Driven Architecture)
 let sdl: SDL | null = null;
-let sdlController: SDLController | null = null;
-let gamepadAvailable = false;
+const controllerMap = new Map<number, { instance: any; index: number; device: SDLDevice }>();
+
+// Batching state for IPC optimization (coalesce events within same tick)
+const pendingUpdates = new Map<number, any>();
+let flushScheduled = false;
 
 try {
 	sdl = require('@kmamal/sdl') as SDL;
-	gamepadAvailable = true;
 	console.log('[Main] ✓ @kmamal/sdl loaded (bundled SDL2, cross-platform)');
 } catch (error) {
 	if (error instanceof Error) {
@@ -152,6 +162,174 @@ ipcMain.on('toggle-readonly-mode', (_event: IpcMainEvent) => {
 console.log('[Main] Starting overlay in interactive mode...');
 console.log('[Main] Readonly mode:', isReadonly);
 console.log('[Main] Preload script path:', path.join(__dirname, 'preload.js'));
+
+// Helper: Find available controller index (0-3) with recycling
+function getAvailableIndex(): number | null {
+	const usedIndices = new Set(Array.from(controllerMap.values()).map(e => e.index));
+	for (let i = 0; i < 4; i++) {
+		if (!usedIndices.has(i)) return i;
+	}
+	return null; // All 4 slots occupied
+}
+
+// Helper: Read SDL controller state into Gamepad-compatible format
+function readSDLState(instance: any, index: number) {
+	return {
+		axes: [
+			instance.axes.leftStickX ?? 0,
+			instance.axes.leftStickY ?? 0,
+			instance.axes.rightStickX ?? 0,
+			instance.axes.rightStickY ?? 0
+		],
+		buttons: [
+			{ pressed: instance.buttons.a ?? false, value: instance.buttons.a ? 1 : 0 },
+			{ pressed: instance.buttons.b ?? false, value: instance.buttons.b ? 1 : 0 },
+			{ pressed: instance.buttons.x ?? false, value: instance.buttons.x ? 1 : 0 },
+			{ pressed: instance.buttons.y ?? false, value: instance.buttons.y ? 1 : 0 },
+			{ pressed: instance.buttons.leftShoulder ?? false, value: instance.buttons.leftShoulder ? 1 : 0 },
+			{ pressed: instance.buttons.rightShoulder ?? false, value: instance.buttons.rightShoulder ? 1 : 0 },
+			{ pressed: false, value: instance.axes.leftTrigger ?? 0 },
+			{ pressed: false, value: instance.axes.rightTrigger ?? 0 },
+			{ pressed: instance.buttons.back ?? false, value: instance.buttons.back ? 1 : 0 },
+			{ pressed: instance.buttons.start ?? false, value: instance.buttons.start ? 1 : 0 },
+			{ pressed: instance.buttons.leftStick ?? false, value: instance.buttons.leftStick ? 1 : 0 },
+			{ pressed: instance.buttons.rightStick ?? false, value: instance.buttons.rightStick ? 1 : 0 },
+			{ pressed: instance.buttons.dpadUp ?? false, value: instance.buttons.dpadUp ? 1 : 0 },
+			{ pressed: instance.buttons.dpadDown ?? false, value: instance.buttons.dpadDown ? 1 : 0 },
+			{ pressed: instance.buttons.dpadLeft ?? false, value: instance.buttons.dpadLeft ? 1 : 0 },
+			{ pressed: instance.buttons.dpadRight ?? false, value: instance.buttons.dpadRight ? 1 : 0 },
+			{ pressed: instance.buttons.guide ?? false, value: instance.buttons.guide ? 1 : 0 }
+		],
+		timestamp: Date.now(),
+		connected: true,
+		id: `SDL2 Gamepad (${instance.device?.name ?? 'Unknown'})`,
+		index,
+		mapping: 'standard'
+	};
+}
+
+// Helper: Safe IPC send (checks window lifecycle)
+function safeSend(channel: string, data: any): void {
+	try {
+		if (mainWindow && !mainWindow.isDestroyed()) {
+			mainWindow.webContents.send(channel, data);
+		}
+	} catch (err) {
+		console.error(`[SDL IPC] Failed to send ${channel}:`, err);
+	}
+}
+
+// Batched IPC sender (coalesces updates within same event loop tick)
+let ipcBatchCount = 0;
+function scheduleUpdate(index: number, state: any): void {
+	pendingUpdates.set(index, state);
+
+	if (!flushScheduled) {
+		flushScheduled = true;
+		setImmediate(() => {
+			ipcBatchCount++;
+			const updateCount = pendingUpdates.size;
+
+			if (ipcBatchCount <= 5 || ipcBatchCount % 60 === 0) {
+				console.log(`[IPC Batch #${ipcBatchCount}] Sending ${updateCount} controller update(s)`);
+			}
+
+			pendingUpdates.forEach((st, idx) => {
+				safeSend('gamepad-state-update', { index: idx, state: st });
+			});
+			pendingUpdates.clear();
+			flushScheduled = false;
+		});
+	}
+}
+
+// Open and configure a controller with event-driven architecture
+function openController(device: SDLDevice): void {
+	if (!sdl) return;
+
+	// Check if already open
+	for (const entry of controllerMap.values()) {
+		if (entry.device === device) {
+			console.log(`[SDL] Device already open, skipping:`, device.name);
+			return;
+		}
+	}
+
+	const index = getAvailableIndex();
+	if (index === null) {
+		console.warn(`[SDL] All controller slots full, cannot open:`, device.name);
+		return;
+	}
+
+	try {
+		const instance = sdl.controller.openDevice(device);
+		const deviceId = controllerMap.size; // Use map size as unique ID
+		controllerMap.set(deviceId, { instance, index, device });
+
+		console.log(`[SDL] Opened controller at index ${index}:`, device.name);
+
+		// CRITICAL: Subscribe to specific SDL events
+		// Event types: 'axisMotion', 'buttonDown', 'buttonUp', 'close'
+		let eventCount = 0;
+
+		const handleEvent = (eventType: string) => {
+			eventCount++;
+
+			// Log first 10 events and then every 120th event
+			if (eventCount <= 10 || eventCount % 120 === 0) {
+				console.log(`[SDL Event #${eventCount}] Type: ${eventType}, Axes:`, {
+					leftX: instance.axes.leftStickX?.toFixed(3),
+					leftY: instance.axes.leftStickY?.toFixed(3),
+					rightX: instance.axes.rightStickX?.toFixed(3),
+					rightY: instance.axes.rightStickY?.toFixed(3)
+				});
+			}
+
+			// Read current state (now populated thanks to event pump)
+			const state = readSDLState(instance, index);
+			scheduleUpdate(index, state);
+		};
+
+		// Register for all event types explicitly
+		instance.on('axisMotion', () => handleEvent('axisMotion'));
+		instance.on('buttonDown', () => handleEvent('buttonDown'));
+		instance.on('buttonUp', () => handleEvent('buttonUp'));
+
+		// Handle controller disconnection
+		instance.on('close', () => {
+			console.log(`[SDL] Controller ${index} closed`);
+			safeSend('gamepad-state-update', {
+				index,
+				state: { connected: false, axes: [], buttons: [], timestamp: Date.now() }
+			});
+			controllerMap.delete(deviceId);
+		});
+
+		// Send initial state
+		console.log(`[SDL] Sending initial state for controller ${index}`);
+		const initialState = readSDLState(instance, index);
+		console.log(`[SDL] Initial axes:`, initialState.axes);
+		scheduleUpdate(index, initialState);
+
+	} catch (err) {
+		console.error(`[SDL] Failed to open device:`, device.name, err);
+	}
+}
+
+// Close a controller by device reference
+function closeController(device: SDLDevice): void {
+	for (const [deviceId, entry] of controllerMap.entries()) {
+		if (entry.device === device) {
+			try {
+				entry.instance.close(); // Triggers 'close' event
+			} catch (err) {
+				console.error(`[SDL] Error closing device:`, err);
+				controllerMap.delete(deviceId); // Clean up anyway
+			}
+			return;
+		}
+	}
+}
 
 async function createWindow(): Promise<BrowserWindow> {
 	// Get primary display dimensions
@@ -308,71 +486,32 @@ function startInputHooks(): void {
 		console.log('[Main] ✓ Global input hooks started');
 	}
 
-	if (sdl) {
-		console.log('[Main] Searching for SDL controllers...');
+	if (sdl?.controller) {
+		console.log('[SDL] Initializing event-driven gamepad support...');
 
-		const devices = sdl.controller.devices;
-		if (devices.length > 0) {
-			const device = devices[0]!;  // Non-null assertion - length check guarantees existence
-			console.log('[Main] Found controller:', device.name);
+		try {
+			// Open all currently connected devices
+			const devices = sdl.controller.devices;
+			console.log(`[SDL] Found ${devices.length} controller(s)`);
 
-			try {
-				sdlController = sdl.controller.openDevice(device);
-				console.log('[Main] Controller opened successfully');
+			devices.forEach((device: SDLDevice) => {
+				openController(device);
+			});
 
-				const gamepadState = {
-					axes: [0, 0, 0, 0],
-					buttons: Array(17).fill(null).map(() => ({ pressed: false, value: 0 })),
-					timestamp: Date.now(),
-					connected: true
-				};
+			// Hot-plug support: listen for device add/remove events
+			sdl.controller.on('deviceAdd', (device: SDLDevice) => {
+				console.log('[SDL] Device added:', device.name);
+				openController(device);
+			});
 
-				gamepadPollInterval = setInterval(() => {
-					if (!sdlController || !mainWindow || mainWindow.isDestroyed()) {
-						if (gamepadPollInterval) {
-							clearInterval(gamepadPollInterval);
-							gamepadPollInterval = null;
-						}
-						return;
-					}
+			sdl.controller.on('deviceRemove', (device: SDLDevice) => {
+				console.log('[SDL] Device removed:', device.name);
+				closeController(device);
+			});
 
-					const axes = sdlController.axes;
-					gamepadState.axes[0] = axes.leftStickX ?? 0;
-					gamepadState.axes[1] = axes.leftStickY ?? 0;
-					gamepadState.axes[2] = axes.rightStickX ?? 0;
-					gamepadState.axes[3] = axes.rightStickY ?? 0;
-
-					const buttons = sdlController.buttons;
-					gamepadState.buttons[0] = { pressed: buttons.a ?? false, value: buttons.a ? 1.0 : 0 };
-					gamepadState.buttons[1] = { pressed: buttons.b ?? false, value: buttons.b ? 1.0 : 0 };
-					gamepadState.buttons[2] = { pressed: buttons.x ?? false, value: buttons.x ? 1.0 : 0 };
-					gamepadState.buttons[3] = { pressed: buttons.y ?? false, value: buttons.y ? 1.0 : 0 };
-					gamepadState.buttons[4] = { pressed: buttons.leftShoulder ?? false, value: buttons.leftShoulder ? 1.0 : 0 };
-					gamepadState.buttons[5] = { pressed: buttons.rightShoulder ?? false, value: buttons.rightShoulder ? 1.0 : 0 };
-					gamepadState.buttons[6] = { pressed: (axes.leftTrigger ?? 0) > 0.1, value: Math.max(0, axes.leftTrigger ?? 0) };
-					gamepadState.buttons[7] = { pressed: (axes.rightTrigger ?? 0) > 0.1, value: Math.max(0, axes.rightTrigger ?? 0) };
-					gamepadState.buttons[8] = { pressed: buttons.back ?? false, value: buttons.back ? 1.0 : 0 };
-					gamepadState.buttons[9] = { pressed: buttons.start ?? false, value: buttons.start ? 1.0 : 0 };
-					gamepadState.buttons[10] = { pressed: buttons.leftStick ?? false, value: buttons.leftStick ? 1.0 : 0 };
-					gamepadState.buttons[11] = { pressed: buttons.rightStick ?? false, value: buttons.rightStick ? 1.0 : 0 };
-					gamepadState.buttons[12] = { pressed: buttons.dpadUp ?? false, value: buttons.dpadUp ? 1.0 : 0 };
-					gamepadState.buttons[13] = { pressed: buttons.dpadDown ?? false, value: buttons.dpadDown ? 1.0 : 0 };
-					gamepadState.buttons[14] = { pressed: buttons.dpadLeft ?? false, value: buttons.dpadLeft ? 1.0 : 0 };
-					gamepadState.buttons[15] = { pressed: buttons.dpadRight ?? false, value: buttons.dpadRight ? 1.0 : 0 };
-					gamepadState.buttons[16] = { pressed: buttons.guide ?? false, value: buttons.guide ? 1.0 : 0 };
-
-					gamepadState.timestamp = Date.now();
-					mainWindow.webContents.send('global-gamepad-state', gamepadState);
-				}, 16);
-
-				console.log('[Main] ✓ SDL gamepad polling started (60fps via setInterval)');
-			} catch (error) {
-				if (error instanceof Error) {
-					console.log('[Main] ✗ Failed to open controller:', error.message);
-				}
-			}
-		} else {
-			console.log('[Main] No controllers detected');
+			console.log('[SDL] ✓ Event-driven gamepad support initialized');
+		} catch (error) {
+			console.error('[SDL] Failed to initialize gamepad support:', error);
 		}
 	}
 }
