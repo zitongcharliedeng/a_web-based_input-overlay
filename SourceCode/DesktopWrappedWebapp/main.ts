@@ -222,6 +222,8 @@ function startSDLBridge(): void {
 
 		sdlBridgeProcess = spawn('node', [bridgePath, SDL_TCP_PORT.toString()], {
 			stdio: ['ignore', 'pipe', 'pipe'], // Don't use stdin, capture stdout/stderr
+			windowsHide: true, // Hide console window on Windows
+			detached: false, // Keep attached to parent so it dies with Electron
 		});
 
 		sdlBridgeProcess.stdout?.on('data', (data: Buffer) => {
@@ -483,5 +485,28 @@ app.on('window-all-closed', () => {
 	// Cleanup already done in window 'closed' handler
 	if (process.platform !== 'darwin') {
 		app.quit();
+	}
+});
+
+// Ensure SDL bridge is killed when app quits
+app.on('before-quit', () => {
+	console.log('[Main] App quitting - cleaning up SDL bridge...');
+
+	if (sdlBridgeProcess) {
+		sdlBridgeProcess.kill('SIGTERM');
+		sdlBridgeProcess = null;
+	}
+
+	if (sdlTcpServer) {
+		sdlTcpServer.close();
+		sdlTcpServer = null;
+	}
+});
+
+// Force kill SDL bridge if still running after quit
+app.on('will-quit', () => {
+	if (sdlBridgeProcess) {
+		console.log('[Main] Force killing SDL bridge...');
+		sdlBridgeProcess.kill('SIGKILL'); // Force kill
 	}
 });

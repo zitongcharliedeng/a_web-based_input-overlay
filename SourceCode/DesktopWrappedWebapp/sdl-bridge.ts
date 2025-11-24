@@ -22,10 +22,113 @@
 
 import * as net from 'net';
 
+// ═══════════════════════════════════════════════════════════════════════════
+// SDL TYPE DEFINITIONS - @kmamal/sdl lacks official TypeScript types
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface SDLControllerDevice {
+	name: string;
+	path?: string;
+}
+
+interface SDLControllerAxes {
+	leftStickX: number;
+	leftStickY: number;
+	rightStickX: number;
+	rightStickY: number;
+	leftTrigger: number;
+	rightTrigger: number;
+}
+
+interface SDLControllerButtons {
+	a: boolean;
+	b: boolean;
+	x: boolean;
+	y: boolean;
+	leftShoulder: boolean;
+	rightShoulder: boolean;
+	back: boolean;
+	start: boolean;
+	leftStick: boolean;
+	rightStick: boolean;
+	dpadUp: boolean;
+	dpadDown: boolean;
+	dpadLeft: boolean;
+	dpadRight: boolean;
+	guide: boolean;
+}
+
+interface SDLController {
+	device: SDLControllerDevice;
+	axes: SDLControllerAxes;
+	buttons: SDLControllerButtons;
+	closed: boolean;
+	on(event: 'axisMotion', callback: (event: { axis: number; value: number }) => void): void;
+	on(event: 'buttonDown', callback: (event: { button: number }) => void): void;
+	on(event: 'buttonUp', callback: (event: { button: number }) => void): void;
+	on(event: 'close', callback: () => void): void;
+	close(): void;
+}
+
+interface SDLControllerAPI {
+	devices: SDLControllerDevice[];
+	openDevice(device: SDLControllerDevice): SDLController;
+	on(event: 'deviceAdd', callback: (device: SDLControllerDevice) => void): void;
+	on(event: 'deviceRemove', callback: (device: SDLControllerDevice) => void): void;
+}
+
+interface SDLKeyEvent {
+	scancode: number;
+	key?: string;
+}
+
+interface SDLMouseMoveEvent {
+	x: number;
+	y: number;
+}
+
+interface SDLMouseButtonEvent {
+	x: number;
+	y: number;
+	button: number;
+}
+
+interface SDLMouseWheelEvent {
+	x?: number;
+	y?: number;
+}
+
+interface SDLWindow {
+	destroy(): void;
+	on(event: 'keyDown', callback: (event: SDLKeyEvent) => void): void;
+	on(event: 'keyUp', callback: (event: SDLKeyEvent) => void): void;
+	on(event: 'mouseMove', callback: (event: SDLMouseMoveEvent) => void): void;
+	on(event: 'mouseButtonDown', callback: (event: SDLMouseButtonEvent) => void): void;
+	on(event: 'mouseButtonUp', callback: (event: SDLMouseButtonEvent) => void): void;
+	on(event: 'mouseWheel', callback: (event: SDLMouseWheelEvent) => void): void;
+}
+
+interface SDLVideoAPI {
+	createWindow(options: {
+		title: string;
+		width: number;
+		height: number;
+		hidden?: boolean;
+	}): SDLWindow;
+}
+
+interface SDL {
+	controller?: SDLControllerAPI;
+	video?: SDLVideoAPI;
+}
+
 // Load SDL (requires @kmamal/sdl installed)
-const sdl = require('@kmamal/sdl');
+const sdl = require('@kmamal/sdl') as SDL;
 
 process.env['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1';
+
+// Set process title for Task Manager identification
+process.title = 'Input Overlay SDL Bridge';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPE DEFINITIONS - Match DOM API for seamless integration
@@ -110,9 +213,9 @@ function send(data: BridgeMessage): void {
 // GAMEPAD SUPPORT - SDL Controller API
 // ═══════════════════════════════════════════════════════════════════════════
 
-const controllers = new Map<number, any>();
+const controllers = new Map<number, SDLController>();
 
-function sendGamepadState(index: number, controller: any): void {
+function sendGamepadState(index: number, controller: SDLController): void {
 	if (controller.closed) return;
 
 	const axes = controller.axes;
@@ -161,12 +264,12 @@ function initControllers(): void {
 		return;
 	}
 
-	const devices = sdl.controller.devices;
+	const devices = sdl.controller!.devices;
 	log(`Found ${devices.length} controller(s)`);
 
-	devices.forEach((device: any, index: number) => {
+	devices.forEach((device: SDLControllerDevice, index: number) => {
 		try {
-			const controller = sdl.controller.openDevice(device);
+			const controller = sdl.controller!.openDevice(device);
 			controllers.set(index, controller);
 			log(`Opened controller ${index}: ${device.name}`);
 
@@ -202,11 +305,11 @@ function initControllers(): void {
 	});
 
 	// Hot-plug support
-	sdl.controller.on('deviceAdd', (device: any) => {
+	sdl.controller!.on('deviceAdd', (device: SDLControllerDevice) => {
 		log(`Controller connected: ${device.name}`);
 		const index = controllers.size;
 		try {
-			const controller = sdl.controller.openDevice(device);
+			const controller = sdl.controller!.openDevice(device);
 			controllers.set(index, controller);
 			controller.on('axisMotion', () => sendGamepadState(index, controller));
 			controller.on('buttonDown', () => sendGamepadState(index, controller));
@@ -219,7 +322,7 @@ function initControllers(): void {
 		}
 	});
 
-	sdl.controller.on('deviceRemove', (device: any) => {
+	sdl.controller!.on('deviceRemove', (device: SDLControllerDevice) => {
 		log(`Controller removed: ${device.name}`);
 	});
 }
@@ -247,7 +350,7 @@ const SDL_SCANCODE_TO_CODE: Record<number, string> = {
 	226: 'AltLeft', 230: 'AltRight',
 };
 
-let sdlWindow: any = null;
+let sdlWindow: SDLWindow | null = null;
 
 function initKeyboardMouse(): void {
 	if (!sdl.video) {
@@ -265,7 +368,7 @@ function initKeyboardMouse(): void {
 		});
 		log('Created hidden SDL window for keyboard/mouse input');
 
-		sdlWindow.on('keyDown', (event: any) => {
+		sdlWindow.on('keyDown', (event: SDLKeyEvent) => {
 			const code = SDL_SCANCODE_TO_CODE[event.scancode] ?? `Unknown${event.scancode}`;
 			send({
 				type: 'keyboard-down',
@@ -278,7 +381,7 @@ function initKeyboardMouse(): void {
 			});
 		});
 
-		sdlWindow.on('keyUp', (event: any) => {
+		sdlWindow.on('keyUp', (event: SDLKeyEvent) => {
 			const code = SDL_SCANCODE_TO_CODE[event.scancode] ?? `Unknown${event.scancode}`;
 			send({
 				type: 'keyboard-up',
@@ -291,7 +394,7 @@ function initKeyboardMouse(): void {
 			});
 		});
 
-		sdlWindow.on('mouseMove', (event: any) => {
+		sdlWindow.on('mouseMove', (event: SDLMouseMoveEvent) => {
 			send({
 				type: 'mouse-move',
 				event: {
@@ -302,7 +405,7 @@ function initKeyboardMouse(): void {
 			});
 		});
 
-		sdlWindow.on('mouseButtonDown', (event: any) => {
+		sdlWindow.on('mouseButtonDown', (event: SDLMouseButtonEvent) => {
 			send({
 				type: 'mouse-down',
 				event: {
@@ -314,7 +417,7 @@ function initKeyboardMouse(): void {
 			});
 		});
 
-		sdlWindow.on('mouseButtonUp', (event: any) => {
+		sdlWindow.on('mouseButtonUp', (event: SDLMouseButtonEvent) => {
 			send({
 				type: 'mouse-up',
 				event: {
@@ -326,7 +429,7 @@ function initKeyboardMouse(): void {
 			});
 		});
 
-		sdlWindow.on('mouseWheel', (event: any) => {
+		sdlWindow.on('mouseWheel', (event: SDLMouseWheelEvent) => {
 			send({
 				type: 'mouse-wheel',
 				event: {

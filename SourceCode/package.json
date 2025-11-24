@@ -1,6 +1,6 @@
 {
   "name": "a-real-web-based-input-overlay",
-  "version": "1.0.24",
+  "version": "1.0.25",
   "description": "A Real Web-based Input Overlay - displays keyboard, mouse, and gamepad inputs",
   "author": "zitongcharliedeng",
   "repository": {
@@ -20,7 +20,9 @@
     "clean": "find . -name '*.js' -not -path '*/node_modules/*' -not -path '*/_bundleAllCompiledJavascriptForWebapp/*' -delete && find . -name '*.js.map' -delete",
     "electron:dev": "npm run build:desktop && concurrently \"npm run dev:webapp\" \"wait-on http://localhost:5173 && electron DesktopWrappedWebapp/main.js --dev --with-dev-console\"",
     "electron:prod": "npm run build && concurrently \"cd WebApp && vite preview\" \"wait-on http://localhost:4173 && electron DesktopWrappedWebapp/main.js --with-dev-console\"",
-    "electron:clickthrough-readonly": "npm run build && concurrently \"cd WebApp && vite preview\" \"wait-on http://localhost:4173 && electron DesktopWrappedWebapp/main.js --in-clickthrough-readonly-mode\""
+    "electron:clickthrough-readonly": "npm run build && concurrently \"cd WebApp && vite preview\" \"wait-on http://localhost:4173 && electron DesktopWrappedWebapp/main.js --in-clickthrough-readonly-mode\"",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
@@ -88,7 +90,8 @@
       }
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "sign": null
     },
     "mac": {
       "target": "dmg",
