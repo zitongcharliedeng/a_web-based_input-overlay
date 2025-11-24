@@ -6,12 +6,6 @@ import { spawn, ChildProcess } from 'child_process';
 
 const APP_TITLE = 'A Real Web-based Input Overlay';
 
-// Dev mode: Load from Vite dev server (npm run dev:webapp)
-// Prod mode: Load from Vite preview server (npm run serve)
-const isDev = process.argv.includes('--dev');
-const VITE_DEV_SERVER_URL = 'http://localhost:5173';
-const VITE_PREVIEW_SERVER_URL = 'http://localhost:4173';
-
 process.env['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1';
 
 if (process.platform === 'linux') {
@@ -457,16 +451,15 @@ app.whenReady().then(async () => {
 		callback({ cancel: false, responseHeaders });
 	});
 
-	const appURL = isDev ? VITE_DEV_SERVER_URL : VITE_PREVIEW_SERVER_URL;
-	console.log(`[Main] Loading from ${appURL}`);
-	if (isDev) {
-		console.log('[Main] Dev mode - ensure "npm run dev:webapp" is running');
-	} else {
-		console.log('[Main] Prod mode - ensure "npm run serve" is running');
-	}
-
 	mainWindow = await createWindow();
-	await mainWindow.loadURL(appURL);
+
+	// Load bundled webapp (same for dev and prod - 100% parity)
+	const htmlPath = app.isPackaged
+		? path.join(process.resourcesPath, 'app.asar', 'WebApp', 'index.html')
+		: path.join(__dirname, '..', 'WebApp', '_bundleAllCompiledJavascriptForWebapp', 'index.html');
+
+	console.log(`[Main] Loading bundled webapp from: ${htmlPath}`);
+	await mainWindow.loadFile(htmlPath);
 	startInputHooks();
 
 	// Start SDL bridge in separate process
@@ -475,7 +468,12 @@ app.whenReady().then(async () => {
 	app.on('activate', async () => {
 		if (BrowserWindow.getAllWindows().length === 0) {
 			mainWindow = await createWindow();
-			await mainWindow.loadURL(appURL);
+
+			const htmlPath = app.isPackaged
+				? path.join(process.resourcesPath, 'app.asar', 'WebApp', 'index.html')
+				: path.join(__dirname, '..', 'WebApp', '_bundleAllCompiledJavascriptForWebapp', 'index.html');
+
+			await mainWindow.loadFile(htmlPath);
 			startInputHooks();
 		}
 	});
