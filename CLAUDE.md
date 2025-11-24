@@ -3,7 +3,7 @@
 > The Ultimate Transparent Streamer Overlay Platform - Because streamers should see their own overlays too!
 
 **Repository:** https://github.com/zitongcharliedeng/a_web-based_input-overlay
-**Current Version:** 1.0.23
+**Current Version:** 1.0.25
 **Status:** Production (Active Development)
 **License:** MIT
 **Primary Platform:** Windows 10/11 (macOS and Linux supported)
@@ -117,6 +117,7 @@ a_web-based_input-overlay/
     │   ├── tsconfig.json                   # TypeScript config
     │   ├── main.ts                         # Main process
     │   ├── preload.ts                      # Preload script (IPC bridge)
+    │   ├── sdl-bridge.ts                   # SDL child process (out-of-focus gamepad)
     │   └── modeSelectorPreload.ts          # Mode selection preload
     │
     └── _devTools/                          # Development tools
@@ -394,34 +395,103 @@ uIOhook.on('mousemove', (event: UIOHookMouseMoveEvent) => {
 uIOhook.start();
 ```
 
-### Gamepad Polling (SDL)
+### Gamepad Polling (SDL Child Process)
+
+**Architecture:** SDL runs in a separate Node.js child process to avoid Chromium event loop conflicts.
 
 ```typescript
-import sdl from '@kmamal/sdl';
+// DesktopWrappedWebapp/main.ts - Spawn SDL bridge
+import { spawn, ChildProcess } from 'child_process';
 
-// Set environment variable for background events
-process.env['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1';
+let sdlBridgeProcess: ChildProcess | null = null;
+const SDL_TCP_PORT = 54321;
 
-// Poll every 16ms (60fps)
-gamepadPollInterval = setInterval(() => {
-  const devices = sdl.controller.devices;
+// Start TCP server to receive SDL events
+const sdlTcpServer = net.createServer((client) => {
+  let buffer = '';
+  client.on('data', (data: Buffer) => {
+    buffer += data.toString();
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
 
-  for (const device of devices) {
-    const controller = sdl.controller.openDevice(device);
-
-    mainWindow?.webContents.send('sdl:gamepad-state', {
-      index: 0,
-      axes: controller.axes,
-      buttons: controller.buttons
+    lines.forEach((line) => {
+      const message = JSON.parse(line);
+      if (message.type === 'gamepad-state') {
+        mainWindow?.webContents.send('sdl-gamepad-state', {
+          index: message.index,
+          state: message.state
+        });
+      }
     });
-  }
-}, 16);
+  });
+});
+
+sdlTcpServer.listen(SDL_TCP_PORT, '127.0.0.1', () => {
+  // Spawn SDL bridge process
+  sdlBridgeProcess = spawn('node', [bridgePath, SDL_TCP_PORT.toString()], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    windowsHide: true,  // Hide console window
+    detached: false     // Die with parent
+  });
+});
+
+// Clean shutdown
+app.on('before-quit', () => {
+  if (sdlBridgeProcess) sdlBridgeProcess.kill('SIGTERM');
+  if (sdlTcpServer) sdlTcpServer.close();
+});
 ```
 
-**Why SDL over Gamepad API:**
-- More reliable polling (browser API can miss events)
-- Works in clickthrough mode (when window ignores input)
-- Better analog precision for analog keyboards (Wooting)
+```typescript
+// DesktopWrappedWebapp/sdl-bridge.ts - SDL child process with full TypeScript types
+import * as net from 'net';
+
+// SDL Type Definitions (100+ lines of idiomatic TypeScript)
+interface SDLController {
+  device: SDLControllerDevice;
+  axes: SDLControllerAxes;
+  buttons: SDLControllerButtons;
+  closed: boolean;
+  on(event: 'axisMotion', callback: (event: { axis: number; value: number }) => void): void;
+  on(event: 'buttonDown', callback: (event: { button: number }) => void): void;
+  on(event: 'buttonUp', callback: (event: { button: number }) => void): void;
+  close(): void;
+}
+
+const sdl = require('@kmamal/sdl') as SDL;
+process.env['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1';
+
+// Event-driven updates (not polling)
+controller.on('axisMotion', (event) => {
+  sendGamepadState(index, controller);
+});
+
+controller.on('buttonDown', (event) => {
+  sendGamepadState(index, controller);
+});
+
+// Send via TCP (JSON-over-newline protocol)
+function send(data: unknown): void {
+  if (socket && socket.writable) {
+    socket.write(JSON.stringify(data) + '\n');
+  }
+}
+```
+
+**Why SDL Child Process Architecture:**
+- Chromium event loop conflicts with SDL timer-based polling
+- Worker threads blocked by SDL's `isMainThread` check
+- Child process has independent event loop (pure Node.js)
+- TCP communication avoids stdio backpressure (64KB buffer crashes)
+- Out-of-focus gamepad support (like OBS input-overlay plugin)
+- Full TypeScript type safety (100+ lines of SDL type definitions)
+
+**Key Features:**
+- Event-driven updates (not polling loops)
+- TCP on port 54321 for stable IPC
+- Hidden console window (windowsHide: true)
+- Process lifecycle management
+- Zero ESLint errors with proper SDL types
 
 ---
 
@@ -661,7 +731,18 @@ const normalized = v1.normalize(); // Unit vector
 
 ## Recent Major Changes (Session History)
 
-### v1.0.23 (Latest - 2025-11-20)
+### v1.0.25 (Latest - 2025-11-24)
+- **SDL Child Process Architecture** - Rewrote SDL integration to run in separate Node.js process
+- **Out-of-Focus Gamepad Support** - Gamepads work when app is not focused (like OBS input-overlay)
+- **Full TypeScript Type Safety** - Added 100+ lines of SDL type definitions
+  - SDLController, SDLControllerDevice, SDLControllerAxes, SDLControllerButtons
+  - SDLKeyEvent, SDLMouseMoveEvent, SDLMouseButtonEvent, SDLMouseWheelEvent
+  - Eliminated all 12 `any` types from SDL bridge
+- **TCP Communication** - JSON-over-TCP protocol on port 54321 (avoids stdio backpressure crashes)
+- **Process Management** - windowsHide, detached:false, clean shutdown handlers
+- **Production Packaging** - Added npm pack/dist scripts, electron-builder configuration
+
+### v1.0.23 (2025-11-20)
 - Merged experimental WebEmbed architecture
 - Fixed readonly mode interaction issues
 - Added input forwarding configuration for WebEmbed
@@ -957,6 +1038,144 @@ npm run electron:dev  # Launch with DevTools for debugging
 
 ---
 
-**Last Updated:** 2025-11-20
+## Current Session Notes (2025-11-24)
+
+### Session Context: SDL Child Process Architecture & TypeScript Type Safety
+
+**What We Accomplished:**
+
+1. **SDL Child Process Architecture (Out-of-Focus Gamepad Support)**
+   - **Problem:** SDL could not work in Electron main process due to Chromium event loop conflicts
+   - **Binary Search Test:** Confirmed SDL axes stuck at 0.000 in Electron despite correct event setup
+   - **Root Cause:** Chromium's message pump deprioritizes SDL's timer-based polling
+   - **Solution:** Run SDL in separate Node.js child process with independent event loop
+   - **Architecture:**
+     ```
+     SDL Bridge (Node.js process)
+       → TCP Socket (port 54321)
+         → Electron Main (TCP server)
+           → IPC (sdl-gamepad-state)
+             → Renderer (WebApp)
+               → sdlGamepadCache
+                 → Unified getGamepads() interface
+     ```
+   - **Status:** Working perfectly! User confirmed "IT WORKS! logs in the devtools console"
+
+2. **TCP Communication (Avoiding stdio Crashes)**
+   - **Problem:** First attempt with stdio pipes crashed PC (Win32k error)
+   - **Root Cause:** stdio has fixed ~64KB kernel buffer, 60fps JSON causes backpressure
+   - **Solution:** TCP socket with JSON-over-newline protocol
+   - **Port:** 54321 (localhost only)
+   - **Protocol:** Each message is JSON followed by newline character
+
+3. **Full TypeScript Type Safety (100+ Lines of SDL Types)**
+   - **Problem:** @kmamal/sdl lacks TypeScript type definitions (12 ESLint errors)
+   - **Solution:** Created comprehensive idiomatic TypeScript interfaces:
+     - SDLController, SDLControllerDevice, SDLControllerAxes, SDLControllerButtons
+     - SDLKeyEvent, SDLMouseMoveEvent, SDLMouseButtonEvent, SDLMouseWheelEvent
+     - SDLWindow, SDLVideoAPI, main SDL interface
+   - **Result:** Zero ESLint errors, zero TypeScript errors, zero `any` types
+
+4. **Process Management (Single App in Task Manager)**
+   - **windowsHide: true** - Hides console window
+   - **detached: false** - SDL bridge dies with Electron parent
+   - **process.title** - Clear naming for debugging
+   - **Cleanup handlers** - before-quit and will-quit for graceful shutdown
+
+5. **Production Packaging**
+   - **Scripts:** `npm run pack` (unpacked), `npm run dist` (installer)
+   - **electron-builder:** Configured for Windows/macOS/Linux
+   - **win.sign: null** - Unsigned builds (no code signing certificate)
+   - **Native modules:** @kmamal/sdl and uiohook-napi in extraResources
+   - **Output:** `A Real Web-based Input Overlay.exe` (182 MB)
+
+6. **Git Release**
+   - **Version:** Bumped to 1.0.25
+   - **Commit:** feat: add comprehensive SDL type definitions and production packaging
+   - **Tag:** v1.0.25
+   - **Pushed:** To main branch on GitHub
+
+### Key Technical Decisions
+
+**Why Child Process Instead of Worker Thread:**
+- SDL has explicit `isMainThread` check in source code
+- Worker threads cannot run SDL even with proper event loop
+
+**Why TCP Instead of stdio:**
+- stdio has fixed 64KB kernel buffer
+- High-frequency JSON (60fps) causes backpressure and kernel deadlock
+- TCP has proper flow control and larger buffers
+
+**Why Event-Driven Instead of Polling:**
+- SDL events trigger state updates immediately
+- More efficient than setInterval polling
+- Prevents missed input during frame drops
+
+**Why TypeScript Type Definitions:**
+- Eliminates `any` types (idiomatic TypeScript)
+- Provides autocomplete and IntelliSense
+- Catches errors at compile time
+- Self-documenting code
+
+### Files Modified
+
+**DesktopWrappedWebapp/sdl-bridge.ts:**
+- Created from scratch
+- 100+ lines of SDL type definitions
+- Event-driven SDL controller handling
+- TCP client connecting to Electron
+- Keyboard/mouse input via hidden SDL window
+- Zero ESLint errors, zero `any` types
+
+**DesktopWrappedWebapp/main.ts:**
+- Added TCP server on port 54321
+- Child process spawning with proper options
+- IPC forwarding to renderer
+- Clean shutdown handlers
+
+**DesktopWrappedWebapp/preload.ts:**
+- Added onSDLGamepadState IPC channel
+
+**WebApp/viewWhichRendersConfigurationAndUi/inputReaders/_desktop/index.ts:**
+- Added sdlGamepadCache array
+- SDL bridge listener updates cache
+- Unified getGamepads() merges SDL + DOM
+
+**package.json:**
+- Bumped version to 1.0.25
+- Added pack and dist scripts
+- Configured electron-builder
+
+### Testing Status
+
+**Development Mode (npm run electron:dev):**
+- ✅ SDL bridge connects via TCP
+- ✅ Azeron Keypad detected and opened
+- ✅ Out-of-focus gamepad support working
+- ✅ Keyboard/mouse input working (uiohook-napi)
+
+**Production Build (dist/):**
+- ✅ Executable created (182 MB)
+- ✅ SDL bridge included in app.asar
+- ✅ Native modules in resources
+- ⏳ Not yet tested (pending user testing)
+
+### Next Steps
+
+1. Test packaged .exe to verify SDL bridge works in production
+2. Consider adding reconnection logic for TCP (if bridge crashes)
+3. Document SDL bridge architecture in README
+4. Continue with multimedia features (camera, audio viz)
+
+### Important Reminders for Next Session
+
+- SDL bridge runs on port 54321 (kill old processes if conflict)
+- All SDL types are in sdl-bridge.ts (reusable for future SDL work)
+- Child process architecture pattern can be used for other native integrations
+- Event-driven updates more reliable than polling
+
+---
+
+**Last Updated:** 2025-11-24
 **AI Assistant:** Claude Sonnet 4.5
-**Document Version:** 2.0 (Complete rewrite to match actual codebase)
+**Document Version:** 2.1 (SDL child process architecture added)
