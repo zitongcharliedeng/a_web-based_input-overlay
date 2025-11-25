@@ -58,11 +58,10 @@ export class LinearInputIndicator extends CanvasObjectInstance {
 		let newAntiDeadzone = Math.max(0, antiDeadzone - compensationAxisValue * 0.5);
 
 		const gamepads = window.gamepads;
+		const controllerIndex = this.config.input.gamepad.controllerIndex ?? 0;
 		if (gamepads) {
-			for (let i = 0; i < gamepads.length; i++) {
-				const gamepad = gamepads[i];
-				if (!gamepad) continue;
-
+			const gamepad = gamepads[controllerIndex];
+			if (gamepad) {
 				const stick = this.config.input.gamepad.stick;
 				const axisNumber = asConventionalGamepadAxisNumber(stick);
 				if (gamepad.axes && axisNumber !== null) {

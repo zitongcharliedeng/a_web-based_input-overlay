@@ -105,6 +105,96 @@ try {
 // - No stdio buffering issues (TCP has proper flow control)
 console.log('[Main] SDL bridge will run in separate process...');
 
+function sleep(ms: number): Promise<void> {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function isPortInUse(port: number): Promise<boolean> {
+	return new Promise((resolve) => {
+		const socket = new net.Socket();
+		socket.setTimeout(1000);
+
+		socket.once('connect', () => {
+			socket.end();
+			resolve(true);
+		});
+
+		socket.once('timeout', () => {
+			socket.destroy();
+			resolve(false);
+		});
+
+		socket.once('error', () => {
+			socket.destroy();
+			resolve(false);
+		});
+
+		socket.connect(port, '127.0.0.1');
+	});
+}
+
+async function waitForPortFree(port: number, timeoutMs: number): Promise<boolean> {
+	const startTime = Date.now();
+	while (Date.now() - startTime < timeoutMs) {
+		if (!(await isPortInUse(port))) {
+			return true;
+		}
+		await sleep(100);
+	}
+	return false;
+}
+
+async function sendShutdownToOrphan(port: number): Promise<void> {
+	return new Promise((resolve) => {
+		const socket = new net.Socket();
+		socket.setTimeout(2000);
+
+		socket.once('connect', () => {
+			console.log('[Main] Sending shutdown command to orphaned SDL bridge...');
+			const shutdownMsg = JSON.stringify({ type: 'SHUTDOWN', pid: process.pid });
+			socket.write(shutdownMsg + '\n');
+
+			setTimeout(() => {
+				socket.end();
+				resolve();
+			}, 1000);
+		});
+
+		socket.once('timeout', () => {
+			socket.destroy();
+			resolve();
+		});
+
+		socket.once('error', () => {
+			socket.destroy();
+			resolve();
+		});
+
+		socket.connect(port, '127.0.0.1');
+	});
+}
+
+async function ensureCleanSDLBridge(): Promise<void> {
+	console.log('[Main] Checking for orphaned SDL bridge processes...');
+
+	const orphanExists = await isPortInUse(SDL_TCP_PORT);
+
+	if (orphanExists) {
+		console.log('[Main] Found orphaned SDL bridge, attempting graceful shutdown...');
+		await sendShutdownToOrphan(SDL_TCP_PORT);
+
+		const freed = await waitForPortFree(SDL_TCP_PORT, 5000);
+		if (!freed) {
+			console.error('[Main] WARNING: Orphaned SDL bridge did not shut down cleanly!');
+			console.error('[Main] Port 54321 may still be in use. New bridge might fail to start.');
+		} else {
+			console.log('[Main] Orphaned SDL bridge cleaned up successfully');
+		}
+	} else {
+		console.log('[Main] No orphaned SDL bridge detected');
+	}
+}
+
 function startSDLBridge(): void {
 	console.log('[Main] Starting SDL bridge...');
 
@@ -214,7 +304,11 @@ function startSDLBridge(): void {
 
 		console.log('[Main] Spawning SDL bridge process:', bridgePath);
 
-		sdlBridgeProcess = spawn('node', [bridgePath, SDL_TCP_PORT.toString()], {
+		sdlBridgeProcess = spawn('node', [
+			bridgePath,
+			SDL_TCP_PORT.toString(),
+			process.pid.toString() // Pass parent PID for heartbeat monitoring
+		], {
 			stdio: ['ignore', 'pipe', 'pipe'], // Don't use stdin, capture stdout/stderr
 			windowsHide: true, // Hide console window on Windows
 			detached: false, // Keep attached to parent so it dies with Electron
@@ -461,6 +555,9 @@ app.whenReady().then(async () => {
 	console.log(`[Main] Loading bundled webapp from: ${htmlPath}`);
 	await mainWindow.loadFile(htmlPath);
 	startInputHooks();
+
+	// Clean up any orphaned SDL bridges from previous crashes
+	await ensureCleanSDLBridge();
 
 	// Start SDL bridge in separate process
 	startSDLBridge();

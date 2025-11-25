@@ -38,6 +38,7 @@ const LinearInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 			wheel: z.enum(['up', 'down']).nullable().default(null)
 		}).default({ button: null, wheel: null }),
 		gamepad: z.object({
+			controllerIndex: z.number().nullable().default(0),
 			stick: z.object({
 				type: z.enum(['left', 'right']).nullable().default(null),
 				axis: z.enum(['X', 'Y']).nullable().default(null),
@@ -47,13 +48,14 @@ const LinearInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 				index: z.number().nullable().default(null)
 			}).default({ index: null })
 		}).default({
+			controllerIndex: 0,
 			stick: { type: null, axis: null, direction: null },
 			button: { index: null }
 		})
 	}).default({
 		keyboard: { keyCode: null },
 		mouse: { button: null, wheel: null },
-		gamepad: { stick: { type: null, axis: null, direction: null }, button: { index: null } }
+		gamepad: { controllerIndex: 0, stick: { type: null, axis: null, direction: null }, button: { index: null } }
 	}),
 	processing: z.object({
 		radialCompensationAxis: z.number().default(-1),
@@ -100,6 +102,7 @@ const PlanarInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 		lengthInPx: z.number().default(200)
 	}).default({ widthInPx: 200, lengthInPx: 200 }),
 	input: z.object({
+		controllerIndex: z.number().nullable().default(0),
 		xAxes: z.record(z.string(), z.boolean()).default({ "0": true }),
 		yAxes: z.record(z.string(), z.boolean()).default({ "1": true }),
 		xKeyCodePositive: z.string().nullable().default("ArrowRight"),
@@ -108,7 +111,7 @@ const PlanarInputIndicatorSchema = BaseCanvasObjectSchema.extend({
 		yKeyCodeNegative: z.string().nullable().default("ArrowUp"),
 		invertX: z.boolean().default(false),
 		invertY: z.boolean().default(false)
-	}).default({ xAxes: { "0": true }, yAxes: { "1": true }, xKeyCodePositive: "ArrowRight", xKeyCodeNegative: "ArrowLeft", yKeyCodePositive: "ArrowDown", yKeyCodeNegative: "ArrowUp", invertX: false, invertY: false }),
+	}).default({ controllerIndex: 0, xAxes: { "0": true }, yAxes: { "1": true }, xKeyCodePositive: "ArrowRight", xKeyCodeNegative: "ArrowLeft", yKeyCodePositive: "ArrowDown", yKeyCodeNegative: "ArrowUp", invertX: false, invertY: false }),
 	processing: z.object({
 		deadzone: z.number().default(0.03),
 		antiDeadzone: z.number().default(0)

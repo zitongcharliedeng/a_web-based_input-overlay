@@ -39,13 +39,12 @@ export class PlanarInputIndicator extends CanvasObjectInstance {
 			if (yKeyNeg && keyboard[yKeyNeg]) yAxis -= 1;
 		}
 
-		// Gamepad input (analog)
+		// Gamepad input (analog) - only read from specified controller
 		const gamepads = window.gamepads;
+		const controllerIndex = this.config.input.controllerIndex ?? 0;
 		if (gamepads) {
-			for (let i = 0; i < gamepads.length; i++) {
-				const gamepad = gamepads[i];
-				if (!gamepad) continue;
-			if (gamepad.axes) {
+			const gamepad = gamepads[controllerIndex];
+			if (gamepad && gamepad.axes) {
 				for (let i = 0; i < gamepad.axes.length; i++) {
 					const axisValue = gamepad.axes[i];
 					if (this.config.input.xAxes[i] && axisValue !== undefined) {
@@ -55,7 +54,6 @@ export class PlanarInputIndicator extends CanvasObjectInstance {
 						yAxis += axisValue;
 					}
 				}
-			}
 			}
 		}
 

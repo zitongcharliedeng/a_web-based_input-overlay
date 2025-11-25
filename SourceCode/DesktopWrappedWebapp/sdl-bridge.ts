@@ -73,8 +73,8 @@ interface SDLController {
 interface SDLControllerAPI {
 	devices: SDLControllerDevice[];
 	openDevice(device: SDLControllerDevice): SDLController;
-	on(event: 'deviceAdd', callback: (device: SDLControllerDevice) => void): void;
-	on(event: 'deviceRemove', callback: (device: SDLControllerDevice) => void): void;
+	on(event: 'deviceAdd', callback: (event: { device: SDLControllerDevice }) => void): void;
+	on(event: 'deviceRemove', callback: (event: { device: SDLControllerDevice }) => void): void;
 }
 
 interface SDLKeyEvent {
@@ -221,7 +221,7 @@ function sendGamepadState(index: number, controller: SDLController): void {
 	const axes = controller.axes;
 	const buttons = controller.buttons;
 
-	// Map SDL controller to W3C Gamepad API format
+	// Map SDL controller to W3C Gamepad API format (RAW data, no compensation)
 	const state: GamepadState = {
 		axes: [
 			axes.leftStickX ?? 0,
@@ -304,26 +304,55 @@ function initControllers(): void {
 		}
 	});
 
-	// Hot-plug support
-	sdl.controller!.on('deviceAdd', (device: SDLControllerDevice) => {
+	// Hot-plug support - find first free slot (W3C Gamepad API: sparse array, no hard limit)
+	sdl.controller!.on('deviceAdd', (event: { device: SDLControllerDevice }) => {
+		const device = event.device;
 		log(`Controller connected: ${device.name}`);
-		const index = controllers.size;
+
+		let freeSlot = -1;
+		for (let i = 0; ; i++) {
+			if (!controllers.has(i)) {
+				freeSlot = i;
+				break;
+			}
+		}
+
 		try {
 			const controller = sdl.controller!.openDevice(device);
-			controllers.set(index, controller);
-			controller.on('axisMotion', () => sendGamepadState(index, controller));
-			controller.on('buttonDown', () => sendGamepadState(index, controller));
-			controller.on('buttonUp', () => sendGamepadState(index, controller));
-			controller.on('close', () => controllers.delete(index));
-			sendGamepadState(index, controller);
+			controllers.set(freeSlot, controller);
+			log(`Opened controller ${freeSlot}: ${device.name}`);
+
+			controller.on('axisMotion', () => sendGamepadState(freeSlot, controller));
+			controller.on('buttonDown', () => sendGamepadState(freeSlot, controller));
+			controller.on('buttonUp', () => sendGamepadState(freeSlot, controller));
+
+			controller.on('close', () => {
+				log(`Controller ${freeSlot} disconnected`);
+				send({
+					type: 'gamepad-state',
+					index: freeSlot,
+					state: {
+						axes: [],
+						buttons: [],
+						connected: false,
+						timestamp: Date.now(),
+						id: '',
+						index: freeSlot,
+						mapping: '',
+					},
+				});
+				controllers.delete(freeSlot);
+			});
+
+			sendGamepadState(freeSlot, controller);
 		} catch (err) {
 			const error = err as Error;
 			log(`Failed to open hot-plugged controller: ${error.message}`);
 		}
 	});
 
-	sdl.controller!.on('deviceRemove', (device: SDLControllerDevice) => {
-		log(`Controller removed: ${device.name}`);
+	sdl.controller!.on('deviceRemove', (event: { device: SDLControllerDevice }) => {
+		log(`Controller removed: ${event.device.name}`);
 	});
 }
 
@@ -447,10 +476,74 @@ function initKeyboardMouse(): void {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MAIN - Connect to Electron via TCP
+// LIFECYCLE MANAGEMENT - Parent Process Monitoring
 // ═══════════════════════════════════════════════════════════════════════════
 
 const port = parseInt(process.argv[2] ?? '54321');
+const parentPID = parseInt(process.argv[3] ?? '0');
+
+if (!parentPID || isNaN(parentPID)) {
+	console.error('[SDL Bridge] ERROR: Parent PID not provided');
+	process.exit(1);
+}
+
+log(`Monitoring parent process ${parentPID}`);
+
+let parentHeartbeatInterval: NodeJS.Timeout | null = null;
+
+function cleanup(): void {
+	log('Cleaning up resources...');
+
+	if (parentHeartbeatInterval) {
+		clearInterval(parentHeartbeatInterval);
+	}
+
+	for (const [index, controller] of controllers) {
+		try {
+			controller.close();
+		} catch (err) {
+			console.error(`[SDL Bridge] Error closing gamepad ${index}:`, err);
+		}
+	}
+
+	if (sdlWindow) {
+		try {
+			sdlWindow.destroy();
+		} catch (err) {
+			console.error('[SDL Bridge] Error closing SDL window:', err);
+		}
+	}
+
+	if (socket) {
+		socket.end();
+	}
+}
+
+parentHeartbeatInterval = setInterval(() => {
+	try {
+		process.kill(parentPID, 0);
+	} catch (err) {
+		log('Parent process no longer exists, self-terminating...');
+		cleanup();
+		process.exit(0);
+	}
+}, 3000);
+
+process.on('SIGTERM', () => {
+	log('Received SIGTERM');
+	cleanup();
+	process.exit(0);
+});
+
+process.on('SIGINT', () => {
+	log('Received SIGINT');
+	cleanup();
+	process.exit(0);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN - Connect to Electron via TCP
+// ═══════════════════════════════════════════════════════════════════════════
 
 socket = net.connect(port, '127.0.0.1', () => {
 	log('Connected to Electron');
