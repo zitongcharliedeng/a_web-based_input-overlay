@@ -113,14 +113,11 @@ a_web-based_input-overlay/
     │       ├── Vector.ts                    # 3D vector math
     │       └── TypeUtilities.ts             # TypeScript helpers
     │
-    ├── DesktopWrappedWebapp/               # Electron wrapper
-    │   ├── tsconfig.json                   # TypeScript config
-    │   ├── main.ts                         # Main process
-    │   ├── preload.ts                      # Preload script (IPC bridge)
-    │   └── modeSelectorPreload.ts          # Mode selection preload
-    │
-    └── _devTools/                          # Development tools
-        └── buildForWindowsDevelopment.ps1  # Build and run script
+    └── DesktopWrappedWebapp/               # Electron wrapper
+        ├── tsconfig.json                   # TypeScript config
+        ├── main.ts                         # Main process
+        ├── preload.ts                      # Preload script (IPC bridge)
+        └── modeSelectorPreload.ts          # Mode selection preload
 ```
 
 ---
@@ -303,20 +300,6 @@ npm run build && electron DesktopWrappedWebapp/main.js --with-dev-console
 # Run Electron in clickthrough-readonly mode
 npm run electron:clickthrough-readonly
 npm run build && electron DesktopWrappedWebapp/main.js --in-clickthrough-readonly-mode
-```
-
-### Windows Development Script
-
-Primary development workflow uses PowerShell script:
-
-```powershell
-.\SourceCode\_devTools\buildForWindowsDevelopment.ps1
-
-# Interactive menu:
-# 1. Build only
-# 2. Build and launch website version
-# 3. Build and launch webapp (interactive mode)
-# 4. Build and launch webapp (clickthrough-readonly mode)
 ```
 
 ---

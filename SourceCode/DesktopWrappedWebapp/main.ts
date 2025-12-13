@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, IpcMainEvent, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, IpcMainEvent, screen, WebContentsView } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import serve from 'electron-serve';
@@ -104,6 +104,8 @@ let mainWindow: BrowserWindow | null = null;
 let gamepadPollInterval: NodeJS.Timeout | null = null;
 let keepOnTopInterval: NodeJS.Timeout | null = null;
 
+const webEmbedViews = new Map<number, WebContentsView>();
+
 try {
 	const uiohook = require('uiohook-napi');
 	uIOhook = uiohook.uIOhook as UIOHook;
@@ -147,6 +149,41 @@ ipcMain.on('toggle-readonly-mode', (_event: IpcMainEvent) => {
 	if (mainWindow) {
 		mainWindow.setIgnoreMouseEvents(true);
 		console.log('[Main] Clickthrough enabled - use Task Manager to close app');
+	}
+});
+
+ipcMain.on('webembed:create', (event: IpcMainEvent, id: number, url: string, bounds: { x: number; y: number; width: number; height: number }) => {
+	if (!mainWindow) return;
+
+	const view = new WebContentsView({
+		webPreferences: {
+			nodeIntegration: false,
+			contextIsolation: true,
+			webSecurity: true
+		}
+	});
+
+	view.webContents.loadURL(url);
+	view.setBounds(bounds);
+	mainWindow.contentView.addChildView(view);
+	webEmbedViews.set(id, view);
+
+	console.log('[Main] WebEmbed created:', id, url);
+});
+
+ipcMain.on('webembed:update', (_event: IpcMainEvent, id: number, bounds: { x: number; y: number; width: number; height: number }) => {
+	const view = webEmbedViews.get(id);
+	if (view) {
+		view.setBounds(bounds);
+	}
+});
+
+ipcMain.on('webembed:destroy', (_event: IpcMainEvent, id: number) => {
+	const view = webEmbedViews.get(id);
+	if (view && mainWindow) {
+		mainWindow.contentView.removeChildView(view);
+		webEmbedViews.delete(id);
+		console.log('[Main] WebEmbed destroyed:', id);
 	}
 });
 

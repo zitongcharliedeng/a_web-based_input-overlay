@@ -52,6 +52,11 @@ declare global {
 			isAppInReadonlyClickthroughMode: () => boolean;
 			hasGlobalInput: () => boolean;
 			toggleReadonlyMode: () => void;
+			webEmbed: {
+				create: (id: number, url: string, bounds: { x: number; y: number; width: number; height: number }) => void;
+				update: (id: number, bounds: { x: number; y: number; width: number; height: number }) => void;
+				destroy: (id: number) => void;
+			};
 		};
 	}
 }
@@ -94,6 +99,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 	toggleReadonlyMode: (): void => {
 		ipcRenderer.send('toggle-readonly-mode');
+	},
+
+	webEmbed: {
+		create: (id: number, url: string, bounds: { x: number; y: number; width: number; height: number }): void => {
+			ipcRenderer.send('webembed:create', id, url, bounds);
+		},
+		update: (id: number, bounds: { x: number; y: number; width: number; height: number }): void => {
+			ipcRenderer.send('webembed:update', id, bounds);
+		},
+		destroy: (id: number): void => {
+			ipcRenderer.send('webembed:destroy', id);
+		}
 	}
 });
 

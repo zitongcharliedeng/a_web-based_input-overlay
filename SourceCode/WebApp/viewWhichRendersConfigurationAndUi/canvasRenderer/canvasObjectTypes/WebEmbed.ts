@@ -1,36 +1,21 @@
 import { CanvasObjectInstance } from './BaseCanvasObject';
 import { WebEmbedSchema, type WebEmbedConfig } from '../../../modelToSaveCustomConfigurationLocally/configSchema';
 
-// Type for embed elements (iframe in web, webview in Electron)
-type EmbedElement = HTMLIFrameElement | HTMLElement;
-
-// Global embed registry to prevent duplicates when objects are recreated each frame
-const embedRegistry = new Map<number, EmbedElement>();
+const embedRegistry = new Map<number, HTMLIFrameElement>();
+const isElectron = typeof window !== 'undefined' && (window as { electronAPI?: unknown }).electronAPI !== undefined;
 
 /**
- * WebEmbed: Embeds external web content in the overlay
+ * WebEmbed: Platform-agnostic external web content embedding
  *
- * Implementation:
- * - Electron: Uses <webview> tag (proper YouTube/external site support)
- * - Browser: Uses <iframe> (may have restrictions with some sites)
+ * Web: iframe in DOM
+ * Electron: WebContentsView via IPC (proper headers, no Error 153)
  *
- * Supported Features:
- * - Display external content (YouTube, Twitch, etc.)
- * - Click interaction (when interactionMode = 'interactableOnFocus')
- * - Transparent overlay integration
- *
- * Electron-Only Features (gracefully ignored in browser):
- * - inputForwardingInElectron: Forward global keyboard/mouse events to embedded page
- *   (Uses webview.sendInputEvent() API to bypass CORS restrictions)
- *
- * Naming Convention:
- * - Config fields ending with "InElectron" indicate Electron-only features
- * - Website version gracefully ignores these (no errors, feature just doesn't work)
+ * Behavioral parity: Same visual result, same config interface
  */
 export class WebEmbed extends CanvasObjectInstance {
 	override readonly config: WebEmbedConfig;
 	runtimeState: {
-		embedElement: EmbedElement | null;
+		embedElement: HTMLIFrameElement | null;
 	};
 
 	constructor(configOverrides: Partial<WebEmbedConfig> | undefined, objArrayIdx: number) {
@@ -40,56 +25,76 @@ export class WebEmbed extends CanvasObjectInstance {
 			embedElement: null
 		};
 
-		this.findOrCreateEmbed();
+		this.initializeEmbed();
 	}
 
-	private findOrCreateEmbed(): void {
+	private initializeEmbed(): void {
 		const existing = embedRegistry.get(this.objArrayIdx);
 		if (existing && existing.parentNode) {
 			this.runtimeState.embedElement = existing;
-			const currentSrc = existing.getAttribute('src');
-			if (currentSrc !== this.config.url) {
-				existing.setAttribute('src', this.config.url);
+			if (existing.src !== this.config.url) {
+				existing.src = this.config.url;
 			}
 			return;
 		}
 
-		const iframe = document.createElement('iframe');
-		iframe.src = this.config.url;
-		iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
-		iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen');
-		iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-presentation');
-		const embedElement: EmbedElement = iframe;
+		const padding = 50;
+		const bounds = {
+			x: this.config.positionOnCanvas.pxFromCanvasLeft + padding,
+			y: this.config.positionOnCanvas.pxFromCanvasTop + padding,
+			width: this.config.hitboxSize.widthInPx - padding * 2,
+			height: this.config.hitboxSize.lengthInPx - padding * 2
+		};
 
-		embedElement.style.position = 'absolute';
+		if (isElectron) {
+			(window as { electronAPI: { webEmbed: { create: (id: number, url: string, bounds: typeof bounds) => void } } }).electronAPI.webEmbed.create(
+				this.objArrayIdx,
+				this.config.url,
+				bounds
+			);
+		} else {
+			const iframe = document.createElement('iframe');
+			iframe.src = this.config.url;
+			iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+			iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen');
+			iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-presentation');
+			iframe.setAttribute('allowfullscreen', '');
 
-		const padding = 50;  // 50px border for dragging and right-click
-		embedElement.style.left = (this.config.positionOnCanvas.pxFromCanvasLeft + padding) + 'px';
-		embedElement.style.top = (this.config.positionOnCanvas.pxFromCanvasTop + padding) + 'px';
-		embedElement.style.width = (this.config.hitboxSize.widthInPx - padding * 2) + 'px';
-		embedElement.style.height = (this.config.hitboxSize.lengthInPx - padding * 2) + 'px';
+			iframe.style.position = 'absolute';
+			iframe.style.left = bounds.x + 'px';
+			iframe.style.top = bounds.y + 'px';
+			iframe.style.width = bounds.width + 'px';
+			iframe.style.height = bounds.height + 'px';
+			iframe.style.opacity = this.config.opacity.toString();
+			iframe.style.border = '2px solid #B4B4B4';
+			iframe.style.pointerEvents = this.config.interactionMode === 'readonly' ? 'none' : 'auto';
+			iframe.style.zIndex = '1';
 
-		embedElement.style.opacity = this.config.opacity.toString();
-		embedElement.style.border = '2px solid #B4B4B4';
-		embedElement.style.pointerEvents = this.config.interactionMode === 'readonly' ? 'none' : 'auto';
-		embedElement.style.zIndex = '1';
-
-		embedElement.setAttribute('allowfullscreen', '');
-		embedElement.setAttribute('allowtransparency', 'true');
-
-		document.body.appendChild(embedElement);
-
-		this.runtimeState.embedElement = embedElement;
-		embedRegistry.set(this.objArrayIdx, embedElement);
+			document.body.appendChild(iframe);
+			this.runtimeState.embedElement = iframe;
+			embedRegistry.set(this.objArrayIdx, iframe);
+		}
 	}
 
 	override update(): boolean {
-		if (this.runtimeState.embedElement) {
-			const padding = 50;  // 50px border for dragging and right-click
-			this.runtimeState.embedElement.style.left = (this.config.positionOnCanvas.pxFromCanvasLeft + padding) + 'px';
-			this.runtimeState.embedElement.style.top = (this.config.positionOnCanvas.pxFromCanvasTop + padding) + 'px';
-			this.runtimeState.embedElement.style.width = (this.config.hitboxSize.widthInPx - padding * 2) + 'px';
-			this.runtimeState.embedElement.style.height = (this.config.hitboxSize.lengthInPx - padding * 2) + 'px';
+		const padding = 50;
+		const bounds = {
+			x: this.config.positionOnCanvas.pxFromCanvasLeft + padding,
+			y: this.config.positionOnCanvas.pxFromCanvasTop + padding,
+			width: this.config.hitboxSize.widthInPx - padding * 2,
+			height: this.config.hitboxSize.lengthInPx - padding * 2
+		};
+
+		if (isElectron) {
+			(window as { electronAPI: { webEmbed: { update: (id: number, bounds: typeof bounds) => void } } }).electronAPI.webEmbed.update(
+				this.objArrayIdx,
+				bounds
+			);
+		} else if (this.runtimeState.embedElement) {
+			this.runtimeState.embedElement.style.left = bounds.x + 'px';
+			this.runtimeState.embedElement.style.top = bounds.y + 'px';
+			this.runtimeState.embedElement.style.width = bounds.width + 'px';
+			this.runtimeState.embedElement.style.height = bounds.height + 'px';
 			this.runtimeState.embedElement.style.opacity = this.config.opacity.toString();
 			this.runtimeState.embedElement.style.pointerEvents = this.config.interactionMode === 'readonly' ? 'none' : 'auto';
 		}
@@ -99,7 +104,7 @@ export class WebEmbed extends CanvasObjectInstance {
 	override draw(_canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, isDragPreview: boolean = false): void {
 		const padding = 50;
 
-		if (this.runtimeState.embedElement) {
+		if (!isElectron && this.runtimeState.embedElement) {
 			this.runtimeState.embedElement.style.display = isDragPreview ? 'none' : 'block';
 		}
 
@@ -127,11 +132,14 @@ export class WebEmbed extends CanvasObjectInstance {
 	}
 
 	override cleanup(): void {
-		if (this.runtimeState.embedElement?.parentNode) {
-			this.runtimeState.embedElement.parentNode.removeChild(this.runtimeState.embedElement);
-			this.runtimeState.embedElement = null;
+		if (isElectron) {
+			(window as { electronAPI: { webEmbed: { destroy: (id: number) => void } } }).electronAPI.webEmbed.destroy(this.objArrayIdx);
+		} else {
+			if (this.runtimeState.embedElement?.parentNode) {
+				this.runtimeState.embedElement.parentNode.removeChild(this.runtimeState.embedElement);
+				this.runtimeState.embedElement = null;
+			}
+			embedRegistry.delete(this.objArrayIdx);
 		}
-
-		embedRegistry.delete(this.objArrayIdx);
 	}
 }
