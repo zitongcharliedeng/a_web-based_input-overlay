@@ -302,7 +302,12 @@ function startSDLBridge(): void {
 			return;
 		}
 
-		console.log('[Main] Spawning SDL bridge process:', bridgePath);
+		// In production, sdl-bridge.js is unpacked from asar to app.asar.unpacked/
+		const actualBridgePath = app.isPackaged
+			? bridgePath.replace('app.asar', 'app.asar.unpacked')
+			: bridgePath;
+
+		console.log('[Main] Spawning SDL bridge process:', actualBridgePath);
 
 		// In production, extraResources puts node_modules in resources/
 		// We need to tell node where to find them
@@ -313,7 +318,7 @@ function startSDLBridge(): void {
 		console.log('[Main] NODE_PATH for SDL bridge:', resourcesPath);
 
 		sdlBridgeProcess = spawn('node', [
-			bridgePath,
+			actualBridgePath,
 			SDL_TCP_PORT.toString(),
 			process.pid.toString() // Pass parent PID for heartbeat monitoring
 		], {

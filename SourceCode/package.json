@@ -1,6 +1,6 @@
 {
   "name": "a-real-web-based-input-overlay",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A Real Web-based Input Overlay - displays keyboard, mouse, and gamepad inputs",
   "author": "zitongcharliedeng",
   "repository": {
@@ -78,6 +78,9 @@
           "**/*"
         ]
       }
+    ],
+    "asarUnpack": [
+      "**/sdl-bridge.js"
     ],
     "extraResources": [
       {
