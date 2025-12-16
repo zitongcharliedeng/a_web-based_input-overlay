@@ -304,6 +304,14 @@ function startSDLBridge(): void {
 
 		console.log('[Main] Spawning SDL bridge process:', bridgePath);
 
+		// In production, extraResources puts node_modules in resources/
+		// We need to tell node where to find them
+		const resourcesPath = app.isPackaged
+			? path.join(process.resourcesPath, 'node_modules')
+			: path.join(__dirname, '..', 'node_modules');
+
+		console.log('[Main] NODE_PATH for SDL bridge:', resourcesPath);
+
 		sdlBridgeProcess = spawn('node', [
 			bridgePath,
 			SDL_TCP_PORT.toString(),
@@ -312,6 +320,10 @@ function startSDLBridge(): void {
 			stdio: ['ignore', 'pipe', 'pipe'], // Don't use stdin, capture stdout/stderr
 			windowsHide: true, // Hide console window on Windows
 			detached: false, // Keep attached to parent so it dies with Electron
+			env: {
+				...process.env,
+				NODE_PATH: resourcesPath,
+			},
 		});
 
 		sdlBridgeProcess.stdout?.on('data', (data: Buffer) => {
